@@ -1,4 +1,4 @@
-'wheregroup_catalogue service':
+'wheregroup-catalogue-service':
     origin: WhereGroup
     name: 'Catalogue Service'
     description: 'Catalogue Service'
