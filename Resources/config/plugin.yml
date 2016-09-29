@@ -1,0 +1,7 @@
+'wheregroup_catalogue service':
+    origin: WhereGroup
+    name: 'Catalogue Service'
+    description: 'Catalogue Service'
+    class_path: Plugins\WhereGroup\CatalogueServiceBundle
+    class_name: CatalogueServiceBundle
+    version: '1.0'
