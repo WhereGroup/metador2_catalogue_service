@@ -23,7 +23,9 @@ class CSWController extends Controller
      */
     public function defaultAction($instance)
     {
-        $xml = $this->get('catalogue_service')->getRecordById(4);
+        $uuid = $this->get('request_stack')->getCurrentRequest()->get('uuid');
+
+        $xml  = $this->get('catalogue_service')->getRecordById($uuid);
 
         $response = new Response();
         $response->headers->set('Content-Type', 'text/xml');

@@ -12,7 +12,7 @@
             <argument type="service" id="request_stack" />
             <argument type="service" id="metadata" />
             <argument type="service" id="metador_plugin" />
-            <argument type="service" id="twig" />
+            <argument type="service" id="templating" />
         </service>
     </services>
 </container>

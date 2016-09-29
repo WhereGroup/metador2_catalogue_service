@@ -3,6 +3,7 @@
 namespace Plugins\WhereGroup\CatalogueServiceBundle\Component;
 
 use Symfony\Component\HttpFoundation\RequestStack;
+use Symfony\Bundle\TwigBundle\Debug\TimedTwigEngine;
 use WhereGroup\CoreBundle\Component\Metadata;
 use WhereGroup\PluginBundle\Component\Plugin;
 
@@ -15,6 +16,8 @@ class Csw
     protected $requestStack = null;
     protected $metadata = null;
     protected $plugin = null;
+
+    /** @var TimedTwigEngine $templating */
     protected $templating = null;
 
     /**
@@ -22,18 +25,18 @@ class Csw
      * @param RequestStack $requestStack
      * @param Metadata $metadata
      * @param Plugin $plugin
-     * @param \Twig_Environment $twig
+     * @param $templating
      */
     public function __construct(
         RequestStack $requestStack,
         Metadata $metadata,
         Plugin $plugin,
-        \Twig_Environment $twig
+        $templating
     ) {
         $this->requestStack = $requestStack;
         $this->metadata = $metadata;
         $this->plugin = $plugin;
-        $this->templating = $twig;
+        $this->templating = $templating;
     }
 
     public function __destruct()
