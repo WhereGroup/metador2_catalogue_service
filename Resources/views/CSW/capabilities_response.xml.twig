@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<csw:Capabilities version="2.0.2" xmlns:csw="http://www.opengis.net/cat/csw/2.0.2" xsi:schemaLocation="http://www.opengis.net/cat/csw/2.0.2 http://schemas.opengis.net/csw/2.0.2/CSW-discovery.xsd" xmlns:gml="http://www.opengis.net/gml" xmlns:gmd="http://www.isotc211.org/2005/gmd" xmlns:ows="http://www.opengis.net/ows" xmlns:ogc="http://www.opengis.net/ogc" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    {% if getcapabilities.sectionList.ServiceIdentification is defined %}
+    <ows:ServiceIdentification>
+        {% set identification = getcapabilities.sectionList.ServiceIdentification.data %}
+        {% if identification.title is defined %}
+        <ows:Title>{{ identification.title }}</ows:Title>
+        {% endif %}
+        {% if identification.abstract is defined %}
+        <ows:Abstract>
+            {{ identification.abstract }}
+        </ows:Abstract>
+        {% endif %}
+        {% if identification.keywords is defined %}
+        <ows:Keywords>
+            {% for keyword in identification.keywords %}
+            <ows:Keyword>{{ keyword }}</ows:Keyword>
+            {% endfor %}
+            <!--ows:Type codeSpace="some uri">some type</ows:Type-->
+        </ows:Keywords>
+        {% endif %}
+        <ows:ServiceType>CSW</ows:ServiceType>
+        {% for version in identification.versions %}
+        <ows:ServiceTypeVersion>{{ version }}</ows:ServiceTypeVersion>
+        {% endfor %}
+        <ows:Fees>{{ identification.fees }}</ows:Fees>
+        {% for accessConstraint in identification.accessConstraints %}
+        <ows:AccessConstraints>{{ accessConstraint }}</ows:AccessConstraints>
+        {% endfor %}
+    </ows:ServiceIdentification>
+    {% endif %}
+    {% if getcapabilities.sectionList.ServiceProvider is defined %}
+    <ows:ServiceProvider>
+        {% set provider = getcapabilities.sectionList.ServiceProvider.data %}
+        {% if provider.providerName is defined %}
+        <ows:ProviderName>{{ provider.providerName }}</ows:ProviderName>
+        {% endif %}
+        {% if provider.providerSite is defined %}
+        <ows:ProviderSite xlink:type="simple" xlink:href="{{ provider.providerSite }}"/>
+        {% endif %}
+        {% if provider.serviceContact is defined %}
+        <ows:ServiceContact>
+            <ows:IndividualName>{{ provider.serviceContact.individualName }}</ows:IndividualName>
+            <ows:PositionName>{{ provider.serviceContact.positionName }}</ows:PositionName>
+            <ows:ContactInfo>
+                {% set info = provider.serviceContact.contactInfo %}
+                {% if info.phone is defined %}
+                <ows:Phone>
+                    {% if info.phone.voice is defined %}
+                    <ows:Voice>{{ info.phone.voice }}</ows:Voice>
+                    {% endif %}
+                    {% if info.phone.voice.facsimile is defined %}
+                    <ows:Facsimile>{{ info.phone.voice.facsimile }}</ows:Facsimile>
+                    {% endif %}
+                </ows:Phone>
+                {% endif %}
+                {% if info.address is defined %}
+                <ows:Address>
+                    <ows:DeliveryPoint>{{ info.address.deliveryPoint }}</ows:DeliveryPoint>
+                    <ows:City>{{ info.address.city }}</ows:City>
+                    <ows:AdministrativeArea>{{ info.address.administrativeArea }}</ows:AdministrativeArea>
+                    <ows:PostalCode>{{ info.address.postalCode }}</ows:PostalCode>
+                    <ows:Country>{{ info.address.country }}</ows:Country>
+                    <ows:ElectronicMailAddress>{{ info.address.electronicMailAddress }}</ows:ElectronicMailAddress>
+                </ows:Address>
+                {% endif %}
+                <ows:OnlineResource xlink:href="mailto:conterra@conterra.de"/>
+            </ows:ContactInfo>
+        </ows:ServiceContact>
+        {% endif %}
+    </ows:ServiceProvider>
+    {% endif %}
+    {% if getcapabilities.sectionList.OperationsMetadata is defined %}
+    <ows:OperationsMetadata>
+        {% set operations = getcapabilities.operations %}
+        {% for operation in operations %}
+        <ows:Operation name="{{ operation.name }}">
+            <ows:DCP>
+                <ows:HTTP>
+                    {% if operation.httpGet %}
+                    <ows:Get xlink:href="{{ operation.httpGet }}" />
+                    {% endif %}
+                    {% if operation.httpPost %}
+                    <ows:Post xlink:href="{{ operation.httpPost }}" />
+                    {% endif %}
+                </ows:HTTP>
+            </ows:DCP>
+            {% for name, items in operation.parameters %}
+                <ows:Parameter name="{{ name }}">
+                {% for item in items %}
+                    <ows:Value>{{ item }}</ows:Value>
+                {% endfor %}
+                </ows:Parameter>
+            {% endfor %}
+        </ows:Operation>
+        {% endfor %}
+    </ows:OperationsMetadata>
+    {% endif %}
+    {% if getcapabilities.sectionList.FilterCapabilities is defined %}
+    <ogc:Filter_Capabilities>
+        {% set filter =  getcapabilities.sectionList.FilterCapabilities.data %}
+        {% if filter.spatial_Capabilities is defined %}
+        <ogc:Spatial_Capabilities>
+            {% if filter.spatial_Capabilities.geometryOperands|length > 0 %}
+            <ogc:GeometryOperands>
+                {% for operand in filter.spatial_Capabilities.geometryOperands %}
+                <ogc:GeometryOperand>{{ operand}}</ogc:GeometryOperand>
+                {% endfor %}
+            </ogc:GeometryOperands>
+            {% else %}
+                <ogc:GeometryOperands/>
+            {% endif %}
+            {% if filter.spatial_Capabilities.spatialOperators|length > 0 %}
+            <ogc:SpatialOperators>
+                {% for operand in filter.spatial_Capabilities.spatialOperators %}
+                <ogc:SpatialOperator name="{{ operand }}"/>
+                {% endfor %}
+            </ogc:SpatialOperators>
+            {% else %}
+            <ogc:SpatialOperators/>
+            {% endif %}
+        </ogc:Spatial_Capabilities>
+        {% endif %}
+        {% if filter.scalar_Capabilities is defined %}
+        <ogc:Scalar_Capabilities>
+            {% if filter.scalar_Capabilities.logicalOperators %}
+            <ogc:LogicalOperators/>
+            {% endif %}
+            {% if filter.scalar_Capabilities.comparisonOperators|length > 0 %}
+            <ogc:ComparisonOperators>
+                {% for operand in filter.scalar_Capabilities.comparisonOperators %}
+                <ogc:ComparisonOperator>{{ operand }}</ogc:ComparisonOperator>
+                {% endfor %}
+            </ogc:ComparisonOperators>
+            {% endif %}
+        </ogc:Scalar_Capabilities>
+        {% endif %}
+        {% if filter.id_Capabilities is defined %}
+        <ogc:Id_Capabilities>
+            <ogc:FID/>
+        </ogc:Id_Capabilities>
+        {% endif %}
+    </ogc:Filter_Capabilities>
+    {% endif %}
+</csw:Capabilities>
