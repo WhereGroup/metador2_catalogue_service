@@ -1,44 +1,80 @@
 <?php
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 
 namespace Plugins\WhereGroup\CatalogueServiceBundle\Component;
 
 /**
- * Description of GetHandler
+ * {@inheritdoc}
  *
  * @author Paul Schmidt<panadium@gmx.de>
  */
 class GetParameterHandler extends AParameterHandler
 {
-    protected $parameters;
 
-    public function __construct($parameters)
+    /**
+     * The key value pair list of requested parameters
+     * @var array $requestParameters
+     */
+    protected $requestParameters;
+
+    /**
+     * {@inheritdoc}
+     */
+    public function __construct(Csw $csw, $rootPrefix = 'csw', $rootUri = 'http://www.opengis.net/cat/csw/2.0.2')
     {
-        $this->parameters = $parameters;
+        parent::__construct($csw, $rootPrefix, $rootUri);
+        $this->operation = null;
     }
 
-    public function getParameter($name, $caseSensitive = false)
+    /**
+     * {@inheritdoc}
+     */
+    public function getParameter($name = null, $xpath = null, $caseSensitive = false)
     {
-        if($caseSensitive){
-            return isset($this->parameters[$name]) ? $this->parameters[$name] : null;
+        if($name === null && $xpath === null) {
+            return null;
+        }
+        if (!$this->requestParameters) {
+            $this->setRequestParameters();
+        }
+        if ($caseSensitive) {
+            return isset($this->requestParameters[$name]) ? $this->requestParameters[$name] : null;
         } else {
-            foreach ($this->parameters as $key => $value) {
-                if(strtoupper($name) === strtoupper($key)){
+            foreach ($this->requestParameters as $key => $value) {
+                if (strtoupper($name) === strtoupper($key)) {
                     return $value;
                 }
             }
+            return null;
         }
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function getOperation()
     {
-        if (!($operation = $this->getParameter('request'))) {
-            throw new CswException('request', CswException::MISSINGPARAMETER);
+        if ($this->operation === null) {
+            $this->setRequestParameters();
+            $request          = $this->getParameter('request');
+            if ($request === null) {
+                throw new CswException('request', CswException::MISSINGPARAMETER);
+            } else {
+                $this->operation  = $this->csw->operationForName($request);
+                $parameterMap       = array_keys($this->operation->getParameterMap());
+                $parameters = array();
+                foreach ($parameterMap as $name) {
+                    $parameters[$name] = $this->getParameter($name);
+                }
+                $this->operation->setParameters($parameters);
+            }
         }
-        return $operation;
+        return $this->operation;
+    }
+
+    /**
+     * Sets request parameters from request.
+     */
+    protected function setRequestParameters() {
+        $this->requestParameters = $this->csw->getRequestStack()->getCurrentRequest()->query->all();
     }
 }

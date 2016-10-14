@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <csw:Capabilities version="2.0.2" xmlns:csw="http://www.opengis.net/cat/csw/2.0.2" xsi:schemaLocation="http://www.opengis.net/cat/csw/2.0.2 http://schemas.opengis.net/csw/2.0.2/CSW-discovery.xsd" xmlns:gml="http://www.opengis.net/gml" xmlns:gmd="http://www.isotc211.org/2005/gmd" xmlns:ows="http://www.opengis.net/ows" xmlns:ogc="http://www.opengis.net/ogc" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-    {% if getcapabilities.sectionList.ServiceIdentification is defined %}
+    {% if getcapabilities.sections.ServiceIdentification is defined %}
     <ows:ServiceIdentification>
-        {% set identification = getcapabilities.sectionList.ServiceIdentification.data %}
+        {% set identification = getcapabilities.sections.ServiceIdentification.data %}
         {% if identification.title is defined %}
         <ows:Title>{{ identification.title }}</ows:Title>
         {% endif %}
@@ -29,9 +29,9 @@
         {% endfor %}
     </ows:ServiceIdentification>
     {% endif %}
-    {% if getcapabilities.sectionList.ServiceProvider is defined %}
+    {% if getcapabilities.sections.ServiceProvider is defined %}
     <ows:ServiceProvider>
-        {% set provider = getcapabilities.sectionList.ServiceProvider.data %}
+        {% set provider = getcapabilities.sections.ServiceProvider.data %}
         {% if provider.providerName is defined %}
         <ows:ProviderName>{{ provider.providerName }}</ows:ProviderName>
         {% endif %}
@@ -70,7 +70,7 @@
         {% endif %}
     </ows:ServiceProvider>
     {% endif %}
-    {% if getcapabilities.sectionList.OperationsMetadata is defined %}
+    {% if getcapabilities.sections.OperationsMetadata is defined %}
     <ows:OperationsMetadata>
         {% set operations = getcapabilities.operations %}
         {% for operation in operations %}
@@ -96,9 +96,9 @@
         {% endfor %}
     </ows:OperationsMetadata>
     {% endif %}
-    {% if getcapabilities.sectionList.FilterCapabilities is defined %}
+    {% if getcapabilities.sections.Filter_Capabilities is defined %}
     <ogc:Filter_Capabilities>
-        {% set filter =  getcapabilities.sectionList.FilterCapabilities.data %}
+        {% set filter =  getcapabilities.sections.Filter_Capabilities.data %}
         {% if filter.spatial_Capabilities is defined %}
         <ogc:Spatial_Capabilities>
             {% if filter.spatial_Capabilities.geometryOperands|length > 0 %}

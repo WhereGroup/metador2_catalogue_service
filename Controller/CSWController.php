@@ -7,7 +7,9 @@ use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Template;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Method;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 use Plugins\WhereGroup\CatalogueServiceBundle\Component\CswException;
+use Plugins\WhereGroup\CatalogueServiceBundle\Component\ContentSet;
 
 /**
  * Class CSWController
@@ -16,44 +18,47 @@ use Plugins\WhereGroup\CatalogueServiceBundle\Component\CswException;
  */
 class CSWController extends Controller
 {
+//
+//    /**
+//     * @param $instance
+//     * @return Response
+//     * @Route("{instance}/", name="csw_get_record_by_id")
+//     * @Method({"GET", "POST"})
+//     */
+//    public function defaultAction($instance)
+//    {
+//        $uuid = $this->get('request_stack')->getCurrentRequest()->get('uuid');
+//
+//        $xml = $this->get('catalogue_service')->getRecordById($uuid);
+//
+//        $response = new Response();
+//        $response->headers->set('Content-Type', 'text/xml');
+//        $response->setContent($xml);
+//
+//        return $response;
+//    }
 
     /**
-     * @param $instance
-     * @return Response
-     * @Route("{instance}/", name="csw_get_record_by_id")
+     * @return StreamedResponse
+     * @Route("service", name="csw_entry_point")
      * @Method({"GET", "POST"})
      */
-    public function defaultAction($instance)
+    public function serviceAction()
     {
-        $uuid = $this->get('request_stack')->getCurrentRequest()->get('uuid');
-
-        $xml = $this->get('catalogue_service')->getRecordById($uuid);
-
-        $response = new Response();
-        $response->headers->set('Content-Type', 'text/xml');
-        $response->setContent($xml);
-
-        return $response;
-    }
-
-    /**
-     * @return Response
-     * @Route("", name="csw_entry_point")
-     * @Method({"GET", "POST"})
-     */
-    public function entrypointAction()
-    {
-        $response = new Response();
         try {
-            $csw = $this->get('catalogue_service');
-            $handler = $csw->getParameterHandler();
-            $operation = $csw->getOperation($handler);
-            $content = $csw->createContent($handler, $operation);
-
-            $response->headers->set('Content-Type', $operation->getOutputFormat());
-            $response->setContent($content);
+            $csw       = $this->get('catalogue_service');
+            $operation = $csw->createOperation();
+            $response = new StreamedResponse(null, Response::HTTP_OK, array('content-type' => 'application/xml'));
+            $contentset = $operation->getContentSet();
+            $response->setCallback(function () use ($contentset){
+                while ($contentset->next()) {
+                    echo $contentset->getContent();
+                    flush();
+                }
+            });
+            return $response;
         } catch (CswException $ex) {
-            $content  = $this->get('templating')->render(
+            $content = $this->get('templating')->render(
                 "CatalogueServiceBundle:CSW:exception.xml.twig",
                 array('exception' => array(
                     'code' => $ex->getCswCode(),
@@ -61,23 +66,19 @@ class CSWController extends Controller
                     'text' => $ex->getText()
                 )
             ));
-
-            $response->headers->set('Content-Type', 'application/xml');
-            $response->setContent($content);
+            return new Response($content, Response::HTTP_OK, array('content-type' => 'application/xml'));
         } catch (\Exception $ex) {
-            $content  = $this->get('templating')->render(
+            $content = $this->get('templating')->render(
                 "CatalogueServiceBundle:CSW:exception.xml.twig",
                 array(
-                    'exception' => array(
-                        'code' => $ex->getCode(),
-                        'locator' => null,
-                        'text' => array($ex->getMessage())
-                    )
+                'exception' => array(
+                    'code' => $ex->getCode(),
+                    'locator' => null,
+                    'text' => array($ex->getMessage())
+                )
                 )
             );
-
-            $response->headers->set('Content-Type', 'application/xml');
-            $response->setContent($content);
+            return new Response($content, Response::HTTP_OK, array('content-type' => 'application/xml'));
         }
         return $response;
     }
