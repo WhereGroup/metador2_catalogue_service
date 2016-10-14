@@ -9,7 +9,6 @@
 ### GET
 - (http://localhost/projects/metador2/web/app_dev.php/csw/service?request=GetCapabilities&service=CSW`)
 
-
 ### POST
 `<?xml version="1.0" encoding="ISO-8859-1"?>
 <GetCapabilities
@@ -33,3 +32,22 @@
       <ows:OutputFormat>application/xml</ows:OutputFormat>
    </ows:AcceptFormats>
 </GetCapabilities>`
+
+## DescribeRecord
+### GET
+- (http://localhost/projects/metador2/web/app_dev.php/csw/service?request=DescribeRecord&service=CSW`)
+
+### POST
+`<?xml version="1.0" encoding="ISO-8859-1"?>
+<DescribeRecord
+   service="CSW" 
+   version="2.0.2" 
+   outputFormat="application/xml"
+   schemaLanguage="http://www.w3.org/2001/XMLSchema"
+   xmlns="http://www.opengis.net/cat/csw/2.0.2"
+   xmlns:csw="http://www.opengis.net/cat/csw/2.0.2"
+   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+   xsi:schemaLocation="http://www.opengis.net/cat/csw/2.0.2
+                       ../../../csw/2.0.2/CSW-discovery.xsd">
+   <TypeName>gmd:MD_Metadata</TypeName>
+</DescribeRecord>`
