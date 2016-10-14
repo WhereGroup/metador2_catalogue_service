@@ -13,16 +13,55 @@ use WhereGroup\PluginBundle\Component\Plugin;
  */
 class Csw
 {
+    /**
+     * The element prefix for csw namespace
+     */
+    const CSW_PREFIX = 'csw';
+    /**
+     * The uri for csw namespace
+     */
+    const CSW_NAMESPACE = 'http://www.opengis.net/cat/csw/2.0.2';
+    /**
+     * The service name
+     */
     const SERVICE     = 'CSW';
-    const VERSIONLIST = array('2.0.2');
+    /**
+     * The version
+     */
     const VERSION     = '2.0.2';
+    /**
+     * The supported versions
+     * @var $array $VERSIONLIST
+     */
+    static $VERSIONLIST = array('2.0.2');
 
     protected $requestStack = null;
     protected $metadata     = null;
     protected $plugin       = null;
+    /**
+     * URL for GET requests
+     * @var string $httpGet
+     */
     protected $httpGet;
+    /**
+     * URL for POST requests
+     * @var string $httpPost
+     */
     protected $httpPost;
+    /**
+     * The configuration parameters of supported sections
+     * @var array $sections
+     */
     protected $sections     = array(
+        'ServiceIdentification' => array(
+            'class' => 'Plugins\WhereGroup\CatalogueServiceBundle\Component\ServiceIdentification',
+            'title' => 'Catalogue-Service WhereGroup',
+            'abstract' => 'Catalogue-Service WhereGroup',
+            'keywords' => array('CS-W', 'ISO19119', 'ISO19115', 'WhereGroup', 'Catalog Service', 'metadata'),
+            'versions' => array('2.0.2'),
+            'fees' => 'none',
+            'accessConstraints' => array('none')
+        ),
         'ServiceProvider' => array(
             'class' => 'Plugins\WhereGroup\CatalogueServiceBundle\Component\ServiceProvider',
             'providerName' => 'WhereGroup',
@@ -47,36 +86,44 @@ class Csw
                 )
             )
         ),
-        'ServiceIdentification' => array(
-            'class' => 'Plugins\WhereGroup\CatalogueServiceBundle\Component\ServiceIdentification',
-            'title' => 'Catalogue-Service WhereGroup',
-            'abstract' => 'Catalogue-Service WhereGroup',
-            'keywords' => array('CS-W', 'ISO19119', 'ISO19115', 'WhereGroup', 'Catalog Service', 'metadata'),
-            'versions' => array('2.0.2'),
-            'fees' => 'none',
-            'accessConstraints' => array('none')
-        ),
         'OperationsMetadata' => array(
             'class' => 'Plugins\WhereGroup\CatalogueServiceBundle\Component\OperationsMetadata'),
-        'FilterCapabilities' => array(
+        'Filter_Capabilities' => array(
             'class' => 'Plugins\WhereGroup\CatalogueServiceBundle\Component\FilterCapabilities'),
     );
 
+
     /**
-     * The Operations GetCapbilities, GetRecords, DescribeRecord are required.
-     * @var type
+     * The configuration parameters of supported operations
+     * @var array $sections
      */
     protected $operations   = array(
         'GetCapabilities' => array(
             'class' => 'Plugins\WhereGroup\CatalogueServiceBundle\Component\GetCapabilities',
-            'outpurFormats' => array('application/xml' => "CatalogueServiceBundle:CSW:capabilities_response.xml.twig"),
-            'postEncodings' => array('XML'),
+            'outpurFormatList' => array('application/xml' => "CatalogueServiceBundle:CSW:capabilities_response.xml.twig"),
             'http' => array('get' => true, 'post' => true)
         ),
-        'GetRecordById' =>  array(
-            'class' => 'Plugins\WhereGroup\CatalogueServiceBundle\Component\GetRecordById',
-            'outpurFormats' => array('application/xml' => null),
-            'http' => array('get' => true, 'post' => false))
+        'DescribeRecord' =>  array(
+            'class' => 'Plugins\WhereGroup\CatalogueServiceBundle\Component\DescribeRecord',
+            'typeNameList' => array('gmd:MD_Metadata'),
+            'outpurFormatList' => array('application/xml' => "CatalogueServiceBundle:CSW:describe_response.xml.twig"),
+            #'schemaLanguage' => array(), # The default value is XMLSCHEMA, other schemas are not supported
+            'http' => array('get' => true, 'post' => false)),
+//        'GetRecordById' =>  array(
+//            'class' => 'Plugins\WhereGroup\CatalogueServiceBundle\Component\GetRecordById',
+//            'outpurFormatList' => array('application/xml' => null),
+//            'outputSchemaList' => array('http://www.isotc211.org/2005/gmd'),
+//            'resultTypeList' => array('results'),#('hits', 'results', 'validate'),
+//            'elementSetNameList' => array('full'),#('brief', 'summary', 'full'), // default value "summary" !!!
+//            'http' => array('get' => true, 'post' => true)),
+//        'GetRecords' =>  array(
+//            'class' => 'Plugins\WhereGroup\CatalogueServiceBundle\Component\GetRecords',
+//            'outpurFormatList' => array('application/xml' => null),
+//            'outputSchemaList' => array('http://www.isotc211.org/2005/gmd'),
+//            'resultTypeList' => array('results'),#('hits', 'results', 'validate'),
+//            'constraintLanguageList' => array('FILTER'),#('FILTER', 'CQL_TEXT'),
+//            'typeNameList' => array('gmd:MD_Metadata'),
+//            'http' => array('get' => true, 'post' => true))
     );
 
     /** @var TimedTwigEngine $templating */
@@ -89,9 +136,7 @@ class Csw
      * @param Plugin $plugin
      * @param $templating
      */
-    public function __construct(
-    RequestStack $requestStack, Metadata $metadata, Plugin $plugin, $templating
-    )
+    public function __construct(RequestStack $requestStack, Metadata $metadata, Plugin $plugin, $templating)
     {
         $this->requestStack = $requestStack;
         $this->metadata     = $metadata;
@@ -102,6 +147,9 @@ class Csw
         $this->httpGet      = ($this->httpPost     = $url) . '?';
     }
 
+    /**
+     * Csw destructor
+     */
     public function __destruct()
     {
         unset(
@@ -145,60 +193,63 @@ class Csw
         return $this->httpPost;
     }
 
-    public function getParameterHandler()
+    public function getRequestStack()
     {
-        $request = $this->requestStack->getCurrentRequest();
-        if ($request->getMethod() === 'GET') { # GET
-            return new GetParameterHandler($request->query->all());
-        } else { # POST
-            return new PostParameterHandler($request->getContent());
-        }
+        return $this->requestStack;
     }
-
+    
     /**
-     *
-     * @param \Plugins\WhereGroup\CatalogueServiceBundle\Component\AParameterHandler $handler
+     * Creates an operation for a given operation name
+     * @param type $operationName
      * @return \Plugins\WhereGroup\CatalogueServiceBundle\Component\AOperation
+     * @throws CswException if the operation is not supported
      */
-    public function getOperation(AParameterHandler $handler)
+    public function operationForName($operationName)
     {
         try {
-            $operationStr = $handler->getOperation();
-            $configuration = $this->operations[$operationStr];
+            $configuration = $this->operations[$operationName];
             $fullClass    = $configuration['class'];
-            /**
-             * @var AOperation $operation
-             */
             return new $fullClass($this, $configuration);
         } catch (\Exception $e) {
             throw new CswException('request', CswException::OperationNotSupported);
         }
     }
 
-    public function createContent(AParameterHandler $handler, AOperation $operation)
-    {
-        return $operation->createResult($handler);
-    }
-
     /**
-     * @param $id
-     * @return string
+     * Creates an operation
+     * @return \Plugins\WhereGroup\CatalogueServiceBundle\Component\AOperation
      */
-    public function getRecordById($id)
+    public function createOperation()
     {
-        /** @var \WhereGroup\CoreBundle\Entity\Metadata $entity */
-        $entity = $this->metadata->getByUUID($id);
-
-        // get data object
-        $p = $entity->getObject();
-
-        // get profile
-        $className = $this->plugin->getPluginClassName($p['_profile']);
-
-        // render metadata
-        return $this->templating->render($className . ":Export:metadata.xml.twig",
-                array(
-                "p" => $p
-        ));
+        $request = $this->requestStack->getCurrentRequest();
+        $handler = null;
+        if ($request->getMethod() === 'GET') { # GET
+            $handler = new GetParameterHandler($this);
+        } if ($request->getMethod() === 'POST') {  # POST
+            $handler = new PostSaxParameterHandler($this);#$request->getContent());
+        }
+        return $handler->getOperation();
     }
+//
+//    /**
+//     * @param $id
+//     * @return string
+//     */
+//    public function getRecordById($id)
+//    {
+//        /** @var \WhereGroup\CoreBundle\Entity\Metadata $entity */
+//        $entity = $this->metadata->getByUUID($id);
+//
+//        // get data object
+//        $p = $entity->getObject();
+//
+//        // get profile
+//        $className = $this->plugin->getPluginClassName($p['_profile']);
+//
+//        // render metadata
+//        return $this->templating->render($className . ":Export:metadata.xml.twig",
+//                array(
+//                "p" => $p
+//        ));
+//    }
 }

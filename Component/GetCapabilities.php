@@ -1,120 +1,158 @@
 <?php
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 
 namespace Plugins\WhereGroup\CatalogueServiceBundle\Component;
 
 /**
- * Description of GetCapabilities
+ * The class GetCapabilities is a representation of a OGC CSW GetCapabilities operation.
  *
  * @author Paul Schmidt<panadium@gmx.de>
  */
-class GetCapabilities extends AOperation
+final class GetCapabilities extends AOperation
 {
-
-    static $parameterMap = array(
+    /**
+     * {@inheritdoc}
+     */
+    protected static $parameterMap = array(
         'version' => null,
-        'service' => '/' . PostParameterHandler::DEFAULT_PREFIX . ':GetCapabilities/@service',
-        'acceptVersion' => '/' . PostParameterHandler::DEFAULT_PREFIX . ':GetCapabilities/ows:AcceptVersions/ows:Version/text()',
-        'outputFormat' => '/' . PostParameterHandler::DEFAULT_PREFIX . ':GetCapabilities/ows:AcceptFormats/ows:OutputFormat/text()',
+        'service' => '/' . Csw::CSW_PREFIX . ':GetCapabilities/@service',
+        'acceptVersion' => '/' . Csw::CSW_PREFIX . ':GetCapabilities/ows:AcceptVersions/ows:Version/text()',
+        'section' => '/' . Csw::CSW_PREFIX . ':GetCapabilities/ows:Sections/ows:Section/text()',
+        'outputFormat' => '/' . Csw::CSW_PREFIX . ':GetCapabilities/ows:AcceptFormats/ows:OutputFormat/text()',
     );
 
+    /**
+     * {@inheritdoc}
+     */
     protected $name = 'GetCapabilities';
-    protected $sectionList;
-    protected $operations;
-    // Operation's parameters
-    protected $postEncodingList;
-    protected $postEncoding;
-    protected $acceptVersion;
-    protected $templates;
 
+    /**
+     * The list with all supported capabilities sections
+     * @var array $sectionList
+     */
+    protected $sectionList;
+
+    /**
+     * The list with all supported capabilities operations
+     * @var array $sectionList
+     */
+    protected $operations;
+
+    /* Request parameters */
+
+    /**
+     * The request parameter "acceptVersion"
+     * @var array $acceptVersion
+     */
+    protected $acceptVersion;
+
+    /**
+     * The request parameter "section"
+     * @var array $section
+     */
+    protected $section;
+
+    /**
+     * {@inheritdoc}
+     */
     public function __construct(Csw $csw, $configuration)
     {
         parent::__construct($csw, $configuration);
-        $this->templates = $configuration['outpurFormats'];
         $this->sectionList = $this->csw->getSections();
-        $this->postEncodingList = array_keys($configuration['postEncodings']);
-        $this->postEncoding     = $this->postEncodingList[0]; # !!! IMPORTANT
-        $this->operations = array();
-        $operations = $this->csw->getOperations();
+        $this->operations  = array();
+        $operations        = $this->csw->getOperations();
         foreach ($operations as $name => $value) {
-            if($name !== $this->name) {
-                $class = $value['class'];
+            if ($name !== $this->name) {
+                $class                   = $value['class'];
                 $this->operations[$name] = new $class($this->csw, $value);
             } else {
                 $this->operations[$name] = $this;
             }
         }
         $this->sectionList = array();
-        $sectionList = $this->csw->getSections();
+        $sectionList       = $this->csw->getSections();
         foreach ($sectionList as $name => $value) {
-            $class = $value['class'];
+            $class                    = $value['class'];
             $this->sectionList[$name] = new $class($value);
         }
     }
 
+    /**
+     * {@inheritdoc}
+     */
+    public static function getParameterMap()
+    {
+        return self::$parameterMap;
+    }
+
+    /**
+     * Returns the sectionList.
+     * @return array sectionList
+     */
     public function getSectionList()
     {
         return $this->sectionList;
     }
-    
+
+    /**
+     * Returns the operations
+     * @return array operations
+     */
     public function getOperations()
     {
         return $this->operations;
     }
 
-
-    public function getPostEncodingList()
-    {
-        return $this->postEncodingList;
-    }
-
-    public function getPostEncoding()
-    {
-        return $this->postEncoding;
-    }
-
+    /**
+     * Returns the acceptVersion
+     * @return array acceptVersion
+     */
     public function getAcceptVersion()
     {
         return $this->acceptVersion;
     }
 
+    /**
+     * Returns the section
+     * @return array
+     */
+    public function getSection()
+    {
+        return $this->section;
+    }
+
+    /**
+     * Returns all supported sections with needed parameters for a GetCapabilities document.
+     * @return array
+     */
+    public function getSections()
+    {
+        if (!$this->section) {
+            return $this->sectionList;
+        } else {
+            $sections = array();
+            foreach ($this->sectionList as $key => $value) {
+                if (in_array($key, $this->section)) {
+                    $sections[$key] = $value;
+                }
+            }
+            return $sections;
+        }
+    }
+
+    /**
+     * Sets the sectionList
+     * @param array $sectionList
+     * @return \Plugins\WhereGroup\CatalogueServiceBundle\Component\GetCapabilities
+     */
     public function setSectionList($sectionList)
     {
         $this->sectionList = $sectionList;
         return $this;
     }
 
-    public function setPostEncodingList($postEncodingList)
-    {
-        $this->postEncodingList = $postEncodingList;
-        return $this;
-    }
-
-    public function setPostEncoding($postEncoding)
-    {
-        if ($postEncoding && !in_array($postEncoding, $this->postEncodingList)) {
-            $this->exceptions[] = new CswException('PostEncoding', CswException::InvalidParameterValue);
-        } elseif ($postEncoding) {
-            $this->postEncoding = $postEncoding;
-        }
-        return $this;
-    }
-
-    public function setAcceptVersion($acceptVersion)
-    {
-        if($acceptVersion && is_string($acceptVersion)) {
-            $this->acceptVersion = preg_split('/\s?,\s?/', trim($acceptVersion));
-        } elseif($acceptVersion && is_array($acceptVersion)) {
-            $this->acceptVersion = $acceptVersion;
-        }
-        return $this;
-    }
-
-
+    /**
+     * {@inheritdoc}
+     */
     public function getParameters()
     {
         return array(
@@ -122,6 +160,9 @@ class GetCapabilities extends AOperation
         );
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function getConstraints()
     {
         return array(
@@ -129,52 +170,58 @@ class GetCapabilities extends AOperation
         );
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function setParameter($name, $value)
     {
         switch ($name) {
-            case 'PostEncoding':
-                $this->setPostEncoding($value);
-                break;
             case 'acceptVersion':
-                $this->setAcceptVersion($value);
+                if ($value && is_string($value)) { # GET request
+                    $this->acceptVersion = self::parseCsl($value);
+                } elseif ($value && is_array($value)) { # POST request
+                    $this->acceptVersion = $value;
+                }
                 break;
-//            case 'ElementSetName':
-//                $this->setElementSetName($value);
-//                break;
+            case 'section':
+                $section = array();
+                if ($value && is_string($value)) { # GET request
+                    $section = self::parseCsl($value);
+                } elseif ($value && is_array($value)) { # POST request or parsed GET
+                    $section = $value;
+                }
+                if (count($section) > 0) {
+                    foreach ($section as $item) {
+                        if (!isset($this->sectionList[$item])) {
+                            $this->addCswException('section', CswException::InvalidParameterValue);
+                        }
+                    }
+                    $this->section = $section;
+                }
+                break;
             default:
                 parent::setParameter($name, $value);
         }
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function validateParameter()
     {
-        if($this->acceptVersion && !in_array($this->version, $this->acceptVersion)){
+        if ($this->acceptVersion && !in_array($this->version, $this->acceptVersion)) {
             $this->exceptions[] = new CswException('acceptVersion', CswException::VersionNegotiationFailed);
         }
         parent::validateParameter();
     }
 
-    public function createResult(AParameterHandler $handler)
+    protected function render()
     {
-        if ($handler instanceof GetParameterHandler) {
-            foreach (self::$parameterMap as $key => $value) {
-                $this->setParameter($key, $handler->getParameter($key));
-            }
-        } elseif ($handler instanceof PostParameterHandler) {
-            foreach (self::$parameterMap as $key => $value) {
-                if($value === null) {
-                    $this->setParameter($key, null);
-                } else {
-                    $this->setParameter($key, $handler->getParameter($value));
-                }
-            }
-        }
-        $this->validateParameter();
         return $this->csw->getTemplating()->render(
-            $this->templates[$this->getOutputFormat()],
-            array(
+                $this->templates[$this->getOutputFormat()],
+                array(
                 'getcapabilities' => $this
-            )
+                )
         );
     }
 }

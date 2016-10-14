@@ -1,20 +1,39 @@
 <?php
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 
 namespace Plugins\WhereGroup\CatalogueServiceBundle\Component;
 
 /**
- * Description of AParameterHandler
+ * The classe AParameterHandler handles the requested parameters
  *
  * @author Paul Schmidt<panadium@gmx.de>
  */
 abstract class AParameterHandler
 {
-    abstract public function getParameter($name, $caseSensitive = false);
+    const EXTERNAL_PREFIX = 'my_prefix';
+    protected $csw;
+    protected $rootPrefix;
+    protected $rootUri;
+    protected $operation;
+    
+    public function __construct(Csw $csw, $rootPrefix = 'csw', $rootUri = 'http://www.opengis.net/cat/csw/2.0.2')
+    {
+        $this->csw = $csw;
+        $this->rootPrefix = $rootPrefix;
+        $this->rootUri    = $rootUri;
+    }
+
+    /**
+     * Finds and returns the the parameter's value
+     * @param string $name a parameter name
+     * @param string $xpath xpah for a parameter
+     * @param boolean $caseSensitive enables case sentitive finding of a parameter.
+     * @return mixed parameter value
+     */
+    abstract public function getParameter($name = null, $xpath = null, $caseSensitive = false);
+
+    /**
+     * Identifies the operation on the basis of given parameters.
+     * @return AOperetion operation
+     */
     abstract public function getOperation();
-//    abstract public function parseParameters(AOperation $peration);
 }
