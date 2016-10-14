@@ -11,7 +11,8 @@
 
 ### POST
 - (http://localhost/projects/metador2/web/app_dev.php/csw/service`)
-`<?xml version="1.0" encoding="ISO-8859-1"?>
+```
+<?xml version="1.0" encoding="ISO-8859-1"?>
 <GetCapabilities
    xmlns="http://www.opengis.net/cat/csw/2.0.2"
    xmlns:ows="http://www.opengis.net/ows"
@@ -32,7 +33,8 @@
    <ows:AcceptFormats>
       <ows:OutputFormat>application/xml</ows:OutputFormat>
    </ows:AcceptFormats>
-</GetCapabilities>`
+</GetCapabilities>
+```
 
 ## DescribeRecord
 ### GET
@@ -40,7 +42,8 @@
 
 ### POST
 - (http://localhost/projects/metador2/web/app_dev.php/csw/service`)
-`<?xml version="1.0" encoding="ISO-8859-1"?>
+```
+<?xml version="1.0" encoding="ISO-8859-1"?>
 <DescribeRecord
    service="CSW" 
    version="2.0.2" 
@@ -52,7 +55,8 @@
    xsi:schemaLocation="http://www.opengis.net/cat/csw/2.0.2
                        ../../../csw/2.0.2/CSW-discovery.xsd">
    <TypeName>gmd:MD_Metadata</TypeName>
-</DescribeRecord>`
+</DescribeRecord>
+```
 
 ## GetRecordById
 ### GET
@@ -60,7 +64,8 @@
 
 ### POST
 - (http://localhost/projects/metador2/web/app_dev.php/csw/service`)
-`<?xml version="1.0" encoding="ISO-8859-1"?>
+```
+<?xml version="1.0" encoding="ISO-8859-1"?>
 <GetRecordById
    service="CSW"
    version="2.0.2"
@@ -75,4 +80,5 @@
    <Id>421b22cb-7fa0-4559-85a8-d11beb95f443</Id>
    <Id>421b22cb-7fa0-4559-85a8-d11beb95f443</Id>
    <ElementSetName>summary</ElementSetName>
-</GetRecordById>`
+</GetRecordById>
+```
