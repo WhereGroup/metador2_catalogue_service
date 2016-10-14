@@ -11,7 +11,7 @@
 
 ### POST
 - `http://localhost/projects/metador2/web/app_dev.php/csw/service`
-~~~ xml
+```
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <GetCapabilities
    xmlns="http://www.opengis.net/cat/csw/2.0.2"
@@ -34,7 +34,7 @@
       <ows:OutputFormat>application/xml</ows:OutputFormat>
    </ows:AcceptFormats>
 </GetCapabilities>
-~~~
+```
 
 ## DescribeRecord
 ### GET
@@ -42,7 +42,7 @@
 
 ### POST
 - `http://localhost/projects/metador2/web/app_dev.php/csw/service`
-{% highlight xml %}
+```
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <DescribeRecord
    service="CSW" 
@@ -56,7 +56,7 @@
                        ../../../csw/2.0.2/CSW-discovery.xsd">
    <TypeName>gmd:MD_Metadata</TypeName>
 </DescribeRecord>
-{% endhighlight %}
+```
 
 ## GetRecordById
 ### GET
