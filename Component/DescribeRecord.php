@@ -59,10 +59,10 @@ class DescribeRecord extends AOperation
      */
     public function __destruct()
     {
-        parent::__destruct();
         unset(
             $this->typeNameList, $this->typeName
         );
+        parent::__destruct();
     }
 
     /**

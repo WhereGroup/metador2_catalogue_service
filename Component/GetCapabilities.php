@@ -79,6 +79,17 @@ final class GetCapabilities extends AOperation
     /**
      * {@inheritdoc}
      */
+    public function __destruct()
+    {
+        unset(
+            $this->sectionList, $this->operations, $this->acceptVersion, $this->section
+        );
+        parent::__destruct();
+    }
+
+    /**
+     * {@inheritdoc}
+     */
     public static function getParameterMap()
     {
         return self::$parameterMap;
