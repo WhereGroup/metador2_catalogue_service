@@ -109,13 +109,13 @@ class Csw
             'outpurFormatList' => array('application/xml' => "CatalogueServiceBundle:CSW:describe_response.xml.twig"),
             #'schemaLanguage' => array(), # The default value is XMLSCHEMA, other schemas are not supported
             'http' => array('get' => true, 'post' => false)),
-//        'GetRecordById' =>  array(
-//            'class' => 'Plugins\WhereGroup\CatalogueServiceBundle\Component\GetRecordById',
-//            'outpurFormatList' => array('application/xml' => null),
-//            'outputSchemaList' => array('http://www.isotc211.org/2005/gmd'),
-//            'resultTypeList' => array('results'),#('hits', 'results', 'validate'),
-//            'elementSetNameList' => array('full'),#('brief', 'summary', 'full'), // default value "summary" !!!
-//            'http' => array('get' => true, 'post' => true)),
+        'GetRecordById' =>  array(
+            'class' => 'Plugins\WhereGroup\CatalogueServiceBundle\Component\GetRecordById',
+            'outpurFormatList' => array('application/xml' => "CatalogueServiceBundle:CSW:recordbyid_collection.xml.twig"),
+            'outputSchemaList' => array('http://www.isotc211.org/2005/gmd'),
+            'resultTypeList' => array('results'),#('hits', 'results', 'validate'),
+            'elementSetNameList' => array('full'),#('brief', 'summary', 'full'), // default value "summary" !!!
+            'http' => array('get' => true, 'post' => true)),
 //        'GetRecords' =>  array(
 //            'class' => 'Plugins\WhereGroup\CatalogueServiceBundle\Component\GetRecords',
 //            'outpurFormatList' => array('application/xml' => null),

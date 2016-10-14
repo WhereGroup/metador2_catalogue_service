@@ -425,15 +425,15 @@ abstract class AOperation
         return false;
     }
 
-    protected static function isStringToSet($name, $value, array $values, $mandatory = false)
+    protected function isStringToSet($name, $value, array $values, $mandatory = false)
     {
         $validString = $value !== null && is_string($value) && $value !== '';
-        if($validString && isset($values[$value])) {
+        if($validString && in_array($value, $values)) {
             return true;
-        } elseif($validString && !isset($values[$value])) {
+        } elseif($validString && !in_array($value, $values)) {
             $this->addCswException($name, CswException::InvalidParameterValue);
             return false;
-        } elseif($mandatory && (!$validString || !isset($values[$value]))) {
+        } elseif($mandatory && (!$validString || !in_array($value, $values))) {
             $this->addCswException($name, CswException::InvalidParameterValue);
             return false;
         } else {
