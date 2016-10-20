@@ -74,8 +74,8 @@ class GetRecords extends AFindRecord
 
         $this->startPosition = 1; # default value s. xsd
         $this->maxRecords    = 10; # default value s. xsd
-        $this->deistributedSearch = false;
-        $this->hopCount = 2; # default value s. xsd
+//        $this->deistributedSearch = false;
+//        $this->hopCount = 2; # default value s. xsd
     }
 
     /**
