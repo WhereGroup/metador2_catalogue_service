@@ -6,6 +6,8 @@ use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Bundle\TwigBundle\Debug\TimedTwigEngine;
 use WhereGroup\CoreBundle\Component\Metadata;
 use WhereGroup\PluginBundle\Component\Plugin;
+use Plugins\WhereGroup\CatalogueServiceBundle\Component\Parameter\PostSaxParameterHandler;
+use Plugins\WhereGroup\CatalogueServiceBundle\Component\Parameter\GetParameterHandler;
 
 /**
  * Class Csw
@@ -38,16 +40,19 @@ class Csw
     protected $requestStack = null;
     protected $metadata     = null;
     protected $plugin       = null;
+    
     /**
      * URL for GET requests
      * @var string $httpGet
      */
     protected $httpGet;
+
     /**
      * URL for POST requests
      * @var string $httpPost
      */
     protected $httpPost;
+
     /**
      * The configuration parameters of supported sections
      * @var array $sections
@@ -89,7 +94,7 @@ class Csw
         'OperationsMetadata' => array(
             'class' => 'Plugins\WhereGroup\CatalogueServiceBundle\Component\OperationsMetadata'),
         'Filter_Capabilities' => array(
-            'class' => 'Plugins\WhereGroup\CatalogueServiceBundle\Component\FilterCapabilities'),
+            'class' => 'Plugins\WhereGroup\CatalogueServiceBundle\Component\Filter\FilterCapabilities'),
     );
 
 
@@ -116,14 +121,24 @@ class Csw
             'resultTypeList' => array('results'),#('hits', 'results', 'validate'),
             'elementSetNameList' => array('full'),#('brief', 'summary', 'full'), // default value "summary" !!!
             'http' => array('get' => true, 'post' => true)),
-//        'GetRecords' =>  array(
-//            'class' => 'Plugins\WhereGroup\CatalogueServiceBundle\Component\GetRecords',
-//            'outpurFormatList' => array('application/xml' => null),
-//            'outputSchemaList' => array('http://www.isotc211.org/2005/gmd'),
-//            'resultTypeList' => array('results'),#('hits', 'results', 'validate'),
-//            'constraintLanguageList' => array('FILTER'),#('FILTER', 'CQL_TEXT'),
-//            'typeNameList' => array('gmd:MD_Metadata'),
-//            'http' => array('get' => true, 'post' => true))
+        'GetRecords' =>  array(
+            'class' => 'Plugins\WhereGroup\CatalogueServiceBundle\Component\GetRecords',
+            'outpurFormatList' => array('application/xml' => "CatalogueServiceBundle:CSW:records_collection.xml.twig"),
+            'outputSchemaList' => array('http://www.isotc211.org/2005/gmd'),
+            'resultTypeList' => array('results'),#('hits', 'results', 'validate'),
+            'elementSetNameList' => array('full'),#('brief', 'summary', 'full'), // default value "summary" !!!
+            'constraintLanguageList' => array('FILTER'),#('FILTER', 'CQL_TEXT'),
+            'typeNameList' => array('gmd:MD_Metadata'),
+            'constraintList' => array(
+                'SupportedISOQueryables'=> array(
+                    'Identifier' => 'uuid',
+                    'Title' => 'title',
+                    'Abstract' => 'abstract'
+                )
+            ),
+//            'requestId'
+//            'NAMESPACE' =>
+            'http' => array('get' => false, 'post' => true))
     );
 
     /** @var TimedTwigEngine $templating */

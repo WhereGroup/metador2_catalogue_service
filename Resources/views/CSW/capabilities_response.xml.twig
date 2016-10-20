@@ -92,6 +92,13 @@
                 {% endfor %}
                 </ows:Parameter>
             {% endfor %}
+            {% for name, items in operation.constraints %}
+                <ows:Constraint name="{{ name }}">
+                {% for item in items %}
+                    <ows:Value>{{ item }}</ows:Value>
+                {% endfor %}
+                </ows:Constraint>
+            {% endfor %}
         </ows:Operation>
         {% endfor %}
     </ows:OperationsMetadata>

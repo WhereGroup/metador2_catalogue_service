@@ -3,7 +3,7 @@
 namespace Plugins\WhereGroup\CatalogueServiceBundle\Component;
 
 /**
- * The class GetCapabilities is a representation of a OGC CSW GetCapabilities operation.
+ * The class GetCapabilities is a representation of the OGC CSW GetCapabilities operation.
  *
  * @author Paul Schmidt<panadium@gmx.de>
  */
@@ -90,9 +90,23 @@ final class GetCapabilities extends AOperation
     /**
      * {@inheritdoc}
      */
-    public static function getParameterMap()
+    public static function getGETParameterMap()
     {
-        return self::$parameterMap;
+        return array_keys(self::$parameterMap);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public static function getPOSTParameterMap()
+    {
+        $parameters       = array();
+        foreach (self::$parameterMap as $key => $value) {
+            if ($value !== null) {
+                $parameters[$value] = $key;
+            }
+        }
+        return $parameters;
     }
 
     /**

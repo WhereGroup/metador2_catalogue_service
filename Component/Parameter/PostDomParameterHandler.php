@@ -1,6 +1,9 @@
 <?php
 
-namespace Plugins\WhereGroup\CatalogueServiceBundle\Component;
+namespace Plugins\WhereGroup\CatalogueServiceBundle\Component\Parameter;
+
+use Plugins\WhereGroup\CatalogueServiceBundle\Component\AOperation;
+use Plugins\WhereGroup\CatalogueServiceBundle\Component\Csw;
 
 /**
  * Description of GetHandler
@@ -66,12 +69,10 @@ class PostDomParameterHandler extends AParameterHandler
                 }
             }
             $this->operation = $this->csw->operationForName($this->dom->documentElement->localName);
-            $parameterMap       = $this->operation->getParameterMap();
+            $parameterMap       = $this->operation->getPOSTParameterMap();
             $parameters = array();
             foreach ($parameterMap as $key => $value) {
-                if ($value !== null) {
-                    $parameters[$key] = $this->getParameter(null, $value);
-                }
+                $parameters[$value] = $this->getParameter(null, $key);
             }
             $this->operation->setParameters($parameters);
         }

@@ -1,6 +1,9 @@
 <?php
 
-namespace Plugins\WhereGroup\CatalogueServiceBundle\Component;
+namespace Plugins\WhereGroup\CatalogueServiceBundle\Component\Parameter;
+
+use Plugins\WhereGroup\CatalogueServiceBundle\Component\AOperation;
+use Plugins\WhereGroup\CatalogueServiceBundle\Component\Csw;
 
 /**
  * The classe AParameterHandler handles the requested parameters
