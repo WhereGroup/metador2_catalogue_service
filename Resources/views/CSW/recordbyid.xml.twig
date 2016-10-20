@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <csw:GetRecordByIdResponse xmlns:csw="http://www.opengis.net/cat/csw/2.0.2">
 {% for record in records %}
-{% include 'CatalogueServiceBundle:CSW:recordbyid_item.xml.twig' with {'p': record } %}
+{% include 'CatalogueServiceBundle:CSW:record_full.xml.twig' with {'p': record.getObject } %}
 {% endfor %}
 </csw:GetRecordByIdResponse>

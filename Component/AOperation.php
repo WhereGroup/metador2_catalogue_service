@@ -14,7 +14,7 @@ abstract class AOperation
      * @var array $parameterMap
      */
     protected static $parameterMap = array();
-    
+
     /**
      * The operation's name
      * @var string $name
@@ -64,6 +64,7 @@ abstract class AOperation
     protected $postEncoding;
 
     /* request parameters */
+
     /**
      * The service name (CSW)
      * @var string $service
@@ -103,7 +104,7 @@ abstract class AOperation
         $this->exceptions       = array();
         $this->templates        = $configuration['outpurFormatList'];
 
-        $this->postEncoding     = $this->postEncodingList[0]; # !!! IMPORTANT
+        $this->postEncoding = $this->postEncodingList[0]; # !!! IMPORTANT
 
         $this->version = Csw::VERSION;
     }
@@ -119,12 +120,18 @@ abstract class AOperation
             $this->csw, $this->httpGet, $this->httpPost, $this->outputFormatList, $this->outputFormat, $this->exceptions
         );
     }
-    
+
     /**
      * Returns a parameter map.
      * @return array parameter map
      */
-    abstract public static function getParameterMap();
+    abstract public static function getGETParameterMap();
+
+    /**
+     * Returns a parameter map.
+     * @return array parameter map
+     */
+    abstract public static function getPOSTParameterMap();
 
     /**
      * Returns an opreation's name
@@ -264,7 +271,16 @@ abstract class AOperation
      */
     public function addCswException($locator, $code)
     {
-        $this->exceptions[] = new CswException($locator, $code);
+        $found = false;
+        foreach ($this->exceptions as $exception) {
+            if ($exception->getMessage() === $locator && $exception->getCode() === $code) {
+                $found = true;
+                break;
+            }
+        }
+        if (!$found) {
+            $this->exceptions[] = new CswException($locator, $code);
+        }
     }
 
     /**
@@ -321,7 +337,7 @@ abstract class AOperation
     {
         switch ($name) {
             case 'version':
-                if($value && in_array($value, Csw::$VERSIONLIST)) {
+                if ($value && in_array($value, Csw::$VERSIONLIST)) {
                     $this->version = $value;
                 } else {
                     $this->version = Csw::VERSION;
@@ -333,7 +349,7 @@ abstract class AOperation
             case 'outputFormat':
                 if ($value && is_string($value)) { # GET request
                     $outputFormat = self::parseCsl($value);
-                    if(!in_array($this->outputFormat, $outputFormat)) {
+                    if (!in_array($this->outputFormat, $outputFormat)) {
                         $this->addCswException('outputFormat', CswException::InvalidParameterValue);
                     }
                 } elseif ($value && !in_array($this->outputFormat, $value)) {
@@ -387,7 +403,7 @@ abstract class AOperation
     {
         return new ContentSet($this);
     }
-    
+
     /**
      * Creates and returns the operation result.
      * @param \Plugins\WhereGroup\CatalogueServiceBundle\Component\AParameterHandler $handler
@@ -428,12 +444,12 @@ abstract class AOperation
     protected function isStringToSet($name, $value, array $values, $mandatory = false)
     {
         $validString = $value !== null && is_string($value) && $value !== '';
-        if($validString && in_array($value, $values)) {
+        if ($validString && in_array($value, $values)) {
             return true;
-        } elseif($validString && !in_array($value, $values)) {
+        } elseif ($validString && !in_array($value, $values)) {
             $this->addCswException($name, CswException::InvalidParameterValue);
             return false;
-        } elseif($mandatory && (!$validString || !in_array($value, $values))) {
+        } elseif ($mandatory && (!$validString || !in_array($value, $values))) {
             $this->addCswException($name, CswException::InvalidParameterValue);
             return false;
         } else {
@@ -443,13 +459,56 @@ abstract class AOperation
 
     protected static function normalizeString($string)
     {
-        if($string === null || $string === '' || trim($string) === '') {
+        if ($string === null || $string === '' || trim($string) === '') {
             return null;
         } else {
             return trim($string);
         }
     }
-    
+
+    protected static function getInteger($name, $intToTest)
+    {
+        if (is_integer($intToTest)) {
+            return $intToTest;
+        } elseif (ctype_digit(trim($intToTest))) {
+            return intval(trim($intToTest));
+        } else {
+            $this->addCswException($name, CswException::InvalidParameterValue);
+            return null;
+        }
+    }
+
+    protected static function getPositiveInteger($name, $intToTest)
+    {
+        if (($int = self::getInteger($name, $intToTest)) !== null) {
+            if ($int >= 0) {
+                return $int;
+            } else {
+                $this->addCswException($name, CswException::InvalidParameterValue);
+                return null;
+            }
+        } else {
+            return null;
+        }
+    }
+
+    /**
+     *
+     * @param string $name
+     * @param float | integer $numberToTest
+     * @param float | integer $number
+     * @return integer | null
+     */
+    protected static function getGreaterThan($name, $numberToTest, $number)
+    {
+        if ((is_integer($numberToTest) || is_float($numberToTest)) && $numberToTest > $number) {
+            return $numberToTest;
+        } else {
+            $this->addCswException($name, CswException::InvalidParameterValue);
+            return null;
+        }
+    }
+
     /**
      * Renders a operation's result and returns as string
      * @return string the operation's result

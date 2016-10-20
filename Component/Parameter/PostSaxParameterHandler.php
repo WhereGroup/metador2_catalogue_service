@@ -1,6 +1,10 @@
 <?php
 
-namespace Plugins\WhereGroup\CatalogueServiceBundle\Component;
+namespace Plugins\WhereGroup\CatalogueServiceBundle\Component\Parameter;
+
+use Plugins\WhereGroup\CatalogueServiceBundle\Component\Filter\AOperation;
+//use Plugins\WhereGroup\CatalogueServiceBundle\Component\AParameterHandler;
+use Plugins\WhereGroup\CatalogueServiceBundle\Component\Csw;
 
 /**
  * {@inheritdoc}
@@ -19,7 +23,12 @@ class PostSaxParameterHandler extends AParameterHandler
     protected $map;
     protected $operation;
     protected $parser;
-    
+    protected $eventHandler;
+//
+//    protected $eventHandlers = array(
+//
+//    );
+
     /**
      * The parameter map for operation
      * @var array $parameterMap
@@ -42,6 +51,7 @@ class PostSaxParameterHandler extends AParameterHandler
         $this->inited     = false;
         $this->xpathStr   = '';
         $this->parser     = null;
+        $this->eventHandler = new SaxNodeEventHandler($this);
     }
 
     /**
@@ -52,9 +62,10 @@ class PostSaxParameterHandler extends AParameterHandler
         if ($this->parser === null) {
             $this->parse();
         }
+        throw new \Exception('SAX Post getParameter is not yet implemented.');
     }
 
-    protected function initOperation(array $strippedName, $attributes)
+    protected function initOperation(array $prefexedName, $attributes)
     {
         $this->namespaces = array();
         foreach ($attributes as $key => $value) {
@@ -68,16 +79,10 @@ class PostSaxParameterHandler extends AParameterHandler
                 }
             }
         }
-        $this->operation  = $this->csw->operationForName($strippedName[1]);
-        $this->parameterMap = array();
-        $parameters       = $this->operation->getParameterMap();
-        foreach ($parameters as $key => $value) {
-            if ($value !== null) {
-                $this->parameterMap[$value] = $key;
-            }
-        }
+        $this->operation         = $this->csw->operationForName($prefexedName[1]);
+        $this->parameterMap      = $this->operation->getPOSTParameterMap();
         $this->requestParameters = array();
-        $this->inited = true;
+        $this->inited            = true;
     }
 
     /**
@@ -103,9 +108,9 @@ class PostSaxParameterHandler extends AParameterHandler
         xml_parse($this->parser, $this->csw->getRequestStack()->getCurrentRequest()->getContent());
     }
 
-    protected function stripElementName($elementName)
+    public function getPrefixedName($QName)
     {
-        $help = explode(':', $elementName);
+        $help = explode(':', $QName);
         if (count($help) === 1) {
             return array($this->defPrefix, $help[0]);
         } else {
@@ -113,47 +118,35 @@ class PostSaxParameterHandler extends AParameterHandler
         }
     }
 
-    protected function createElementNs(array $strippedName)
+    protected function createElementNs(array $prefexedName)
     {
-        return '/' . $strippedName[0] . ':' . $strippedName[1];
+        return '/' . $prefexedName[0] . ':' . $prefexedName[1];
     }
 
-    protected function xpathFromRoot(array $strippedName)
+    public function xpathFromRoot(array $prefexedName)
     {
-        $this->xpathStr .= $this->createElementNs($strippedName);
+        $this->xpathStr .= $this->createElementNs($prefexedName);
     }
 
-    protected function xpathToRoot(array $strippedName)
+    public function xpathToRoot(array $prefexedName)
     {
-        $str            = $this->createElementNs($strippedName);
+        $str            = $this->createElementNs($prefexedName);
         $this->xpathStr = substr($this->xpathStr, 0, strlen($this->xpathStr) - strlen($str));
     }
 
-    protected function valueFromElement(array $attributes)
+    public function getXpathStr()
     {
-        foreach ($attributes as $key => $value) {
-            $xpathStr = $this->xpathStr . '/@' . $key;
-            $this->setValue($xpathStr, $value);
-        }
+        return $this->xpathStr;
     }
 
-    protected function valueFromContent($content)
+    public function getParameterMap()
     {
-        $xpathStr = $this->xpathStr . '/text()';
-        $this->setValue($xpathStr, $content);
+        return $this->parameterMap;
     }
 
-    protected function setValue($xpathStr, $value)
+    public function getRequestParameters()
     {
-        if (isset($this->parameterMap[$xpathStr])) {
-            if (!isset($this->requestParameters[$this->parameterMap[$xpathStr]])) {
-                $this->requestParameters[$this->parameterMap[$xpathStr]] = $value;
-            } elseif (is_string($this->requestParameters[$this->parameterMap[$xpathStr]])) {
-                $this->requestParameters[$this->parameterMap[$xpathStr]] = array($this->requestParameters[$this->parameterMap[$xpathStr]], $value);
-            } elseif (is_array($this->requestParameters[$this->parameterMap[$xpathStr]])) {
-                $this->requestParameters[$this->parameterMap[$xpathStr]][] = $value;
-            }
-        }
+        return $this->requestParameters;
     }
 
     /**
@@ -165,11 +158,9 @@ class PostSaxParameterHandler extends AParameterHandler
     protected function startElement($parser, $elementName, $attributes)
     {
         if (!$this->inited) { // root element
-            $this->initOperation($this->stripElementName($elementName), $attributes);
+            $this->initOperation($this->getPrefixedName($elementName), $attributes);
         }
-        $stripped = $this->stripElementName($elementName);
-        $this->xpathFromRoot($stripped);
-        $this->valueFromElement($attributes);
+        $this->eventHandler->onElementStart($elementName, $attributes);
     }
 
     /**
@@ -179,7 +170,7 @@ class PostSaxParameterHandler extends AParameterHandler
      */
     protected function endElement($parser, $elementName)
     {
-        $this->xpathToRoot($this->stripElementName($elementName));
+        $this->eventHandler->onElementEnd($elementName);
     }
 
     /**
@@ -189,6 +180,19 @@ class PostSaxParameterHandler extends AParameterHandler
      */
     protected function elementContent($parser, $content)
     {
-        $this->valueFromContent($content);
+        $this->eventHandler->onElementContent($content);
+    }
+
+    public function setRequestParameterValue($xpathStr, $value)
+    {
+        if (isset($this->parameterMap[$xpathStr])) {
+            if (!isset($this->requestParameters[$this->parameterMap[$xpathStr]])) {
+                $this->requestParameters[$this->parameterMap[$xpathStr]] = $value;
+            } elseif (is_string($this->requestParameters[$this->parameterMap[$xpathStr]])) {
+                $this->requestParameters[$this->parameterMap[$xpathStr]] = array($this->requestParameters[$this->parameterMap[$xpathStr]], $value);
+            } elseif (is_array($this->requestParameters[$this->parameterMap[$xpathStr]])) {
+                $this->requestParameters[$this->parameterMap[$xpathStr]][] = $value;
+            }
+        }
     }
 }

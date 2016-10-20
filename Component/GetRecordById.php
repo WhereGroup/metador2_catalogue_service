@@ -3,7 +3,7 @@
 namespace Plugins\WhereGroup\CatalogueServiceBundle\Component;
 
 /**
- * Description of Operation
+ * The class GetRecordById is a representation of the OGC CSW GetCapabilities operation.
  *
  * @author Paul Schmidt<panadium@gmx.de>
  */
@@ -17,11 +17,10 @@ class GetRecordById extends AFindRecord
         'service' => '/' . Csw::CSW_PREFIX . ':GetRecordById/@service',
         'outputSchema' => '/' . Csw::CSW_PREFIX . ':GetRecordById/@outputSchema',
         'outputFormat' => '/' . Csw::CSW_PREFIX . ':GetRecordById/@outputFormat',
-        'ElementSetName' => '/' . Csw::CSW_PREFIX . ':GetRecordById/ElementSetName/text()',
+        'elementSetName' => '/' . Csw::CSW_PREFIX . ':GetRecordById/ElementSetName/text()',
         'id' => '/' . Csw::CSW_PREFIX . ':GetRecordById/' . Csw::CSW_PREFIX . ':Id/text()',
     );
-    protected $elementSetNameList;
-    protected $elementSetName;
+
     protected $outputSchema;
     protected $id;
 
@@ -36,8 +35,6 @@ class GetRecordById extends AFindRecord
     public function __construct(Csw $csw = null, $configuration = array())
     {
         parent::__construct($csw, $configuration);
-        $this->elementSetNameList = $configuration['elementSetNameList'];
-        $this->elementSetName     = 'summary';
     }
 
     /**
@@ -54,25 +51,23 @@ class GetRecordById extends AFindRecord
     /**
      * {@inheritdoc}
      */
-    public static function getParameterMap()
+    public static function getGETParameterMap()
     {
-        return self::$parameterMap;
+        return array_keys(self::$parameterMap);
     }
 
-    public function getElementSetNameList()
+    /**
+     * {@inheritdoc}
+     */
+    public static function getPOSTParameterMap()
     {
-        return $this->elementSetNameList;
-    }
-
-    public function getElementSetName()
-    {
-        return $this->elementSetName;
-    }
-
-    public function setElementSetNameList($elementSetNameList)
-    {
-        $this->elementSetNameList = $elementSetNameList;
-        return $this;
+        $parameters       = array();
+        foreach (self::$parameterMap as $key => $value) {
+            if ($value !== null) {
+                $parameters[$value] = $key;
+            }
+        }
+        return $parameters;
     }
 
     /**
@@ -102,13 +97,6 @@ class GetRecordById extends AFindRecord
     public function setParameter($name, $value)
     {
         switch ($name) {
-            case 'ElementSetName':
-                if ($value && !in_array($value, $this->elementSetNameList)) {
-                    throw new CswException('ElementSetName', CswException::INVALIDPARAMETERVALUE);
-                } elseif ($value && in_array($value, $this->elementSetNameList)) {
-                    $this->elementSetName = $value;
-                }
-                break;
             case 'id':
                 if ($value && is_string($value)) {
                     $this->id = $this->parseCsl($value);
@@ -128,7 +116,7 @@ class GetRecordById extends AFindRecord
     {
         $results = array();
         foreach ($this->id as $id) {
-            $results[] = $this->csw->getMetadata()->getByUUID($id)->getObject();
+            $results[] = $this->csw->getMetadata()->getByUUID($id);
         }
         return $this->csw->getTemplating()->render(
                 $this->templates[$this->getOutputFormat()],

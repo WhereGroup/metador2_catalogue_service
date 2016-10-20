@@ -60,7 +60,7 @@ class GetParameterHandler extends AParameterHandler
                 throw new CswException('request', CswException::MISSINGPARAMETER);
             } else {
                 $this->operation  = $this->csw->operationForName($request);
-                $parameterMap       = array_keys($this->operation->getParameterMap());
+                $parameterMap       = $this->operation->getGETParameterMap();
                 $parameters = array();
                 foreach ($parameterMap as $name) {
                     $parameters[$name] = $this->getParameter($name);
