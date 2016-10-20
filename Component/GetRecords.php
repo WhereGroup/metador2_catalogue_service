@@ -28,14 +28,19 @@ class GetRecords extends AFindRecord
 //        '' => 'constraintLanguage',
         '/csw:GetRecords/csw:Query/@typeNames' => 'typeNames',
         '/csw:GetRecords/csw:Query/csw:ElementSetName/text()' => 'elementSetName',
-        '/csw:GetRecords/csw:Query/csw:ElementName/text()' => 'elementName',
+        '/csw:GetRecords/csw:Query/csw:ElementName/text()' => 'elementName', # multiple?
         '/csw:GetRecords/csw:Query/csw:Constraint/csw:CqlText/text()' => 'constraint', # @TODO ???? check xpath
         '/csw:GetRecords/csw:Query/csw:Constraint/ogc:Filter' => 'constraint',
-//        '/csw:GetRecords/csw:Query/ogc:SortBy/ogc:SortProperty' => array(
-//            './ogc:PropertyName' => 'sortBy',
-//            './ogc:SortProperty' => 'sortBy' #DESC ASC
-//        ),
+//        '/csw:GetRecords/csw:Query/ogc:SortBy/ogc:SortProperty' => 'sortBy',
+////        'namespace',
+//        '/csw:GetRecords/@requestId' => 'requestId',
+//        '/csw:GetRecords/csw:ResponseHandler' => 'responseHandler',
+////        'deistributedSearch' for GET
+//        '/csw:GetRecords/csw:DistributedSearch/@hopCount' => 'hopCount',
+
+
     );
+
     protected $constraintLanguageList;
     protected $typeNameList;
     protected $constraintList;
@@ -49,8 +54,7 @@ class GetRecords extends AFindRecord
     protected $namespace;
     protected $requestId;
     protected $responseHandler;
-    protected $elementSetName; #???
-    protected $elementName; #
+    protected $elementName;
     protected $constraint;
     protected $deistributedSearch;
     protected $hopCount;
@@ -70,6 +74,8 @@ class GetRecords extends AFindRecord
 
         $this->startPosition = 1; # default value s. xsd
         $this->maxRecords    = 10; # default value s. xsd
+        $this->deistributedSearch = false;
+        $this->hopCount = 2; # default value s. xsd
     }
 
     /**
@@ -162,23 +168,6 @@ class GetRecords extends AFindRecord
      */
     public function setParameter($name, $value)
     {
-//        protected $constraintLanguage;
-//        protected $typeNames;
-//
-//
-//
-//        protected $namespace;
-//
-//        protected $requestId;
-//        protected $responseHandler;
-//
-//        protected $elementSetName;#???
-//        protected $elementName;#
-//
-//        protected $constraint;
-//        protected $deistributedSearch;
-//        protected $hopCount;
-
         switch ($name) {
             case 'constraintLanguage':
                 if (self::isStringToSet($name, $value, $this->constraintLanguageList, false)) {
@@ -196,12 +185,26 @@ class GetRecords extends AFindRecord
             case 'maxRecords':
                 $this->maxRecords    = self::getGreaterThan($name, self::getPositiveInteger($name, $value), 0);
                 break;
-            case 'sortBy':
-                $this->sortBy        = $value; # @TODO split and check if items supported/exist
-                break;
             case 'constraint':
                 $this->constraint    = $value; # @TODO check filter
                 break;
+//            case 'sortBy':
+//                $this->sortBy        = $value; # @TODO split and check if items supported/exist
+//                break;
+//            case 'namespace':
+//                break;
+//            case 'requestId':
+//                break;
+//            case 'responseHandler':
+//                break;
+//            case 'elementName':
+//                break;
+//            case 'deistributedSearch':
+//                  $this->deistributedSearch = $value; # check if $value is a boolean
+//                break;
+//            case 'hopCount':
+//                  $this->hopCount = $value; #check if $value is a positive integer and deistributedSearch is requested.
+//                break;
             default:
                 parent::setParameter($name, $value);
         }
