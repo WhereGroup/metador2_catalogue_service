@@ -1,9 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <csw:GetRecordsResponse xmlns:csw="http://www.opengis.net/cat/csw/2.0.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.opengis.net/cat/csw/2.0.2 http://schemas.opengis.net/csw/2.0.2/CSW-discovery.xsd">
   <csw:SearchStatus timestamp="{{timestamp}}" />
-  <csw:SearchResults numberOfRecordsMatched="{{matched}}" numberOfRecordsReturned="{{returned}}" elementSet="full" nextRecord="{{nextrecord}}">
+{% if resultType == constant('Plugins\\WhereGroup\\CatalogueServiceBundle\\Component\\GetRecords::RESULTTYPE_HITS') or matched == 0 %}
+  <csw:SearchResults numberOfRecordsMatched="{{matched}}" numberOfRecordsReturned="{{returned}}" elementSet="{{resultType}}" nextRecord="{{nextrecord}}" />
+{% else %}
+  <csw:SearchResults numberOfRecordsMatched="{{matched}}" numberOfRecordsReturned="{{returned}}" elementSet="{{resultType}}" nextRecord="{{nextrecord}}">
 {% for record in records %}
 {% include 'CatalogueServiceBundle:CSW:record_full.xml.twig' with {'p': record.getObject } %}
 {% endfor %}
   </csw:SearchResults>
+{% endif %}
 </csw:GetRecordsResponse>

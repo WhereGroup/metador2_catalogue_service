@@ -224,23 +224,30 @@ class GetRecords extends AFindRecord
         $qb->select('count(' . $name . '.id)')
             ->add('where', $expr)
             ->setParameters($parameters);
-        $query = $qb->getQuery();
-        $matched = $qb->getQuery()->getSingleScalarResult();#->getResult();#->getSingleScalarResult();#->getResult()
-
-        $qb->select($name)
-            ->add('where', $expr)
-            ->setFirstResult($this->startPosition - 1)
-            ->setMaxResults($this->maxRecords)
-            ->setParameters($parameters);
-        $query = $qb->getQuery();
-        $results = $qb->getQuery()->getResult();
+//        $query = $qb->getQuery();
+        $matched = $qb->getQuery()->getSingleScalarResult();
+        $returned = $matched;
+        $results = array();
+        if($this->resultType === self::RESULTTYPE_RESULTS) {
+            $qb->select($name)
+                ->add('where', $expr)
+                ->setFirstResult($this->startPosition - 1)
+                ->setMaxResults($this->maxRecords)
+                ->setParameters($parameters);
+            # @TODO sortBy
+//            $query = $qb->getQuery();
+            $results = $qb->getQuery()->getResult();
+            $returned = count($results);
+        }
+        # @TODO for self::RESULTTYPE_VALIDATE
         $time    = new \DateTime();
         return $this->csw->getTemplating()->render(
-                $this->templates[$this->getOutputFormat()],
+                $this->templates[$this->getOutputFormat()][$this->elementSetName],
                 array(
                 'timestamp' => $time->format('Y-m-d\TH:i:s'),
                 'matched' => $matched,
-                'returned' => count($results),
+                'returned' => $returned,
+                'resultType' => $this->resultType,
                 'nextrecord' => $this->startPosition - 1,
                 'records' => $results
                 )
