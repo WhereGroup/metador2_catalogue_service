@@ -9,6 +9,9 @@ namespace Plugins\WhereGroup\CatalogueServiceBundle\Component;
  */
 abstract class AFindRecord extends AOperation
 {
+    const RESULTTYPE_HITS = 'hits';
+    const RESULTTYPE_RESULTS = 'results';
+    const RESULTTYPE_VALIDATE = 'validate';
 
     protected $outputSchemaList;
     protected $outputSchema; // default value is a first position at the list $outputSchemaList
@@ -147,7 +150,7 @@ abstract class AFindRecord extends AOperation
         switch ($name) {
             case 'elementSetName':
                 if ($value && !in_array($value, $this->elementSetNameList)) {
-                    throw new CswException('ElementSetName', CswException::INVALIDPARAMETERVALUE);
+                    throw new CswException('ElementSetName', CswException::InvalidParameterValue);
                 } elseif ($value && in_array($value, $this->elementSetNameList)) {
                     $this->elementSetName = $value;
                 }

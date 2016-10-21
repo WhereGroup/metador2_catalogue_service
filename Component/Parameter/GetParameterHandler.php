@@ -1,6 +1,8 @@
 <?php
 
-namespace Plugins\WhereGroup\CatalogueServiceBundle\Component;
+namespace Plugins\WhereGroup\CatalogueServiceBundle\Component\Parameter;
+
+use Plugins\WhereGroup\CatalogueServiceBundle\Component\Csw;
 
 /**
  * {@inheritdoc}
