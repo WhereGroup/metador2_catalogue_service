@@ -43,7 +43,7 @@ class GetRecordById extends AFindRecord
     public function __destruct()
     {
         unset(
-            $this->elementSetNameList, $this->elementSetName, $this->$outputSchema, $this->id
+            $this->outputSchema, $this->id
         );
         parent::__destruct();
     }
@@ -121,6 +121,9 @@ class GetRecordById extends AFindRecord
         return $this->csw->getTemplating()->render(
                 $this->templates[$this->getOutputFormat()],
                 array(
+                'elementSet' => $this->elementSetName,
+                'outputSchema' => $this->outputSchema,
+                'resultType' => $this->resultType,
                 'records' => $results
                 )
         );

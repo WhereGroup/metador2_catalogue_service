@@ -47,6 +47,11 @@ class CSWController extends Controller
     {
         try {
             $csw       = $this->get('catalogue_service');
+            file_put_contents(
+                '/tmp/metador.log',
+                $csw->getRequestStack()->getCurrentRequest()->getContent(),
+                FILE_APPEND
+            );
             $operation = $csw->createOperation();
             $response = new StreamedResponse(null, Response::HTTP_OK, array('content-type' => 'application/xml'));
             $contentset = $operation->getContentSet();
@@ -81,5 +86,15 @@ class CSWController extends Controller
             return new Response($content, Response::HTTP_OK, array('content-type' => 'application/xml'));
         }
         return $response;
+    }
+
+    /**
+     * @return StreamedResponse
+     * @Route("harvest", name="csw_harvest")
+     * @Method({"GET", "POST"})
+     */
+    public function harvestAction()
+    {
+        return $this->serviceAction();
     }
 }
