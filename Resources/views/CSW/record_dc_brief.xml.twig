@@ -1,0 +1,15 @@
+<csw:BriefRecord xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:geonet="http://www.fao.org/geonetwork" xmlns:ows="http://www.opengis.net/ows">
+  <dc:identifier>{{ p['fileIdentifier'] }}</dc:identifier>
+  <dc:title>{{ p['title'] }}</dc:title>
+{% if p['hierarchyLevel'] is defined %}
+  <dc:type>{{ p['hierarchyLevel'] }}</dc:type>
+{% endif %}
+{% if p['bbox'] is defined %}
+{% for bbox in p['bbox'] %}
+  <ows:BoundingBox crs="EPSG:4326">
+    <ows:LowerCorner>{{ bbox['wLongitude'] }} {{ bbox['sLatitude'] }}</ows:LowerCorner>
+    <ows:UpperCorner>{{ bbox['eLongitude'] }} {{ bbox['nLatitude'] }}</ows:UpperCorner>
+  </ows:BoundingBox
+{% endfor %}
+{% endif %}
+</csw:BriefRecord>

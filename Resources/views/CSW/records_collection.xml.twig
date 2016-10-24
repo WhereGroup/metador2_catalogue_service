@@ -2,11 +2,24 @@
 <csw:GetRecordsResponse xmlns:csw="http://www.opengis.net/cat/csw/2.0.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.opengis.net/cat/csw/2.0.2 http://schemas.opengis.net/csw/2.0.2/CSW-discovery.xsd">
   <csw:SearchStatus timestamp="{{timestamp}}" />
 {% if resultType == constant('Plugins\\WhereGroup\\CatalogueServiceBundle\\Component\\GetRecords::RESULTTYPE_HITS') or matched == 0 %}
-  <csw:SearchResults numberOfRecordsMatched="{{matched}}" numberOfRecordsReturned="{{returned}}" elementSet="{{resultType}}" nextRecord="{{nextrecord}}" />
+  <csw:SearchResults numberOfRecordsMatched="{{matched}}" numberOfRecordsReturned="{{returned}}" elementSet="{{elementSet}}" nextRecord="{{nextrecord}}" />
 {% else %}
-  <csw:SearchResults numberOfRecordsMatched="{{matched}}" numberOfRecordsReturned="{{returned}}" elementSet="{{resultType}}" nextRecord="{{nextrecord}}">
+  <csw:SearchResults numberOfRecordsMatched="{{matched}}" numberOfRecordsReturned="{{returned}}" elementSet="{{elementSet}}" nextRecord="{{nextrecord}}">
+{% set S = constant('Plugins\\WhereGroup\\CatalogueServiceBundle\\Component\\GetRecords::ELEMENTSET_SUMMARY') %}
+{% set F = constant('Plugins\\WhereGroup\\CatalogueServiceBundle\\Component\\GetRecords::ELEMENTSET_FULL') %}
+{% set B = constant('Plugins\\WhereGroup\\CatalogueServiceBundle\\Component\\GetRecords::ELEMENTSET_BRIEF') %}
 {% for record in records %}
-{% include 'CatalogueServiceBundle:CSW:record_full.xml.twig' with {'p': record.getObject } %}
+ {% if outputSchema == 'http://www.isotc211.org/2005/gmd' %}
+  {% include 'CatalogueServiceBundle:CSW:record_full.xml.twig' with {'p': record.getObject } %}
+ {% elseif outputSchema == 'http://www.opengis.net/cat/csw/2.0.2' %}
+  {%if elementSet == B %}
+   {% include 'CatalogueServiceBundle:CSW:record_dc_brief.xml.twig' with {'p': record.getObject } %}
+  {% elseif elementSet == S %}
+   {% include 'CatalogueServiceBundle:CSW:record_dc_summary.xml.twig' with {'p': record.getObject } %}
+  {% elseif elementSet == F %}
+   {% include 'CatalogueServiceBundle:CSW:record_dc_full.xml.twig' with {'p': record.getObject } %}
+  {% endif %}
+ {% endif %}
 {% endfor %}
   </csw:SearchResults>
 {% endif %}

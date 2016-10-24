@@ -1,6 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <csw:GetRecordByIdResponse xmlns:csw="http://www.opengis.net/cat/csw/2.0.2">
+{% set S = constant('Plugins\\WhereGroup\\CatalogueServiceBundle\\Component\\GetRecords::ELEMENTSET_SUMMARY') %}
+{% set F = constant('Plugins\\WhereGroup\\CatalogueServiceBundle\\Component\\GetRecords::ELEMENTSET_FULL') %}
+{% set B = constant('Plugins\\WhereGroup\\CatalogueServiceBundle\\Component\\GetRecords::ELEMENTSET_BRIEF') %}
 {% for record in records %}
-{% include 'CatalogueServiceBundle:CSW:record_full.xml.twig' with {'p': record.getObject } %}
+ {% if outputSchema == 'http://www.isotc211.org/2005/gmd' %}
+  {% include 'CatalogueServiceBundle:CSW:record_full.xml.twig' with {'p': record.getObject } %}
+ {% elseif outputSchema == 'http://www.opengis.net/cat/csw/2.0.2' %}
+  {%if elementSet == B %}
+   {% include 'CatalogueServiceBundle:CSW:record_dc_brief.xml.twig' with {'p': record.getObject } %}
+  {% elseif elementSet == S %}
+   {% include 'CatalogueServiceBundle:CSW:record_dc_summary.xml.twig' with {'p': record.getObject } %}
+  {% elseif elementSet == F %}
+   {% include 'CatalogueServiceBundle:CSW:record_dc_full.xml.twig' with {'p': record.getObject } %}
+  {% endif %}
+ {% endif %}
 {% endfor %}
 </csw:GetRecordByIdResponse>

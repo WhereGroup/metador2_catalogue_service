@@ -1,0 +1,29 @@
+<csw:Record xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:geonet="http://www.fao.org/geonetwork" xmlns:dct="http://purl.org/dc/terms/" xmlns:ows="http://www.opengis.net/ows">
+  <dc:identifier>{{ p['fileIdentifier'] }}</dc:identifier>
+  <dc:title>{{ p['title'] }}</dc:title>
+{% if p['hierarchyLevel'] is defined %}
+  <dc:type>{{ p['hierarchyLevel'] }}</dc:type>
+{% endif %}
+{% if p['keyword'] is defined %}
+ {% for title,keywords in p['keyword'] %}
+  {% for keyword in keywords.value %}
+  <dc:subject>{{ keyword }}</dc:subject>
+  {% endfor %}
+ {% endfor %}
+{% endif %}
+  <dc:format>unknown</dc:format>
+{% if p['abstract'] is defined %}
+  <dct:abstract>{{ p['abstract'] }}</dct:abstract>
+{% endif %}
+  <dc:description>{{ p['abstract'] }}</dc:description>
+  <dc:language>{{ p['metadataLanguage'] }}</dc:language>
+  <dc:format>unknown</dc:format>
+{% if p['bbox'] is defined %}
+{% for bbox in p['bbox'] %}
+  <ows:BoundingBox crs="EPSG:4326">
+    <ows:LowerCorner>{{ bbox['wLongitude'] }} {{ bbox['sLatitude'] }}</ows:LowerCorner>
+    <ows:UpperCorner>{{ bbox['eLongitude'] }} {{ bbox['nLatitude'] }}</ows:UpperCorner>
+  </ows:BoundingBox
+{% endfor %}
+{% endif %}
+</csw:Record>

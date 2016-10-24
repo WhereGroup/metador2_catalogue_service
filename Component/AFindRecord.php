@@ -13,6 +13,10 @@ abstract class AFindRecord extends AOperation
     const RESULTTYPE_RESULTS = 'results';
     const RESULTTYPE_VALIDATE = 'validate';
 
+    const ELEMENTSET_BRIEF = 'brief';
+    const ELEMENTSET_SUMMARY = 'summary';
+    const ELEMENTSET_FULL = 'full';
+
     protected $outputSchemaList;
     protected $outputSchema; // default value is a first position at the list $outputSchemaList
     protected $resultTypeList;

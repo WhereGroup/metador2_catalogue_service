@@ -220,20 +220,27 @@ class GetRecords extends AFindRecord
         foreach ($this->constraintList as $key => $value) {
             $constarintsMap = array_merge_recursive($constarintsMap, $value);
         }
-        $expr = $filter->generateFilter($qb, $name, $constarintsMap, $parameters, $this->constraint);
-        $qb->select('count(' . $name . '.id)')
-            ->add('where', $expr)
-            ->setParameters($parameters);
+        $expr = null;
+        if($this->constraint) {
+            $expr = $filter->generateFilter($qb, $name, $constarintsMap, $parameters, $this->constraint);
+        }
+        $qb->select('count(' . $name . '.id)');
+        if ($expr) {
+            $qb->add('where', $expr)
+                ->setParameters($parameters);
+        }
 //        $query = $qb->getQuery();
         $matched = $qb->getQuery()->getSingleScalarResult();
         $returned = $matched;
         $results = array();
-        if($this->resultType === self::RESULTTYPE_RESULTS) {
-            $qb->select($name)
-                ->add('where', $expr)
-                ->setFirstResult($this->startPosition - 1)
-                ->setMaxResults($this->maxRecords)
-                ->setParameters($parameters);
+        if($this->resultType === self::RESULTTYPE_RESULTS) {# || $this->resultType === self::RESULTTYPE_VALIDATE) {
+            $qb->select($name);
+            if ($expr) {
+                $qb->add('where', $expr)
+                    ->setParameters($parameters);
+            }
+            $qb->setFirstResult($this->startPosition - 1)
+                ->setMaxResults($this->maxRecords);
             # @TODO sortBy
 //            $query = $qb->getQuery();
             $results = $qb->getQuery()->getResult();
@@ -242,11 +249,13 @@ class GetRecords extends AFindRecord
         # @TODO for self::RESULTTYPE_VALIDATE
         $time    = new \DateTime();
         return $this->csw->getTemplating()->render(
-                $this->templates[$this->getOutputFormat()][$this->elementSetName],
+                $this->templates[$this->getOutputFormat()],
                 array(
                 'timestamp' => $time->format('Y-m-d\TH:i:s'),
                 'matched' => $matched,
                 'returned' => $returned,
+                'elementSet' => $this->elementSetName,
+                'outputSchema' => $this->outputSchema,
                 'resultType' => $this->resultType,
                 'nextrecord' => $this->startPosition - 1,
                 'records' => $results
