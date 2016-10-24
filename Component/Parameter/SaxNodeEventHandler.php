@@ -32,11 +32,10 @@ class SaxNodeEventHandler extends SaxSimpleEventHandler
             $this->node    = $this->handler->getXpathStr();
             $this->jsonStr = '{';
         } elseif ($this->node) {
-            $this->jsonStr .= '"' . $prefixed[1] . '":{';
+            $this->jsonStr .= '{"' . $prefixed[1] . '":{';
             foreach ($attributes as $key => $value) {
                 $this->jsonStr .= '"' . $key . '":"' . addslashes($value) . '",';
             }
-//                $this->jsonStr .= '"attlist":{' . preg_replace('/,$/', '', $this->jsonStr) . '}';
         } else { # xpath to a value
             foreach ($attributes as $key => $value) {
                 $xpathStr = $this->handler->getXpathStr() . '/@' . $key;
@@ -48,12 +47,19 @@ class SaxNodeEventHandler extends SaxSimpleEventHandler
     public function onElementEnd($elementName)
     {
         if ($this->node === $this->handler->getXpathStr()) {
-            $this->jsonStr = preg_replace('/,$/', '', $this->jsonStr) . '}';
+            $this->jsonStr = preg_replace('/,$/', '', $this->jsonStr) . ']}';
             $node          = json_decode($this->jsonStr, true);
-            $this->handler->setRequestParameterValue($this->node, $node);
+            $this->handler->setRequestParameterValue($this->node, $node['children']);
             $this->node    = null;
         } elseif ($this->node) {
-            $this->jsonStr = preg_replace('/,$/', '', $this->jsonStr) . '},';
+            $test = '"children":[';
+            $testPos = strlen($this->jsonStr) - strlen($test);
+            if (strrpos($this->jsonStr, $test) === $testPos) {
+                $this->jsonStr = substr($this->jsonStr, 0, $testPos);
+                $this->jsonStr = preg_replace('/,$/', '', $this->jsonStr) . '}},';
+            } else {
+                $this->jsonStr = preg_replace('/,$/', '', $this->jsonStr) . ']}},';
+            }
         }
         $this->handler->xpathToRoot($this->handler->getPrefixedName($elementName));
     }
@@ -66,6 +72,7 @@ class SaxNodeEventHandler extends SaxSimpleEventHandler
         } elseif (!$this->current['isValueSet']) { # read only first time
             $string = addslashes(preg_replace(array('/\s+$/', '/^\s+/'), array('', ''), $content));
             $this->jsonStr .= $string === '' ? '' : '"VALUE":"' . $string . '",';
+            $this->jsonStr .= '"children":[';
             $this->current['isValueSet'] = true;
         }
     }

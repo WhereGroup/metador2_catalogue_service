@@ -71,13 +71,17 @@ class FilterCapabilities extends ASection
     {
         $this->initOperators();
         foreach ($filter as $key => $value) {
-            try {
-                $name = preg_replace('/^PropertyIs/', '', $key); # @TODO
-                return $this->getOperator($name)->useOperator($qb, $alias, $constarintsMap, $parameters, $name, $value);
-            } catch (\Exception $e) {
-                throw $e instanceof CswException ? $e : new CswException('constraint',
-                    CswException::InvalidParameterValue);
-            }
+            if (is_integer($key)) {
+                return $this->generateFilter($qb, $alias, $constarintsMap, $parameters, $value);
+            } else
+                    try {
+                    $name = preg_replace('/^PropertyIs/', '', $key); # @TODO
+                    return $this->getOperator($name)->useOperator($qb, $alias, $constarintsMap, $parameters, $name,
+                            $value);
+                } catch (\Exception $e) {
+                    throw $e instanceof CswException ? $e : new CswException('constraint',
+                        CswException::InvalidParameterValue);
+                }
         }
     }
 
@@ -89,6 +93,23 @@ class FilterCapabilities extends ASection
 //            return $this->all[preg_replace('/^PropertyIs/', '', $name)];
         } else {
             return null;
+        }
+    }
+
+    public static function generateSortBy(QueryBuilder &$qb, $alias, $constarintsMap, $sortBy)
+    {
+        $sortOrder = array('ASC' => 'ASC', 'DESC' => 'DESC');
+        try {
+            foreach ($sortBy as $item) {
+                $name = $alias . '.' . $constarintsMap[$item['SortProperty']['children'][0]['PropertyName']['VALUE']];
+                if (isset($item['SortProperty']['children'][1])) {
+                    $qb->addOrderBy($name, $sortOrder[$item['SortProperty']['children'][1]['SortOrder']['VALUE']]);
+                } else {
+                    $qb->addOrderBy($name);
+                }
+            }
+        } catch (\Exception $e) {
+            throw new CswException('sortBy', CswException::InvalidParameterValue);
         }
     }
 }

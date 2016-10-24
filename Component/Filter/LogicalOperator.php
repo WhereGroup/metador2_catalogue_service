@@ -25,20 +25,21 @@ class LogicalOperator extends AOperator
         switch ($operator) {
             case 'And':
                 $exprs = array();
-                foreach ($operands as $key => $value) {
-                    $exprs[] = $this->fc->generateFilter($qb, $alias, $constarintsMap, $parameters, array($key => $value));
+                foreach ($operands['children'] as $item) {
+                    $exprs[] = $this->fc->generateFilter($qb, $alias, $constarintsMap, $parameters, $item);
+
                 }
                 return new Expr\Andx($exprs);
             case 'Or':
                 $exprs = array();
-                foreach ($operands as $key => $value) {
-                    $exprs[] = $this->fc->generateFilter($qb, $alias, $constarintsMap, $parameters, array($key => $value));
+                foreach ($operands['children'] as $item) {
+                    $exprs[] = $this->fc->generateFilter($qb, $alias, $constarintsMap, $parameters, $item);
                 }
                 return new Expr\Orx($exprs);
             case 'Not':
                 $exprs = array();
-                foreach ($operands as $key => $value) {
-                    $exprs[] = $this->fc->generateFilter($qb, $alias, $constarintsMap, $parameters, array($key => $value));
+                foreach ($operands['children'] as $item) {
+                    $exprs[] = $this->fc->generateFilter($qb, $alias, $constarintsMap, $parameters, $item);
                     break;
                 }
                 // @TODO for multiple not ???

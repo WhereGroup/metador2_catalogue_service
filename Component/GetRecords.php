@@ -31,7 +31,7 @@ class GetRecords extends AFindRecord
         '/csw:GetRecords/csw:Query/csw:ElementName/text()' => 'elementName', # multiple?
         '/csw:GetRecords/csw:Query/csw:Constraint/csw:CqlText/text()' => 'constraint', # @TODO ???? check xpath
         '/csw:GetRecords/csw:Query/csw:Constraint/ogc:Filter' => 'constraint',
-//        '/csw:GetRecords/csw:Query/ogc:SortBy/ogc:SortProperty' => 'sortBy',
+        '/csw:GetRecords/csw:Query/ogc:SortBy' => 'sortBy',
 ////        'namespace',
 //        '/csw:GetRecords/@requestId' => 'requestId',
 //        '/csw:GetRecords/csw:ResponseHandler' => 'responseHandler',
@@ -74,6 +74,7 @@ class GetRecords extends AFindRecord
 
         $this->startPosition = 1; # default value s. xsd
         $this->maxRecords    = 10; # default value s. xsd
+        $this->sortBy = array();
 //        $this->deistributedSearch = false;
 //        $this->hopCount = 2; # default value s. xsd
     }
@@ -188,9 +189,9 @@ class GetRecords extends AFindRecord
             case 'constraint':
                 $this->constraint    = $value; # @TODO check filter
                 break;
-//            case 'sortBy':
-//                $this->sortBy        = $value; # @TODO split and check if items supported/exist
-//                break;
+            case 'sortBy':
+                $this->sortBy        = $value; # @TODO split and check if items supported/exist
+                break;
 //            case 'namespace':
 //                break;
 //            case 'requestId':
@@ -241,7 +242,7 @@ class GetRecords extends AFindRecord
             }
             $qb->setFirstResult($this->startPosition - 1)
                 ->setMaxResults($this->maxRecords);
-            # @TODO sortBy
+            FilterCapabilities::generateSortBy($qb, $name, $constarintsMap, $this->sortBy);
 //            $query = $qb->getQuery();
             $results = $qb->getQuery()->getResult();
             $returned = count($results);
