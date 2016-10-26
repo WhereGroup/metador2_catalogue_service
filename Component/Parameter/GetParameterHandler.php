@@ -3,6 +3,7 @@
 namespace Plugins\WhereGroup\CatalogueServiceBundle\Component\Parameter;
 
 use Plugins\WhereGroup\CatalogueServiceBundle\Component\Csw;
+use Plugins\WhereGroup\CatalogueServiceBundle\Component\CswException;
 
 /**
  * {@inheritdoc}
@@ -69,7 +70,7 @@ class GetParameterHandler implements IParameterHandler
             $this->setRequestParameters();
             $request = $this->getParameter('request');
             if ($request === null) {
-                throw new CswException('request', CswException::MISSINGPARAMETER);
+                throw new CswException('request', CswException::MissingParameterValue);
             } else {
                 $this->operation = $this->csw->operationForName($request);
                 $parameterMap    = $this->operation->getGETParameterMap();

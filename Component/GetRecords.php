@@ -2,9 +2,8 @@
 
 namespace Plugins\WhereGroup\CatalogueServiceBundle\Component;
 
-use Doctrine\DBAL\Query\QueryBuilder;
-use Doctrine\ORM\Query\Expr\Select;
-use Doctrine\ORM\Query\Expr\From;
+//use Doctrine\ORM\Query\Expr\Select;
+//use Doctrine\ORM\Query\Expr\From;
 use Doctrine\ORM\Query\Expr;
 use Plugins\WhereGroup\CatalogueServiceBundle\Component\Filter\FilterCapabilities;
 
@@ -279,14 +278,13 @@ class GetRecords extends AFindRecord
         }
         $qb->select('count(' . $name . '.id)');
         if ($expr) {
-            $qb->add('where', $expr)
-                ->setParameters($parameters);
+            $num = count($parameters);
+            $eq = new Expr\Comparison($name . '.public', '=', ':public'.$num);
+            $parameters['public'.$num] =  true;
+            $expr =  new Expr\Andx(array($expr, $eq));
+            $qb->add('where', $expr)->setParameters($parameters);
         }
-
-        $qb
-            ->andWhere($name . '.public', ':public')
-            ->setParameter('public', true);
-
+        $query = $qb->getQuery();
         $matched  = $qb->getQuery()->getSingleScalarResult();
         $returned = $matched;
         $results  = array();

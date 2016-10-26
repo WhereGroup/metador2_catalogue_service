@@ -40,7 +40,7 @@ class CSWController extends Controller
 
     /**
      * @return StreamedResponse
-     * @Route("service/", name="csw_entry_point")
+     * @Route("service", name="csw_entry_point")
      * @Method({"GET", "POST"})
      */
     public function serviceAction()
