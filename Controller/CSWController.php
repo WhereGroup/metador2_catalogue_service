@@ -40,22 +40,17 @@ class CSWController extends Controller
 
     /**
      * @return StreamedResponse
-     * @Route("service", name="csw_entry_point")
+     * @Route("service/", name="csw_entry_point")
      * @Method({"GET", "POST"})
      */
     public function serviceAction()
     {
         try {
             $csw       = $this->get('catalogue_service');
-            file_put_contents(
-                '/tmp/metador.log',
-                $csw->getRequestStack()->getCurrentRequest()->getContent(),
-                FILE_APPEND
-            );
             $operation = $csw->createOperation();
             $response = new StreamedResponse(null, Response::HTTP_OK, array('content-type' => 'application/xml'));
             $contentset = $operation->getContentSet();
-            $response->setCallback(function () use ($contentset){
+            $response->setCallback(function () use ($contentset) {
                 while ($contentset->next()) {
                     echo $contentset->getContent();
                     flush();
@@ -65,12 +60,15 @@ class CSWController extends Controller
         } catch (CswException $ex) {
             $content = $this->get('templating')->render(
                 "CatalogueServiceBundle:CSW:exception.xml.twig",
-                array('exception' => array(
-                    'code' => $ex->getCswCode(),
-                    'locator' => $ex->getLocator(),
-                    'text' => $ex->getText()
+                array(
+                    'exception' => array(
+                        'code' => $ex->getCswCode(),
+                        'locator' => $ex->getLocator(),
+                        'text' => $ex->getText()
+                    )
                 )
-            ));
+            );
+
             return new Response($content, Response::HTTP_OK, array('content-type' => 'application/xml'));
         } catch (\Exception $ex) {
             $content = $this->get('templating')->render(

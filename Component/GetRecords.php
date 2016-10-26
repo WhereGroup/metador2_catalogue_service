@@ -2,6 +2,7 @@
 
 namespace Plugins\WhereGroup\CatalogueServiceBundle\Component;
 
+use Doctrine\DBAL\Query\QueryBuilder;
 use Doctrine\ORM\Query\Expr\Select;
 use Doctrine\ORM\Query\Expr\From;
 use Doctrine\ORM\Query\Expr;
@@ -264,6 +265,7 @@ class GetRecords extends AFindRecord
     protected function render()
     {
         $name           = 'm';
+        /** @var QueryBuilder $qb */
         $qb             = $this->csw->getMetadata()->getQueryBuilder($name);
         $filter         = new FilterCapabilities();
         $parameters     = array();
@@ -280,7 +282,11 @@ class GetRecords extends AFindRecord
             $qb->add('where', $expr)
                 ->setParameters($parameters);
         }
-//        $query = $qb->getQuery();
+
+        $qb
+            ->andWhere($name . '.public', ':public')
+            ->setParameter('public', true);
+
         $matched  = $qb->getQuery()->getSingleScalarResult();
         $returned = $matched;
         $results  = array();
@@ -293,15 +299,16 @@ class GetRecords extends AFindRecord
             $qb->setFirstResult($this->startPosition - 1)
                 ->setMaxResults($this->maxRecords);
             FilterCapabilities::generateSortBy($qb, $name, $constarintsMap, $this->sortBy);
-//            $query = $qb->getQuery();
+
             $results  = $qb->getQuery()->getResult();
             $returned = count($results);
         }
+
         # @TODO for self::RESULTTYPE_VALIDATE
         $time = new \DateTime();
         return $this->csw->getTemplating()->render(
-                $this->templates[$this->getOutputFormat()],
-                array(
+            $this->templates[$this->getOutputFormat()],
+            array(
                 'timestamp' => $time->format('Y-m-d\TH:i:s'),
                 'matched' => $matched,
                 'returned' => $returned,
@@ -310,7 +317,7 @@ class GetRecords extends AFindRecord
                 'resultType' => $this->resultType,
                 'nextrecord' => $this->startPosition - 1,
                 'records' => $results
-                )
+            )
         );
     }
 }
