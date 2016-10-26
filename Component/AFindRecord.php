@@ -160,13 +160,13 @@ abstract class AFindRecord extends AOperation
                 }
                 break;
             case 'outputSchema':
-                if(self::isStringToSet($name, $value, $this->outputSchemaList, false)) {
+                if(self::isStringAtList($name, $value, $this->outputSchemaList, false)) {
 //                    $this->setOutputSchema($value);
                     $this->outputSchema = $value;
                 }
                 break;
             case 'resultType':
-                if(self::isStringToSet($name, $value, $this->resultTypeList, false)) {
+                if(self::isStringAtList($name, $value, $this->resultTypeList, false)) {
 //                    $this->setResultType($value);
                     $this->resultType = $value;
                 }

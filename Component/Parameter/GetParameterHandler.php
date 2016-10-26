@@ -9,8 +9,10 @@ use Plugins\WhereGroup\CatalogueServiceBundle\Component\Csw;
  *
  * @author Paul Schmidt<panadium@gmx.de>
  */
-class GetParameterHandler extends AParameterHandler
+class GetParameterHandler implements IParameterHandler
 {
+    protected $csw;
+    protected $operation;
 
     /**
      * The key value pair list of requested parameters
@@ -21,10 +23,18 @@ class GetParameterHandler extends AParameterHandler
     /**
      * {@inheritdoc}
      */
-    public function __construct(Csw $csw, $rootPrefix = 'csw', $rootUri = 'http://www.opengis.net/cat/csw/2.0.2')
+    public function __construct(Csw $csw)
     {
-        parent::__construct($csw, $rootPrefix, $rootUri);
+        $this->csw       = $csw;
         $this->operation = null;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public static function create(Csw $csw, $rootPrefix = 'csw', $rootUri = 'http://www.opengis.net/cat/csw/2.0.2')
+    {
+        return new self($csw);
     }
 
     /**
@@ -32,7 +42,7 @@ class GetParameterHandler extends AParameterHandler
      */
     public function getParameter($name = null, $xpath = null, $caseSensitive = false)
     {
-        if($name === null && $xpath === null) {
+        if ($name === null && $xpath === null) {
             return null;
         }
         if (!$this->requestParameters) {
@@ -57,13 +67,13 @@ class GetParameterHandler extends AParameterHandler
     {
         if ($this->operation === null) {
             $this->setRequestParameters();
-            $request          = $this->getParameter('request');
+            $request = $this->getParameter('request');
             if ($request === null) {
                 throw new CswException('request', CswException::MISSINGPARAMETER);
             } else {
-                $this->operation  = $this->csw->operationForName($request);
-                $parameterMap       = $this->operation->getGETParameterMap();
-                $parameters = array();
+                $this->operation = $this->csw->operationForName($request);
+                $parameterMap    = $this->operation->getGETParameterMap();
+                $parameters      = array();
                 foreach ($parameterMap as $name) {
                     $parameters[$name] = $this->getParameter($name);
                 }
@@ -76,7 +86,8 @@ class GetParameterHandler extends AParameterHandler
     /**
      * Sets request parameters from request.
      */
-    protected function setRequestParameters() {
+    private function setRequestParameters()
+    {
         $this->requestParameters = $this->csw->getRequestStack()->getCurrentRequest()->query->all();
     }
 }

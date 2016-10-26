@@ -30,16 +30,17 @@ class SaxNodeEventHandler extends SaxSimpleEventHandler
         $parameterMap = $this->handler->getParameterMap();
         if (isset($parameterMap[$this->handler->getXpathStr()])) { # xpath to an element
             $this->node    = $this->handler->getXpathStr();
-            $this->jsonStr = '{';
+            $this->jsonStr = '{"children":[';
         } elseif ($this->node) {
             $this->jsonStr .= '{"' . $prefixed[1] . '":{';
             foreach ($attributes as $key => $value) {
                 $this->jsonStr .= '"' . $key . '":"' . addslashes($value) . '",';
             }
+            $this->jsonStr .= '"children":[';
         } else { # xpath to a value
             foreach ($attributes as $key => $value) {
                 $xpathStr = $this->handler->getXpathStr() . '/@' . $key;
-                $this->handler->setRequestParameterValue($xpathStr, $value);
+                $this->handler->setParameter($xpathStr, $value);
             }
         }
     }
@@ -49,7 +50,7 @@ class SaxNodeEventHandler extends SaxSimpleEventHandler
         if ($this->node === $this->handler->getXpathStr()) {
             $this->jsonStr = preg_replace('/,$/', '', $this->jsonStr) . ']}';
             $node          = json_decode($this->jsonStr, true);
-            $this->handler->setRequestParameterValue($this->node, $node['children']);
+            $this->handler->setParameter($this->node, $node['children']);
             $this->node    = null;
         } elseif ($this->node) {
             $test = '"children":[';
@@ -68,12 +69,27 @@ class SaxNodeEventHandler extends SaxSimpleEventHandler
     {
         if (!$this->node) {
             $xpathStr = $this->handler->getXpathStr() . '/text()';
-            $this->handler->setRequestParameterValue($xpathStr, $content);
-        } elseif (!$this->current['isValueSet']) { # read only first time
-            $string = addslashes(preg_replace(array('/\s+$/', '/^\s+/'), array('', ''), $content));
-            $this->jsonStr .= $string === '' ? '' : '"VALUE":"' . $string . '",';
-            $this->jsonStr .= '"children":[';
-            $this->current['isValueSet'] = true;
+            $this->handler->setParameter($xpathStr, $content);
+        } else {#if (!$this->current['isValueSet']) { # read only first time
+//            $string = addslashes(preg_replace(array('/\s+$/', '/^\s+/'), array('', ''), $content));
+            if(($string = addslashes(preg_replace(array('/\s+$/', '/^\s+/'), array('', ''), $content))) !== '') {
+                $test = '"children":[';
+                $testPos = strlen($this->jsonStr) - strlen($test);
+                if (strrpos($this->jsonStr, $test) === $testPos) {
+                    $this->jsonStr = substr($this->jsonStr, 0, $testPos);
+                    $this->jsonStr .= '"VALUE":"' . $string . '","children":[';
+                }
+//                else {
+//                    $this->jsonStr = preg_replace('/,$/', '', $this->jsonStr) . ']}},';
+//                }
+//
+//
+//
+//                $this->jsonStr .= $string === '' ? '' : '"VALUE":"' . $string . '",';
+            }
+//            $this->jsonStr .= $string === '' ? '' : '"VALUE":"' . $string . '",';
+////            $this->jsonStr .= '"children":[';
+//            $this->current['isValueSet'] = true;
         }
     }
 }
