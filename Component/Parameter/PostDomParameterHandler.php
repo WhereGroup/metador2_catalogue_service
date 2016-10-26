@@ -10,8 +10,15 @@ use Plugins\WhereGroup\CatalogueServiceBundle\Component\Csw;
  *
  * @author Paul Schmidt<panadium@gmx.de>
  */
-class PostDomParameterHandler extends AParameterHandler
+class PostDomParameterHandler implements IParameterHandler
 {
+    const EXTERNAL_PREFIX = 'my_prefix';
+    
+    protected $csw;
+    protected $rootPrefix;
+    protected $rootUri;
+    protected $operation;
+    
     /**
      * The requested xml
      * @var \DOMDocument $dom
@@ -24,12 +31,26 @@ class PostDomParameterHandler extends AParameterHandler
      */
     protected $xpath;
 
+
     /**
-     * {@inheritdoc}
+     * Creates an instance.
+     * @param Csw $csw
+     * @param string $rootPrefix
+     * @param string $rootUri
      */
     public function __construct(Csw $csw, $rootPrefix = 'csw', $rootUri = 'http://www.opengis.net/cat/csw/2.0.2')
     {
-        parent::__construct($csw, $rootPrefix, $rootUri);
+        $this->csw = $csw;
+        $this->rootPrefix = $rootPrefix;
+        $this->rootUri    = $rootUri;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public static function create(Csw $csw, $rootPrefix = 'csw', $rootUri = 'http://www.opengis.net/cat/csw/2.0.2')
+    {
+        return new self($csw, $rootPrefix, $rootUri);
     }
 
     /**

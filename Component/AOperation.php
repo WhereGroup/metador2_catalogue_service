@@ -441,7 +441,7 @@ abstract class AOperation
         return false;
     }
 
-    protected function isStringToSet($name, $value, array $values, $mandatory = false)
+    protected function isStringAtList($name, $value, array $values, $mandatory = false)
     {
         $validString = $value !== null && is_string($value) && $value !== '';
         if ($validString && in_array($value, $values)) {
@@ -466,7 +466,7 @@ abstract class AOperation
         }
     }
 
-    protected static function getInteger($name, $intToTest)
+    protected function getInteger($name, $intToTest)
     {
         if (is_integer($intToTest)) {
             return $intToTest;
@@ -478,7 +478,7 @@ abstract class AOperation
         }
     }
 
-    protected static function getPositiveInteger($name, $intToTest)
+    protected function getPositiveInteger($name, $intToTest)
     {
         if (($int = self::getInteger($name, $intToTest)) !== null) {
             if ($int >= 0) {
@@ -499,7 +499,7 @@ abstract class AOperation
      * @param float | integer $number
      * @return integer | null
      */
-    protected static function getGreaterThan($name, $numberToTest, $number)
+    protected function getGreaterThan($name, $numberToTest, $number)
     {
         if ((is_integer($numberToTest) || is_float($numberToTest)) && $numberToTest > $number) {
             return $numberToTest;

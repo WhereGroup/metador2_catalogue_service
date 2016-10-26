@@ -11,47 +11,41 @@ use Plugins\WhereGroup\CatalogueServiceBundle\Component\Csw;
  *
  * @author Paul Schmidt<panadium@gmx.de>
  */
-class PostSaxParameterHandler extends AParameterHandler
+class PostSaxParameterHandler extends SimpleSaxHandler implements IParameterHandler, ISaxHandler
 {
     protected $csw;
-    protected $saxParser;
-    protected $inited = false;
+    protected $rootPrefix;
+    protected $rootUri;
+    protected $operation;
     protected $namespaces;
     protected $defUri;
     protected $defPrefix;
-    protected $xpathStr;
-    protected $map;
-    protected $operation;
-    protected $parser;
-    protected $eventHandler;
-//
-//    protected $eventHandlers = array(
-//
-//    );
+
 
     /**
-     * The parameter map for operation
-     * @var array $parameterMap
+     * Creates an instance.
+     * @param Csw $csw
+     * @param string $rootPrefix
+     * @param string $rootUri
      */
-    protected $parameterMap;
-
-    /**
-     * The key value pair list of requested parameters
-     * @var array $requestParameters
-     */
-    protected $requestParameters;
+    public function __construct(Csw $csw, $rootPrefix = 'csw', $rootUri = 'http://www.opengis.net/cat/csw/2.0.2')
+    {
+        $this->csw = $csw;
+        $this->rootPrefix = $rootPrefix;
+        $this->rootUri    = $rootUri;
+        $this->namespaces = array();
+        $this->inited     = false;
+        $this->xpathStr   = '';
+        $this->saxParser     = null;
+//        $this->eventHandler = new SaxNodeEventHandler($this);
+    }
 
     /**
      * {@inheritdoc}
      */
-    public function __construct(Csw $csw, $rootPrefix = 'csw', $rootUri = 'http://www.opengis.net/cat/csw/2.0.2')
+    public static function create(Csw $csw, $rootPrefix = 'csw', $rootUri = 'http://www.opengis.net/cat/csw/2.0.2')
     {
-        parent::__construct($csw, $rootPrefix, $rootUri);
-        $this->namespaces = array();
-        $this->inited     = false;
-        $this->xpathStr   = '';
-        $this->parser     = null;
-        $this->eventHandler = new SaxNodeEventHandler($this);
+        return new self($csw, $rootPrefix, $rootUri);
     }
 
     /**
@@ -59,7 +53,7 @@ class PostSaxParameterHandler extends AParameterHandler
      */
     public function getParameter($name = null, $xpath = null, $caseSensitive = false)
     {
-        if ($this->parser === null) {
+        if ($this->saxParser === null) {
             $this->parse();
         }
         throw new \Exception('SAX Post getParameter is not yet implemented.');
@@ -81,33 +75,13 @@ class PostSaxParameterHandler extends AParameterHandler
         }
         $this->operation         = $this->csw->operationForName($prefexedName[1]);
         $this->parameterMap      = $this->operation->getPOSTParameterMap();
-        $this->requestParameters = array();
+        $this->parameters = array();
         $this->inited            = true;
     }
 
     /**
      * {@inheritdoc}
      */
-    public function getOperation()
-    {
-        if ($this->parser === null) {
-            $this->parse();
-        }
-        $this->operation->setParameters($this->requestParameters);
-        return $this->operation;
-    }
-
-    protected function parse()
-    {
-        $this->parser = xml_parser_create();
-        xml_set_object($this->parser, $this);
-        xml_parser_set_option($this->parser, XML_OPTION_CASE_FOLDING, false);
-        xml_set_element_handler($this->parser, "startElement", "endElement");
-        xml_set_character_data_handler($this->parser, "elementContent");
-        // @TODO read fram an input stream
-        xml_parse($this->parser, $this->csw->getRequestStack()->getCurrentRequest()->getContent());
-    }
-
     public function getPrefixedName($QName)
     {
         $help = explode(':', $QName);
@@ -118,81 +92,33 @@ class PostSaxParameterHandler extends AParameterHandler
         }
     }
 
-    protected function createElementNs(array $prefexedName)
-    {
-        return '/' . $prefexedName[0] . ':' . $prefexedName[1];
-    }
-
-    public function xpathFromRoot(array $prefexedName)
-    {
-        $this->xpathStr .= $this->createElementNs($prefexedName);
-    }
-
-    public function xpathToRoot(array $prefexedName)
-    {
-        $str            = $this->createElementNs($prefexedName);
-        $this->xpathStr = substr($this->xpathStr, 0, strlen($this->xpathStr) - strlen($str));
-    }
-
-    public function getXpathStr()
-    {
-        return $this->xpathStr;
-    }
-
-    public function getParameterMap()
-    {
-        return $this->parameterMap;
-    }
-
-    public function getRequestParameters()
-    {
-        return $this->requestParameters;
-    }
-
     /**
-     * Callback for the start of each element
-     * @param type $parser
-     * @param string $elementName element name
-     * @param array $attributes attributes
+     * {@inheritdoc}
      */
-    protected function startElement($parser, $elementName, $attributes)
+    public function startElement($parser, $elementName, $attributes)
     {
         if (!$this->inited) { // root element
+            $this->eventHandler = new SaxNodeEventHandler($this);
             $this->initOperation($this->getPrefixedName($elementName), $attributes);
         }
         $this->eventHandler->onElementStart($elementName, $attributes);
     }
 
     /**
-     * Callback for the end of each element
-     * @param type $parser parser
-     * @param string $elementName element name
+     * {@inheritdoc}
      */
-    protected function endElement($parser, $elementName)
+    public function getOperation()
     {
-        $this->eventHandler->onElementEnd($elementName);
-    }
-
-    /**
-     * Callback for the content within an element.
-     * @param type $parser
-     * @param string $content content
-     */
-    protected function elementContent($parser, $content)
-    {
-        $this->eventHandler->onElementContent($content);
-    }
-
-    public function setRequestParameterValue($xpathStr, $value)
-    {
-        if (isset($this->parameterMap[$xpathStr])) {
-            if (!isset($this->requestParameters[$this->parameterMap[$xpathStr]])) {
-                $this->requestParameters[$this->parameterMap[$xpathStr]] = $value;
-            } elseif (is_string($this->requestParameters[$this->parameterMap[$xpathStr]])) {
-                $this->requestParameters[$this->parameterMap[$xpathStr]] = array($this->requestParameters[$this->parameterMap[$xpathStr]], $value);
-            } elseif (is_array($this->requestParameters[$this->parameterMap[$xpathStr]])) {
-                $this->requestParameters[$this->parameterMap[$xpathStr]][] = $value;
-            }
+        if ($this->saxParser === null) {
+            $this->saxParser = xml_parser_create();
+            xml_set_object($this->saxParser, $this);
+            xml_parser_set_option($this->saxParser, XML_OPTION_CASE_FOLDING, false);
+            xml_set_element_handler($this->saxParser, "startElement", "endElement");
+            xml_set_character_data_handler($this->saxParser, "elementContent");
+            // @TODO read fram an input stream
+            xml_parse($this->saxParser, $this->csw->getRequestStack()->getCurrentRequest()->getContent());
         }
+        $this->operation->setParameters($this->parameters);
+        return $this->operation;
     }
 }

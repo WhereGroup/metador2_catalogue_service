@@ -16,7 +16,7 @@ class SaxSimpleEventHandler
 {
     protected $handler;
 
-    public function __construct(PostSaxParameterHandler $handler)
+    public function __construct(ISaxHandler $handler)
     {
         $this->handler = $handler;
     }
@@ -28,7 +28,7 @@ class SaxSimpleEventHandler
 
         foreach ($attributes as $key => $value) {
             $xpathStr = $this->handler->getXpathStr() . '/@' . $key;
-            $this->handler->setRequestParameterValue($xpathStr, $value);
+            $this->handler->setParameter($xpathStr, $value);
         }
     }
 
@@ -40,6 +40,6 @@ class SaxSimpleEventHandler
     public function onElementContent($content)
     {
         $xpathStr = $this->handler->getXpathStr() . '/text()';
-        $this->handler->setRequestParameterValue($xpathStr, $content);
+        $this->handler->setParameter($xpathStr, $content);
     }
 }

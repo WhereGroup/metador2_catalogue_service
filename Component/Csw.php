@@ -239,9 +239,9 @@ class Csw
         $request = $this->requestStack->getCurrentRequest();
         $handler = null;
         if ($request->getMethod() === 'GET') { # GET
-            $handler = new GetParameterHandler($this);
+            $handler = GetParameterHandler::create($this);
         } if ($request->getMethod() === 'POST') {  # POST
-            $handler = new PostSaxParameterHandler($this); #$request->getContent());
+            $handler = PostSaxParameterHandler::create($this); #$request->getContent());
         }
         return $handler->getOperation();
     }
