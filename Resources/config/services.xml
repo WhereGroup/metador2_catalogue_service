@@ -9,6 +9,7 @@
     <services>
         <!-- SERVICE -->
         <service id="catalogue_service" class="%catalogue_service.csw.class%">
+            <argument type="service" id="service_container" />
             <argument type="service" id="request_stack" />
             <argument type="service" id="metadata" />
             <argument type="service" id="metador_plugin" />

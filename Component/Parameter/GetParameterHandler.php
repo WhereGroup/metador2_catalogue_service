@@ -69,16 +69,19 @@ class GetParameterHandler implements IParameterHandler
         if ($this->operation === null) {
             $this->setRequestParameters();
             $request = $this->getParameter('request');
-            if ($request === null) {
-                throw new CswException('request', CswException::MissingParameterValue);
-            } else {
+
+            if ($request) {
                 $this->operation = $this->csw->operationForName($request);
                 $parameterMap    = $this->operation->getGETParameterMap();
+
                 $parameters      = array();
                 foreach ($parameterMap as $name) {
                     $parameters[$name] = $this->getParameter($name);
                 }
+
                 $this->operation->setParameters($parameters);
+            } else {
+                throw new CswException('request', CswException::MissingParameterValue);
             }
         }
         return $this->operation;

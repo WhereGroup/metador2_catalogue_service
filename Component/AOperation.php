@@ -99,10 +99,10 @@ abstract class AOperation
         $this->csw              = $csw;
         $this->httpGet          = $configuration['http']['get'] ? $this->csw->getHttpGet() : null;
         $this->httpPost         = $configuration['http']['post'] ? $this->csw->getHttpPost() : null;
-        $this->outputFormatList = array_keys($configuration['outpurFormatList']);
+        $this->outputFormatList = array_keys($configuration['outputFormatList']);
         $this->outputFormat     = $this->outputFormatList[0]; # !!! IMPORTANT
         $this->exceptions       = array();
-        $this->templates        = $configuration['outpurFormatList'];
+        $this->templates        = $configuration['outputFormatList'];
 
         $this->postEncoding = $this->postEncodingList[0]; # !!! IMPORTANT
 
