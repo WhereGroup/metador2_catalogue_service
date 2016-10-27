@@ -441,6 +441,19 @@ abstract class AOperation
         return false;
     }
 
+    protected function isListAtList($name, $list, array $values, $mandatory = false)
+    {
+        $result = null;
+        foreach ($list as $item) {
+            if ($result === null) {
+                $result = $this->isStringAtList($item, $item, $values, $mandatory);
+            } elseif(!$this->isStringAtList($item, $item, $values, $mandatory)) {
+                $result = false;
+            }
+        }
+        return $result !== null && $result !== false;
+    }
+
     protected function isStringAtList($name, $value, array $values, $mandatory = false)
     {
         $validString = $value !== null && is_string($value) && $value !== '';
