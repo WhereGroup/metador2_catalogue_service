@@ -72,6 +72,9 @@ class GetParameterHandler implements IParameterHandler
 
             if ($request) {
                 $this->operation = $this->csw->operationForName($request);
+                if (!$this->operation->getHttpGet()) {
+                    throw new CswException('request', CswException::OperationNotSupported);
+                }
                 $parameterMap    = $this->operation->getGETParameterMap();
 
                 $parameters      = array();

@@ -2,8 +2,8 @@
 
 namespace Plugins\WhereGroup\CatalogueServiceBundle\Component\Parameter;
 
-use Plugins\WhereGroup\CatalogueServiceBundle\Component\AOperation;
 use Plugins\WhereGroup\CatalogueServiceBundle\Component\Csw;
+use Plugins\WhereGroup\CatalogueServiceBundle\Component\CswException;
 
 /**
  * Description of GetHandler
@@ -90,6 +90,9 @@ class PostDomParameterHandler implements IParameterHandler
                 }
             }
             $this->operation = $this->csw->operationForName($this->dom->documentElement->localName);
+            if (!$this->operation->getHttpPost()) {
+                throw new CswException('request', CswException::OperationNotSupported);
+            }
             $parameterMap       = $this->operation->getPOSTParameterMap();
             $parameters = array();
             foreach ($parameterMap as $key => $value) {
