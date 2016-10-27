@@ -5,13 +5,17 @@
 * Plugin nun in der Administration aktivieren
 
 ## Beispiele
+
 ## GetCapabilities
+
 ### GET
+
 - `http://localhost/projects/metador2/web/app_dev.php/csw/service?request=GetCapabilities&service=CSW`
 
 ### POST
+
 - `http://localhost/projects/metador2/web/app_dev.php/csw/service`
-```
+```xml
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <GetCapabilities
    xmlns="http://www.opengis.net/cat/csw/2.0.2"
@@ -37,12 +41,15 @@
 ```
 
 ## DescribeRecord
+
 ### GET
+
 - `http://localhost/projects/metador2/web/app_dev.php/csw/service?request=DescribeRecord&service=CSW`
 
 ### POST
+
 - `http://localhost/projects/metador2/web/app_dev.php/csw/service`
-```
+```xml
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <DescribeRecord
    service="CSW" 
@@ -59,12 +66,15 @@
 ```
 
 ## GetRecordById
+
 ### GET
+
 - `http://localhost/projects/metador2/web/app_dev.php/csw/service?service=CSW&request=GetRecordById&version=2.0.2&id=421b22cb-7fa0-4559-85a8-d11beb95f443,421b22cb-7fa0-4559-85a8-d11beb95f443,421b22cb-7fa0-4559-85a8-d11beb95f443,421b22cb-7fa0-4559-85a8-d11beb95f443`
 
 ### POST
+
 - `http://localhost/projects/metador2/web/app_dev.php/csw/service`
-```
+```xml
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <GetRecordById
    service="CSW"
