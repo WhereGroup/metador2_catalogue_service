@@ -33,7 +33,7 @@ class GetRecords extends AFindRecord
         '/csw:GetRecords/csw:Query/csw:Constraint' => 'Constraint',
         '/csw:GetRecords/csw:Query/ogc:SortBy' => 'sortBy',
 ////        'namespace',
-//        '/csw:GetRecords/@requestId' => 'requestId',
+        '/csw:GetRecords/csw:RequestId/text()' => 'requestId',
 //        '/csw:GetRecords/csw:ResponseHandler' => 'responseHandler',
 ////        'deistributedSearch' for GET
 //        '/csw:GetRecords/csw:DistributedSearch/@hopCount' => 'hopCount',
@@ -167,8 +167,9 @@ class GetRecords extends AFindRecord
     {
         switch ($name) {
             case 'typeNames':
-                if (self::isStringAtList($name, $value, $this->typeNameList, false)) {
-                    $this->typeName = $value;
+                $typeNames = preg_split('/[\s,]/', $value);
+                if ($this->isListAtList($name, $typeNames, $this->typeNameList, false)) {
+                    $this->typeNames = $typeNames;
                 }
                 break;
             case 'startPosition':
@@ -192,21 +193,29 @@ class GetRecords extends AFindRecord
             case 'sortBy':
                 $this->sortBy     = $value; # @TODO split and check if items supported/exist
                 break;
-//            case 'namespace':
-//                break;
-//            case 'requestId':
-//                break;
-//            case 'responseHandler':
-//                break;
+            case 'namespace':
+                // not yet implemented
+                break;
+            case 'requestId':
+                $this->requestId = $value;
+                break;
+            case 'responseHandler':
+//                  not yet implemented
+                break;
             case 'elementName':
                 // @TODO if exists
                 break;
-//            case 'deistributedSearch':
-//                  $this->deistributedSearch = $value; # check if $value is a boolean
-//                break;
-//            case 'hopCount':
-//                  $this->hopCount = $value; #check if $value is a positive integer and deistributedSearch is requested.
-//                break;
+            case 'ResponseHandler':
+//                 not yet implemented
+                break;
+            case 'deistributedSearch':
+//                not yet implemented
+//                $this->deistributedSearch = $value; # check if $value is a boolean
+                break;
+            case 'hopCount':
+//                not yet implemented
+//                $this->hopCount = $value; #check if $value is a positive integer and deistributedSearch is requested.
+                break;
             default:
                 parent::setParameter($name, $value);
         }
@@ -278,13 +287,14 @@ class GetRecords extends AFindRecord
         }
         $qb->select('count(' . $name . '.id)');
         if ($expr) {
-            $num = count($parameters);
-            $eq = new Expr\Comparison($name . '.public', '=', ':public'.$num);
-            $parameters['public'.$num] =  true;
-            $expr =  new Expr\Andx(array($expr, $eq));
+            // select only public metadata
+            $num                       = count($parameters);
+            $eq                        = new Expr\Comparison($name . '.public', '=', ':public' . $num);
+            $parameters['public' . $num] = true;
+            $expr                      = new Expr\Andx(array($expr, $eq));
             $qb->add('where', $expr)->setParameters($parameters);
         }
-        $query = $qb->getQuery();
+//        $query = $qb->getQuery();
         $matched  = $qb->getQuery()->getSingleScalarResult();
         $returned = $matched;
         $results  = array();
@@ -301,21 +311,18 @@ class GetRecords extends AFindRecord
             $results  = $qb->getQuery()->getResult();
             $returned = count($results);
         }
-
         # @TODO for self::RESULTTYPE_VALIDATE
         $time = new \DateTime();
         return $this->csw->getTemplating()->render(
-            $this->templates[$this->getOutputFormat()],
-            array(
+                $this->templates[$this->getOutputFormat()],
+                array(
                 'timestamp' => $time->format('Y-m-d\TH:i:s'),
                 'matched' => $matched,
                 'returned' => $returned,
-                'elementSet' => $this->elementSetName,
-                'outputSchema' => $this->outputSchema,
-                'resultType' => $this->resultType,
+                'getrecords' => $this,
                 'nextrecord' => $this->startPosition - 1,
                 'records' => $results
-            )
+                )
         );
     }
 }

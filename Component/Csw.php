@@ -119,18 +119,18 @@ class Csw
         'GetRecordById' => array(
             'class' => 'Plugins\WhereGroup\CatalogueServiceBundle\Component\GetRecordById',
             'outpurFormatList' => array('application/xml' => "CatalogueServiceBundle:CSW:recordbyid.xml.twig"),
-            'outputSchemaList' => array('http://www.opengis.net/cat/csw/2.0.2', 'http://www.isotc211.org/2005/gmd'),
+            'outputSchemaList' => array('http://www.isotc211.org/2005/gmd'),#'http://www.opengis.net/cat/csw/2.0.2',
             'resultTypeList' => array('results'), #('hits', 'results', 'validate'),
             'elementSetNameList' => array('brief', 'summary', 'full'), #('brief', 'summary', 'full'), // default value "summary" !!!
             'http' => array('get' => true, 'post' => true)),
         'GetRecords' => array(
             'class' => 'Plugins\WhereGroup\CatalogueServiceBundle\Component\GetRecords',
             'outpurFormatList' => array('application/xml' => "CatalogueServiceBundle:CSW:records_collection.xml.twig"),
-            'outputSchemaList' => array('http://www.opengis.net/cat/csw/2.0.2', 'http://www.isotc211.org/2005/gmd'),
+            'outputSchemaList' => array('http://www.isotc211.org/2005/gmd'),#'http://www.opengis.net/cat/csw/2.0.2', 
             'resultTypeList' => array('hits', 'results', 'validate'),
             'elementSetNameList' => array('brief', 'summary', 'full'), // default value "summary" !!!
             'constraintLanguageList' => array('FILTER'), #('FILTER', 'CQL_TEXT'),
-            'typeNameList' => array('csw:Record', 'gmd:MD_Metadata'),
+            'typeNameList' => array('gmd:MD_Metadata'),#'csw:Record',
             'constraintList' => array(
                 'SupportedISOQueryables' => array(
                     'Identifier' => 'uuid',
