@@ -37,13 +37,57 @@ class CSWController extends Controller
 //
 //        return $response;
 //    }
-
     /**
      * @return StreamedResponse
      * @Route("service", name="csw_entry_point")
      * @Method({"GET", "POST"})
      */
     public function serviceAction()
+    {
+        try {
+            $csw = $this->get('catalogue_service');
+            $operation = $csw->createOperation();
+
+            $xml = $operation->createResult();
+            $response = new Response();
+            $response->headers->set('Content-Type', 'text/xml');
+            $response->setContent($xml);
+            return $response;
+        } catch (CswException $ex) {
+            $content = $this->get('templating')->render(
+                "CatalogueServiceBundle:CSW:exception.xml.twig",
+                array(
+                    'exception' => array(
+                        'code' => $ex->getCswCode(),
+                        'locator' => $ex->getLocator(),
+                        'text' => $ex->getText()
+                    )
+                )
+            );
+
+            return new Response($content, Response::HTTP_OK, array('content-type' => 'application/xml'));
+        } catch (\Exception $ex) {
+            $content = $this->get('templating')->render(
+                "CatalogueServiceBundle:CSW:exception.xml.twig",
+                array(
+                    'exception' => array(
+                        'code' => $ex->getCode(),
+                        'locator' => null,
+                        'text' => array($ex->getMessage())
+                    )
+                )
+            );
+            return new Response($content, Response::HTTP_OK, array('content-type' => 'application/xml'));
+        }
+        return $response;
+    }
+
+    /**
+     * @return StreamedResponse
+     * @Route("streamed", name="csw_entry_point_streamed")
+     * @Method({"GET", "POST"})
+     */
+    public function streamedAction()
     {
         try {
             $csw = $this->get('catalogue_service');
@@ -90,7 +134,7 @@ class CSWController extends Controller
 
     /**
      * @return StreamedResponse
-     * @Route("harvest", name="csw_harvest")
+     * @Route("secured", name="csw_entry_point_secured")
      * @Method({"GET", "POST"})
      */
     public function harvestAction()

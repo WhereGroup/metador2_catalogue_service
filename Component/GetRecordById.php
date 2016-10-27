@@ -20,7 +20,6 @@ class GetRecordById extends AFindRecord
         'elementSetName' => '/' . Csw::CSW_PREFIX . ':GetRecordById/ElementSetName/text()',
         'id' => '/' . Csw::CSW_PREFIX . ':GetRecordById/' . Csw::CSW_PREFIX . ':Id/text()',
     );
-
     protected $outputSchema;
     protected $id;
 
@@ -61,7 +60,7 @@ class GetRecordById extends AFindRecord
      */
     public static function getPOSTParameterMap()
     {
-        $parameters       = array();
+        $parameters = array();
         foreach (self::$parameterMap as $key => $value) {
             if ($value !== null) {
                 $parameters[$value] = $key;
@@ -116,7 +115,11 @@ class GetRecordById extends AFindRecord
     {
         $results = array();
         foreach ($this->id as $id) {
-            $results[] = $this->csw->getMetadata()->getByUUID($id);
+            try {
+                $results[] = $this->csw->getMetadata()->getByUUID($id);
+            } catch (\Exception $e) {
+                throw new CswException('', CswException::NoApplicableCode);
+            }
         }
         return $this->csw->getTemplating()->render(
                 $this->templates[$this->getOutputFormat()],
