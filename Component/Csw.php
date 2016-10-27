@@ -2,6 +2,8 @@
 
 namespace Plugins\WhereGroup\CatalogueServiceBundle\Component;
 
+use Symfony\Component\DependencyInjection\ContainerAwareTrait;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Bundle\TwigBundle\Debug\TimedTwigEngine;
 use WhereGroup\CoreBundle\Component\Metadata;
@@ -60,92 +62,13 @@ class Csw
      * The configuration parameters of supported sections
      * @var array $sections
      */
-    protected $sections = array(
-        'ServiceIdentification' => array(
-            'class' => 'Plugins\WhereGroup\CatalogueServiceBundle\Component\ServiceIdentification',
-            'title' => 'Catalogue-Service WhereGroup',
-            'abstract' => 'Catalogue-Service WhereGroup',
-            'keywords' => array('CS-W', 'ISO19119', 'ISO19115', 'WhereGroup', 'Catalog Service', 'metadata'),
-            'versions' => array('2.0.2'),
-            'fees' => 'none',
-            'accessConstraints' => array('none')
-        ),
-        'ServiceProvider' => array(
-            'class' => 'Plugins\WhereGroup\CatalogueServiceBundle\Component\ServiceProvider',
-            'providerName' => 'WhereGroup',
-            'providerSite' => 'http://www.wheregroup.com',
-            'serviceContact' => array(
-                'individualName' => 'NAME',
-                'positionName' => 'support',
-                'contactInfo' => array(
-                    'phone' => array(
-                        'voice' => '+49-????????????',
-                        'facsimile' => '+49-??????????????'
-                    ),
-                    'address' => array(
-                        'deliveryPoint' => 'Teststr. 12',
-                        'city' => 'Bonn',
-                        'administrativeArea' => 'NRW',
-                        'postalCode' => '55555',
-                        'country' => 'Germany',
-                        'electronicMailAddress' => 'info@xxxxx.com'
-                    ),
-                    'onlineResource' => 'http://www.xxxxxxx.com'
-                )
-            )
-        ),
-        'OperationsMetadata' => array(
-            'class' => 'Plugins\WhereGroup\CatalogueServiceBundle\Component\OperationsMetadata'),
-        'Filter_Capabilities' => array(
-            'class' => 'Plugins\WhereGroup\CatalogueServiceBundle\Component\Filter\FilterCapabilities'),
-    );
+    protected $sections = array();
 
     /**
      * The configuration parameters of supported operations
      * @var array $sections
      */
-    protected $operations = array(
-        'GetCapabilities' => array(
-            'class' => 'Plugins\WhereGroup\CatalogueServiceBundle\Component\GetCapabilities',
-            'outpurFormatList' => array('application/xml' => "CatalogueServiceBundle:CSW:capabilities_response.xml.twig"),
-            'http' => array('get' => true, 'post' => true)
-        ),
-        'DescribeRecord' => array(
-            'class' => 'Plugins\WhereGroup\CatalogueServiceBundle\Component\DescribeRecord',
-            'typeNameList' => array('gmd:MD_Metadata'),
-            'outpurFormatList' => array('application/xml' => "CatalogueServiceBundle:CSW:describe_response.xml.twig"),
-            #'schemaLanguage' => array(), # The default value is XMLSCHEMA, other schemas are not supported
-            'http' => array('get' => true, 'post' => false)),
-        'GetRecordById' => array(
-            'class' => 'Plugins\WhereGroup\CatalogueServiceBundle\Component\GetRecordById',
-            'outpurFormatList' => array('application/xml' => "CatalogueServiceBundle:CSW:recordbyid.xml.twig"),
-            'outputSchemaList' => array('http://www.isotc211.org/2005/gmd'),#'http://www.opengis.net/cat/csw/2.0.2',
-            'resultTypeList' => array('results'), #('hits', 'results', 'validate'),
-            'elementSetNameList' => array('brief', 'summary', 'full'), #('brief', 'summary', 'full'), // default value "summary" !!!
-            'http' => array('get' => true, 'post' => true)),
-        'GetRecords' => array(
-            'class' => 'Plugins\WhereGroup\CatalogueServiceBundle\Component\GetRecords',
-            'outpurFormatList' => array('application/xml' => "CatalogueServiceBundle:CSW:records_collection.xml.twig"),
-            'outputSchemaList' => array('http://www.isotc211.org/2005/gmd'),#'http://www.opengis.net/cat/csw/2.0.2', 
-            'resultTypeList' => array('hits', 'results', 'validate'),
-            'elementSetNameList' => array('brief', 'summary', 'full'), // default value "summary" !!!
-            'constraintLanguageList' => array('FILTER'), #('FILTER', 'CQL_TEXT'),
-            'typeNameList' => array('gmd:MD_Metadata'),#'csw:Record',
-            'constraintList' => array(
-                'SupportedISOQueryables' => array(
-                    'Identifier' => 'uuid',
-                    'Title' => 'title',
-                    'Abstract' => 'abstract'
-                )
-            ),
-//            'requestId'
-//            'NAMESPACE' =>
-            'http' => array('get' => false, 'post' => true)),
-#        'Harvest' => array(
-#            'class' => 'Plugins\WhereGroup\CatalogueServiceBundle\Component\Harvest',
-#            'outpurFormatList' => array('application/xml' => "CatalogueServiceBundle:CSW:recordbyid_collection.xml.twig"),
-#            'http' => array('get' => false, 'post' => true)), # @TODO boolean or secured URL
-    );
+    protected $operations = array();
 
     /** @var TimedTwigEngine $templating */
     protected $templating = null;
@@ -157,15 +80,19 @@ class Csw
      * @param Plugin $plugin
      * @param $templating
      */
-    public function __construct(RequestStack $requestStack, Metadata $metadata, Plugin $plugin, $templating)
+    public function __construct(ContainerInterface $container, RequestStack $requestStack, Metadata $metadata, Plugin $plugin, $templating)
     {
+
+        $this->container    = $container;
         $this->requestStack = $requestStack;
         $this->metadata     = $metadata;
         $this->plugin       = $plugin;
         $this->templating   = $templating;
         $req                = $this->requestStack->getCurrentRequest();
         $url                = $req->getSchemeAndHttpHost() . $req->getBaseUrl() . $req->getPathInfo();
-        $this->httpGet      = ($this->httpPost     = $url) . '?';
+        $this->httpGet      = ($this->httpPost = $url) . '?';
+        $this->operations   = $container->getParameter('csw')['Operations'];
+        $this->sections     = $container->getParameter('csw')['Sections'];
     }
 
     /**
@@ -224,8 +151,10 @@ class Csw
         try {
             $configuration = $this->operations[$operationName];
             $fullClass     = $configuration['class'];
+
             return new $fullClass($this, $configuration);
-        } catch (\Exception $e) {
+        }
+        catch (\Exception $e) {
             throw new CswException('request', CswException::OperationNotSupported);
         }
     }
@@ -236,13 +165,17 @@ class Csw
      */
     public function createOperation()
     {
-        $request = $this->requestStack->getCurrentRequest();
         $handler = null;
-        if ($request->getMethod() === 'GET') { # GET
+        $request = $this->requestStack->getCurrentRequest();
+
+        if ($request->getMethod() === 'GET') {
             $handler = GetParameterHandler::create($this);
-        } if ($request->getMethod() === 'POST') {  # POST
+        }
+
+        if ($request->getMethod() === 'POST') {
             $handler = PostSaxParameterHandler::create($this); #$request->getContent());
         }
+
         return $handler->getOperation();
     }
 //

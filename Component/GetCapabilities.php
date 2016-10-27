@@ -13,11 +13,11 @@ final class GetCapabilities extends AOperation
      * {@inheritdoc}
      */
     protected static $parameterMap = array(
-        'version' => null,
-        'service' => '/' . Csw::CSW_PREFIX . ':GetCapabilities/@service',
+        'version'       => null,
+        'service'       => '/' . Csw::CSW_PREFIX . ':GetCapabilities/@service',
         'acceptVersion' => '/' . Csw::CSW_PREFIX . ':GetCapabilities/ows:AcceptVersions/ows:Version/text()',
-        'section' => '/' . Csw::CSW_PREFIX . ':GetCapabilities/ows:Sections/ows:Section/text()',
-        'outputFormat' => '/' . Csw::CSW_PREFIX . ':GetCapabilities/ows:AcceptFormats/ows:OutputFormat/text()',
+        'section'       => '/' . Csw::CSW_PREFIX . ':GetCapabilities/ows:Sections/ows:Section/text()',
+        'outputFormat'  => '/' . Csw::CSW_PREFIX . ':GetCapabilities/ows:AcceptFormats/ows:OutputFormat/text()',
     );
 
     /**
@@ -60,6 +60,7 @@ final class GetCapabilities extends AOperation
         $this->sectionList = $this->csw->getSections();
         $this->operations  = array();
         $operations        = $this->csw->getOperations();
+
         foreach ($operations as $name => $value) {
             if ($name !== $this->name) {
                 $class                   = $value['class'];

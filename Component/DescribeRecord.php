@@ -13,9 +13,9 @@ class DescribeRecord extends AOperation
      * {@inheritdoc}
      */
     protected static $parameterMap = array(
-        'version' => '/' . Csw::CSW_PREFIX . ':DescribeRecord/@version',
-        'service' => '/' . Csw::CSW_PREFIX . ':DescribeRecord/@service',
-        'typeName' => '/' . Csw::CSW_PREFIX . ':DescribeRecord/' . Csw::CSW_PREFIX . ':TypeName/text()',
+        'version'      => '/' . Csw::CSW_PREFIX . ':DescribeRecord/@version',
+        'service'      => '/' . Csw::CSW_PREFIX . ':DescribeRecord/@service',
+        'typeName'     => '/' . Csw::CSW_PREFIX . ':DescribeRecord/' . Csw::CSW_PREFIX . ':TypeName/text()',
         'outputFormat' => '/' . Csw::CSW_PREFIX . ':DescribeRecord/@outputFormat',
     );
 

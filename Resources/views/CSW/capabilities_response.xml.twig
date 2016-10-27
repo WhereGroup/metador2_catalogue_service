@@ -64,7 +64,9 @@
                     <ows:ElectronicMailAddress>{{ info.address.electronicMailAddress }}</ows:ElectronicMailAddress>
                 </ows:Address>
                 {% endif %}
-                <ows:OnlineResource xlink:href="mailto:conterra@conterra.de"/>
+                {% if info.onlineResourse is defined %}
+                <ows:OnlineResource xlink:href="{{ info.onlineResourse }}"/>
+                {% endif %}
             </ows:ContactInfo>
         </ows:ServiceContact>
         {% endif %}

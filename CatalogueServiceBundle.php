@@ -9,5 +9,4 @@ use Symfony\Component\HttpKernel\Bundle\Bundle;
  * @package Plugins\WhereGroup\CatalogueServiceBundle
  */
 class CatalogueServiceBundle extends Bundle
-{
-}
+{}

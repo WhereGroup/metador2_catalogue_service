@@ -46,8 +46,9 @@ class CSWController extends Controller
     public function serviceAction()
     {
         try {
-            $csw       = $this->get('catalogue_service');
+            $csw = $this->get('catalogue_service');
             $operation = $csw->createOperation();
+
             $response = new StreamedResponse(null, Response::HTTP_OK, array('content-type' => 'application/xml'));
             $contentset = $operation->getContentSet();
             $response->setCallback(function () use ($contentset) {
@@ -56,6 +57,7 @@ class CSWController extends Controller
                     flush();
                 }
             });
+
             return $response;
         } catch (CswException $ex) {
             $content = $this->get('templating')->render(
@@ -74,11 +76,11 @@ class CSWController extends Controller
             $content = $this->get('templating')->render(
                 "CatalogueServiceBundle:CSW:exception.xml.twig",
                 array(
-                'exception' => array(
-                    'code' => $ex->getCode(),
-                    'locator' => null,
-                    'text' => array($ex->getMessage())
-                )
+                    'exception' => array(
+                        'code' => $ex->getCode(),
+                        'locator' => null,
+                        'text' => array($ex->getMessage())
+                    )
                 )
             );
             return new Response($content, Response::HTTP_OK, array('content-type' => 'application/xml'));
