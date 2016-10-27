@@ -2,9 +2,8 @@
 
 namespace Plugins\WhereGroup\CatalogueServiceBundle\Component\Parameter;
 
-use Plugins\WhereGroup\CatalogueServiceBundle\Component\Filter\AOperation;
-//use Plugins\WhereGroup\CatalogueServiceBundle\Component\AParameterHandler;
 use Plugins\WhereGroup\CatalogueServiceBundle\Component\Csw;
+use Plugins\WhereGroup\CatalogueServiceBundle\Component\CswException;
 
 /**
  * {@inheritdoc}
@@ -74,6 +73,9 @@ class PostSaxParameterHandler extends SimpleSaxHandler implements IParameterHand
             }
         }
         $this->operation         = $this->csw->operationForName($prefexedName[1]);
+        if (!$this->operation->getHttpPost()) {
+            throw new CswException('request', CswException::OperationNotSupported);
+        }
         $this->parameterMap      = $this->operation->getPOSTParameterMap();
         $this->parameters = array();
         $this->inited            = true;
