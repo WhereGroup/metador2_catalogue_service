@@ -25,7 +25,7 @@ abstract class AOperator
     {
         try {
             if(isset($map[$key])){
-                return$map[$key];
+                return $map[$key];
             } else {
                 throw new CswException($key, CswException::InvalidParameterValue);
             }
