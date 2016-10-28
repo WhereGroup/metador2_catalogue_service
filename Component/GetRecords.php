@@ -41,6 +41,7 @@ class GetRecords extends AFindRecord
     protected $constraintLanguageList;
     protected $typeNameList;
     protected $constraintList;
+    protected $geometryQueryables;
 
     /* Request parameters */
     protected $constraintLanguage;
@@ -67,6 +68,7 @@ class GetRecords extends AFindRecord
         $this->typeNameList           = $configuration['typeNameList'];
         $this->typeName               = $this->typeNameList[0];
         $this->constraintList         = $configuration['constraintList'];
+        $this->geometryQueryables     = $configuration['GeometryQueryables'];
 
         $this->startPosition = 1; # default value s. xsd
         $this->maxRecords    = 10; # default value s. xsd
@@ -197,7 +199,7 @@ class GetRecords extends AFindRecord
                 // not yet implemented
                 break;
             case 'requestId':
-                $this->requestId = $value;
+                $this->requestId  = $value;
                 break;
             case 'responseHandler':
 //                  not yet implemented
@@ -281,29 +283,28 @@ class GetRecords extends AFindRecord
         foreach ($this->constraintList as $key => $value) {
             $constarintsMap = array_merge_recursive($constarintsMap, $value);
         }
-        $expr = null;
+        $constarintsMap = array_merge_recursive(
+            isset($this->geometryQueryables) ? $this->geometryQueryables : array(), $constarintsMap);
+
+        $num                         = count($parameters);
+        $finalExpr                  = new Expr\Comparison($name . '.public', '=', ':public' . $num);
+        $parameters['public' . $num] = true;
+        $filterExpr                        = null;
         if ($this->constraint) {
-            $expr = $filter->generateFilter($qb, $name, $constarintsMap, $parameters, $this->constraint);
+            $filterExpr = $filter->generateFilter($qb, $name, $constarintsMap, $parameters, $this->constraint);
         }
         $qb->select('count(' . $name . '.id)');
-        if ($expr) {
-            // select only public metadata
-            $num                       = count($parameters);
-            $eq                        = new Expr\Comparison($name . '.public', '=', ':public' . $num);
-            $parameters['public' . $num] = true;
-            $expr                      = new Expr\Andx(array($expr, $eq));
-            $qb->add('where', $expr)->setParameters($parameters);
+        if ($filterExpr) {
+            $finalExpr = new Expr\Andx(array($filterExpr, $finalExpr));
         }
+        $qb->add('where', $finalExpr)->setParameters($parameters);
 //        $query = $qb->getQuery();
         $matched  = $qb->getQuery()->getSingleScalarResult();
         $returned = $matched;
         $results  = array();
         if ($this->resultType === self::RESULTTYPE_RESULTS) {# || $this->resultType === self::RESULTTYPE_VALIDATE) {
             $qb->select($name);
-            if ($expr) {
-                $qb->add('where', $expr)
-                    ->setParameters($parameters);
-            }
+            $qb->add('where', $finalExpr)->setParameters($parameters);
             $qb->setFirstResult($this->startPosition - 1)
                 ->setMaxResults($this->maxRecords);
             FilterCapabilities::generateSortBy($qb, $name, $constarintsMap, $this->sortBy);
