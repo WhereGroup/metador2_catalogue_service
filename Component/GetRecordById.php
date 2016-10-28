@@ -116,9 +116,14 @@ class GetRecordById extends AFindRecord
         $results = array();
         foreach ($this->id as $id) {
             try {
-                $results[] = $this->csw->getMetadata()->getByUUID($id);
+                $record = $this->csw->getMetadata()->getByUUID($id);
+                if($record->getPublic()) {
+                    $results[] = $this->csw->getMetadata()->getByUUID($id);
+                } else {
+                    throw new CswException('id', CswException::NoApplicableCode);
+                }
             } catch (\Exception $e) {
-                throw new CswException('', CswException::NoApplicableCode);
+                throw new CswException('id', CswException::NoApplicableCode);
             }
         }
         return $this->csw->getTemplating()->render(

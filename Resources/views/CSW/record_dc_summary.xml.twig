@@ -18,10 +18,10 @@
 {% endif %}
 {% if p['bbox'] is defined %}
 {% for bbox in p['bbox'] %}
-  <ows:BoundingBox crs="EPSG:4326">
+  <ows:WGS84BoundingBox>
     <ows:LowerCorner>{{ bbox['wLongitude'] }} {{ bbox['sLatitude'] }}</ows:LowerCorner>
     <ows:UpperCorner>{{ bbox['eLongitude'] }} {{ bbox['nLatitude'] }}</ows:UpperCorner>
-  </ows:BoundingBox>
+  </ows:WGS84BoundingBox>
 {% endfor %}
 {% endif %}
 </csw:SummaryRecord>
