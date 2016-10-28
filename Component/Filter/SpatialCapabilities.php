@@ -19,7 +19,7 @@ use Plugins\WhereGroup\CatalogueServiceBundle\Component\CswException;
 class SpatialCapabilities extends AOperator
 {
     public static $operators = array(
-//        'BBOX',
+        'BBOX',
 //        'Beyond',
 //        'Contains',
 //        'Crosses',
@@ -41,7 +41,7 @@ class SpatialCapabilities extends AOperator
     public function useOperator(QueryBuilder $qb, $alias, $constarintsMap, &$parameters, $operator, $operands)
     {
         switch ($operator) {
-//            case 'BBOX':
+            case 'BBOX':
 //                return;
             case 'Intersects':
                 $map  = $constarintsMap[$operands['children'][0]['PropertyName']['VALUE']];
