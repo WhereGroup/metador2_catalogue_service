@@ -79,9 +79,10 @@ class ComparisonOperator extends AOperator
                 #repalce escape
                 $value   = preg_replace($this->getRegex($escape, $escape), self::DOCTRINE_ESCAPECHAR, $value);
                 $attribute = $this->getFromMap($constarintsMap, $operands['children'][0]['PropertyName']['VALUE']);
+                $value     = $this->addParameter($parameters, $attribute, $value);
                 $name      = $this->getName($alias, $attribute);
                 $expr = new Expr();
-                return $expr->like($name, $qb->expr()->literal($value));
+                return $expr->like($name, $value);
             case 'GreaterThan':
                 $attribute = $this->getFromMap($constarintsMap, $operands['children'][0]['PropertyName']['VALUE']);
                 $value     = $this->addParameter($parameters, $attribute, $operands['children'][1]['Literal']['VALUE']);
