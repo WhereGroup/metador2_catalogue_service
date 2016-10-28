@@ -24,7 +24,11 @@ abstract class AOperator
     public function getFromMap($map, $key)
     {
         try {
-            return $map[$key];
+            if(isset($map[$key])){
+                return$map[$key];
+            } else {
+                throw new CswException($key, CswException::InvalidParameterValue);
+            }
         } catch (\Exception $ex) {
             throw new CswException($key, CswException::InvalidParameterValue);
         }
