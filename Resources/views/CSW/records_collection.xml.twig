@@ -16,7 +16,7 @@
   {%if getrecords.elementSetName == B %}
    {% include 'CatalogueServiceBundle:CSW:record_iso_brief.xml.twig' with {'p': record.getObject } %}
   {% elseif getrecords.elementSetName == S %}
-   {% include 'CatalogueServiceBundle:CSW:record_iso_full.xml.twig' with {'p': record.getObject } %}
+   {% include 'CatalogueServiceBundle:CSW:record_iso_summary.xml.twig' with {'p': record.getObject } %}
   {% elseif getrecords.elementSetName == F %}
    {% include 'CatalogueServiceBundle:CSW:record_iso_full.xml.twig' with {'p': record.getObject } %}
   {% endif %}
