@@ -298,7 +298,7 @@ class GetRecords extends AFindRecord
             $finalExpr = new Expr\Andx(array($filterExpr, $finalExpr));
         }
         $qb->add('where', $finalExpr)->setParameters($parameters);
-//        $query = $qb->getQuery();
+        $query = $qb->getQuery();
         $matched  = $qb->getQuery()->getSingleScalarResult();
         $returned = $matched;
         $results  = array();

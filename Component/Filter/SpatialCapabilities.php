@@ -23,7 +23,7 @@ class SpatialCapabilities extends AOperator
 //        'Beyond',
 //        'Contains',
 //        'Crosses',
-//        'Disjoint',
+        'Disjoint',
 //        'DWithin',
 //        'Equals',
         'Intersects',
@@ -42,22 +42,31 @@ class SpatialCapabilities extends AOperator
     {
         switch ($operator) {
             case 'BBOX':
-//                return;
             case 'Intersects':
-                $map  = $constarintsMap[$operands['children'][0]['PropertyName']['VALUE']];
-                $mapA = array(
-                    'wA' => $this->getFromMap($map, 'bboxw'),
-                    'sA' => $this->getFromMap($map, 'bboxs'),
-                    'eA' => $this->getFromMap($map, 'bboxe'),
-                    'nA' => $this->getFromMap($map, 'bboxn')
-                );
-                return $this->exprForOperand($alias, $mapA, $parameters, $operands['children'][1]);
+                $props = $this->getPropsMap($constarintsMap, $operands);
+                return $this->exprForIntersects($alias, $props, $this->getGeometry($operands['children'][1]), $parameters);
+            case 'Disjoint':
+                $props = $this->getPropsMap($constarintsMap, $operands);
+                $expr = new Expr();
+                return $expr->not(
+                    $this->exprForIntersects($alias, $props, $this->getGeometry($operands['children'][1]), $parameters));
             default:
                 throw new CswException('filter', CswException::NoApplicableCode);
         }
     }
 
-    private function exprForOperand($alias, $mapA, &$parameters, $operand)
+    private function getPropsMap($constarintsMap, $operands)
+    {
+        $map  = $constarintsMap[$operands['children'][0]['PropertyName']['VALUE']];
+        return array(
+                    'w' => $this->getFromMap($map, 'bboxw'),
+                    's' => $this->getFromMap($map, 'bboxs'),
+                    'e' => $this->getFromMap($map, 'bboxe'),
+                    'n' => $this->getFromMap($map, 'bboxn')
+                );
+    }
+
+    private function getGeometry($operand)
     {
         $name = null;
         foreach ($operand as $name => $value) {
@@ -65,53 +74,58 @@ class SpatialCapabilities extends AOperator
         }
         switch ($name) {
             case 'Envelope':
-                $lc   = preg_split('/[ ,]/', $value['children'][0]['lowerCorner']['VALUE']);
-                $uc   = preg_split('/[ ,]/', $value['children'][1]['upperCorner']['VALUE']);
-                $geom = array(
+                $lc    = preg_split('/[ ,]/', $value['children'][0]['lowerCorner']['VALUE']);
+                $uc    = preg_split('/[ ,]/', $value['children'][1]['upperCorner']['VALUE']);
+                $geom  = array(
                     "w" => floatval($lc[0]),
                     "s" => floatval($lc[1]),
                     "e" => floatval($uc[0]),
                     "n" => floatval($uc[1]),
                 );
-                $orX       = new Expr\Orx(
-                    array(
-                        $this->exprMathBetween($alias, $parameters, $mapA['wA'], $mapA['eA'], $geom['w']),
-                        $this->exprMathBetween($alias, $parameters, $mapA['wA'], $mapA['eA'], $geom['e'])
-                    )
-                );
-                $orY     = new Expr\Orx(
-                    array(
-                        $this->exprMathBetween($alias, $parameters, $mapA['sA'], $mapA['nA'], $geom['s']),
-                        $this->exprMathBetween($alias, $parameters, $mapA['sA'], $mapA['nA'], $geom['n'])
-                    )
-                );
-                $finalExpr = new Expr\Andx(array($orX, $orY));
-                return $finalExpr;
+                return array('Envelope' => $geom);
             case 'Point':
-                $point     = preg_split('/[ ,]/', $value['children'][0]['pos']['VALUE']);
-                $geom = array(
+                $point = preg_split('/[ ,]/', $value['children'][0]['pos']['VALUE']);
+                $geom  = array(
                     'x' => floatval($point[0]),
                     'y' => floatval($point[1])
                 );
-                $andX       = new Expr\Andx(
-                    array(
-                        $this->exprMathBetween($alias, $parameters, $mapA['wA'], $mapA['eA'], $geom['x']),
-                        $this->exprMathBetween($alias, $parameters, $mapA['sA'], $mapA['nA'], $geom['y'])
-                    )
-                );
-                return $andX;
+                return array('Point' => $geom);
             default :
                 throw new CswException('filter', CswException::NoApplicableCode);
         }
     }
 
-    private function exprMathBetween($alias, &$parameters, $propMin, $propMax, $tocheck, $andEq = true)
+    private function exprForIntersects($alias, $props, $geom, &$parameters)
     {
-        return new Expr\Andx(array(
-            new Expr\Comparison($this->getName($alias, $propMin), $andEq ? '<=' : '<',
-                $this->addParameter($parameters, $propMin, $tocheck)),
-            new Expr\Comparison($this->getName($alias, $propMax), $andEq ? '>=' : '>',
-                $this->addParameter($parameters, $propMax, $tocheck))
-        ));
+        $name = null;
+        foreach ($geom as $name => $geom) {
+            break;
+        }
+        switch ($name) {
+            case 'Envelope':
+                return new Expr\Andx(array(
+                    new Expr\Comparison($this->getName($alias, $props['e']), '>=',
+                        $this->addParameter($parameters, $props['e'], $geom['w'])),
+                    new Expr\Comparison($this->getName($alias, $props['w']), '<=',
+                        $this->addParameter($parameters, $props['w'], $geom['e'])),
+                    new Expr\Comparison($this->getName($alias, $props['n']), '>=',
+                        $this->addParameter($parameters, $props['n'], $geom['s'])),
+                    new Expr\Comparison($this->getName($alias, $props['s']), '<=',
+                        $this->addParameter($parameters, $props['s'], $geom['n']))
+                ));
+            case 'Point':
+                return new Expr\Andx(array(
+                    new Expr\Comparison($this->getName($alias, $props['e']), '>=',
+                        $this->addParameter($parameters, $props['e'], $geom['x'])),
+                    new Expr\Comparison($this->getName($alias, $props['w']), '<=',
+                        $this->addParameter($parameters, $props['w'], $geom['x'])),
+                    new Expr\Comparison($this->getName($alias, $props['n']), '>=',
+                        $this->addParameter($parameters, $props['n'], $geom['y'])),
+                    new Expr\Comparison($this->getName($alias, $props['s']), '<=',
+                        $this->addParameter($parameters, $props['s'], $geom['y']))
+                ));
+            default :
+                throw new CswException('filter', CswException::NoApplicableCode);
+        }
     }
 }
