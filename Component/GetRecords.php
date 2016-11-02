@@ -42,6 +42,7 @@ class GetRecords extends AFindRecord
     protected $typeNameList;
     protected $constraintList;
     protected $geometryQueryables;
+    protected $resultTypeList;
 
     /* Request parameters */
     protected $constraintLanguage;
@@ -56,6 +57,7 @@ class GetRecords extends AFindRecord
     protected $constraint;
     protected $deistributedSearch;
     protected $hopCount;
+    protected $resultType;
 
     /**
      * {@inheritdoc}
@@ -65,6 +67,8 @@ class GetRecords extends AFindRecord
         parent::__construct($csw, $configuration);
         $this->name                   = 'GetRecords';
         $this->constraintLanguageList = $configuration['constraintLanguageList'];
+        $this->resultTypeList         = $configuration['resultTypeList'];
+        $this->resultType             = $this->resultTypeList[0];
         $this->typeNameList           = $configuration['typeNameList'];
         $this->typeName               = $this->typeNameList[0];
         $this->constraintList         = $configuration['constraintList'];
@@ -124,6 +128,24 @@ class GetRecords extends AFindRecord
         return $this->typeName;
     }
 
+    /**
+     * Returns the result type list.
+     * @return array result type list
+     */
+    public function getResultTypeList()
+    {
+        return $this->resultTypeList;
+    }
+
+    /**
+     * Returns the result type.
+     * @return string result type
+     */
+    public function getResultType()
+    {
+        return $this->resultType;
+    }
+
     public function setConstraintLanguageList($constraintLanguageList)
     {
         $this->constraintLanguageList = $constraintLanguageList;
@@ -137,6 +159,17 @@ class GetRecords extends AFindRecord
     }
 
     /**
+     *
+     * @param type $resultTypeList
+     * @return \Plugins\WhereGroup\CatalogueServiceBundle\Component\AFindRecord
+     */
+    public function setResultTypeList($resultTypeList)
+    {
+        $this->resultTypeList = $resultTypeList;
+        return $this;
+    }
+
+    /**
      * {@inheritdoc}
      */
     public function getParameters()
@@ -144,6 +177,7 @@ class GetRecords extends AFindRecord
         return array_merge(parent::getParameters(),
             array(
             'typeNames' => $this->typeNameList,
+            'resultType' => $this->resultTypeList,
             'CONSTRAINTLANGUAGE' => $this->constraintLanguageList,
             'ElementSetName' => $this->elementSetNameList
         ));
@@ -169,6 +203,11 @@ class GetRecords extends AFindRecord
     public function setParameter($name, $value)
     {
         switch ($name) {
+            case 'resultType':
+                if (self::isStringAtList($name, $value, $this->resultTypeList, false)) {
+                    $this->resultType = $value;
+                }
+                break;
             case 'typeNames':
                 $typeNames = preg_split('/[\s,]/', $value);
                 if ($this->isListAtList($name, $typeNames, $this->typeNameList, false)) {
@@ -288,9 +327,9 @@ class GetRecords extends AFindRecord
             isset($this->geometryQueryables) ? $this->geometryQueryables : array(), $constarintsMap);
 
         $num                         = count($parameters);
-        $finalExpr                  = new Expr\Comparison($name . '.public', '=', ':public' . $num);
+        $finalExpr                   = new Expr\Comparison($name . '.public', '=', ':public' . $num);
         $parameters['public' . $num] = true;
-        $filterExpr                        = null;
+        $filterExpr                  = null;
         if ($this->constraint) {
             $filterExpr = $filter->generateFilter($qb, $name, $constarintsMap, $parameters, $this->constraint);
         }
@@ -299,7 +338,7 @@ class GetRecords extends AFindRecord
             $finalExpr = new Expr\Andx(array($filterExpr, $finalExpr));
         }
         $qb->add('where', $finalExpr)->setParameters($parameters);
-        $query = $qb->getQuery();
+        $query    = $qb->getQuery();
         $matched  = $qb->getQuery()->getSingleScalarResult();
         $returned = $matched;
         $results  = array();

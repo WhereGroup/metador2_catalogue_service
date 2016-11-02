@@ -4,14 +4,20 @@
 {% set F = constant('Plugins\\WhereGroup\\CatalogueServiceBundle\\Component\\GetRecords::ELEMENTSET_FULL') %}
 {% set B = constant('Plugins\\WhereGroup\\CatalogueServiceBundle\\Component\\GetRecords::ELEMENTSET_BRIEF') %}
 {% for record in records %}
- {% if outputSchema == 'http://www.isotc211.org/2005/gmd' %}
-  {% include 'CatalogueServiceBundle:CSW:record_full.xml.twig' with {'p': record.getObject } %}
- {% elseif outputSchema == 'http://www.opengis.net/cat/csw/2.0.2' %}
-  {%if elementSet == B %}
+ {% if getredcordbyid.outputSchema == 'http://www.isotc211.org/2005/gmd' %}
+  {%if getredcordbyid.elementSetName == B %}
+   {% include 'CatalogueServiceBundle:CSW:record_iso_brief.xml.twig' with {'p': record.getObject } %}
+  {% elseif getredcordbyid.elementSetName == S %}
+   {% include 'CatalogueServiceBundle:CSW:record_iso_summary.xml.twig' with {'p': record.getObject } %}
+  {% elseif getredcordbyid.elementSetName == F %}
+   {% include 'CatalogueServiceBundle:CSW:record_iso_full.xml.twig' with {'p': record.getObject } %}
+  {% endif %}
+ {% elseif getredcordbyid.outputSchema == 'http://www.opengis.net/cat/csw/2.0.2' %}
+  {%if getredcordbyid.elementSetName == B %}
    {% include 'CatalogueServiceBundle:CSW:record_dc_brief.xml.twig' with {'p': record.getObject } %}
-  {% elseif elementSet == S %}
+  {% elseif getredcordbyid.elementSetName == S %}
    {% include 'CatalogueServiceBundle:CSW:record_dc_summary.xml.twig' with {'p': record.getObject } %}
-  {% elseif elementSet == F %}
+  {% elseif getredcordbyid.elementSetName == F %}
    {% include 'CatalogueServiceBundle:CSW:record_dc_full.xml.twig' with {'p': record.getObject } %}
   {% endif %}
  {% endif %}

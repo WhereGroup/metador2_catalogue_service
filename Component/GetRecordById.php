@@ -17,7 +17,7 @@ class GetRecordById extends AFindRecord
         'service' => '/' . Csw::CSW_PREFIX . ':GetRecordById/@service',
         'outputSchema' => '/' . Csw::CSW_PREFIX . ':GetRecordById/@outputSchema',
         'outputFormat' => '/' . Csw::CSW_PREFIX . ':GetRecordById/@outputFormat',
-        'elementSetName' => '/' . Csw::CSW_PREFIX . ':GetRecordById/ElementSetName/text()',
+        'elementSetName' => '/' . Csw::CSW_PREFIX . ':GetRecordById/' . Csw::CSW_PREFIX . ':ElementSetName/text()',
         'id' => '/' . Csw::CSW_PREFIX . ':GetRecordById/' . Csw::CSW_PREFIX . ':Id/text()',
     );
     protected $outputSchema;
@@ -117,7 +117,7 @@ class GetRecordById extends AFindRecord
         foreach ($this->id as $id) {
             try {
                 $record = $this->csw->getMetadata()->getByUUID($id);
-                if($record->getPublic()) {
+                if ($record->getPublic()) {
                     $results[] = $this->csw->getMetadata()->getByUUID($id);
                 } else {
                     throw new CswException('id', CswException::NoApplicableCode);
@@ -129,11 +129,7 @@ class GetRecordById extends AFindRecord
         return $this->csw->getTemplating()->render(
                 $this->templates[$this->getOutputFormat()],
                 array(
-                'elementSet' => $this->elementSetName,
-                'outputSchema' => $this->outputSchema,
-                'resultType' => $this->resultType,
-                'records' => $results
-                )
-        );
+                    'getredcordbyid' => $this,
+                    'records' => $results));
     }
 }
