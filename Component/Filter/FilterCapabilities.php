@@ -32,7 +32,7 @@ class FilterCapabilities extends ASection
             ),
             'scalar_Capabilities' => array(
                 'logicalOperators' => true,
-                'comparisonOperators' => ComparisonOperator::$operators
+                'comparisonOperators' => array_keys(ComparisonOperator::$operators)
             ),
             'id_Capabilities' => array('EID', 'FID')
         );
@@ -50,7 +50,7 @@ class FilterCapabilities extends ASection
             $this->all = array();
 
             $this->comparison = new ComparisonOperator($this);
-            foreach (ComparisonOperator::$operators as $value) {
+            foreach (ComparisonOperator::$operators as $key => $value) {
                 $this->all[$value] = $this->comparison;
             }
 
@@ -74,9 +74,8 @@ class FilterCapabilities extends ASection
             if (is_integer($key)) {
                 return $this->generateFilter($qb, $alias, $constarintsMap, $parameters, $value);
             } else
-                    try {
-                    $name = preg_replace('/^PropertyIs/', '', $key); # @TODO
-                    return $this->getOperator($name)->useOperator($qb, $alias, $constarintsMap, $parameters, $name,
+                try {
+                    return $this->getOperator($key)->useOperator($qb, $alias, $constarintsMap, $parameters, $key,
                             $value);
                 } catch (\Exception $e) {
                     throw $e instanceof CswException ? $e : new CswException('constraint',
@@ -89,8 +88,6 @@ class FilterCapabilities extends ASection
     {
         if (isset($this->all[$name])) {
             return $this->all[$name];
-//        } elseif (isset($this->all[preg_replace('/^PropertyIs/', '', $name)])) {
-//            return $this->all[preg_replace('/^PropertyIs/', '', $name)];
         } else {
             return null;
         }

@@ -13,20 +13,20 @@ use Plugins\WhereGroup\CatalogueServiceBundle\Component\CswException;
  */
 class ComparisonOperator extends AOperator
 {
-    const DOCTRINE_WILDCARD   = '%';
-    const DOCTRINE_SINGLECHAR = '_';
-    const DOCTRINE_ESCAPECHAR = '\\';
+    const DOCTRINE_WILDCARD        = '%';
+    const DOCTRINE_SINGLECHAR      = '_';
+    const DOCTRINE_ESCAPECHAR      = '\\';
 
     public static $operators = array(
-        'Between',
-        'EqualTo',
-        'NotEqualTo',
-        'GreaterThan',
-        'GreaterThanEqualTo',
-        'LessThan',
-        'LessThanEqualTo',
-        'Like',
-        'NullCheck'
+        'Between' => 'PropertyIsBetween',
+        'EqualTo' => 'PropertyIsEqualTo',
+        'NotEqualTo' => 'PropertyIsNotEqualTo',
+        'GreaterThan' => 'PropertyIsGreaterThan',
+        'GreaterThanEqualTo' => 'PropertyIsGreaterThanOrEqualTo',
+        'LessThan' => 'PropertyIsLessThan',
+        'LessThanEqualTo' => 'PropertyIsLessThanOrEqualTo',
+        'Like' => 'PropertyIsLike',
+        'NullCheck' => 'PropertyIsNull'
     );
 
     private function addEscape($character)
@@ -48,69 +48,71 @@ class ComparisonOperator extends AOperator
     public function useOperator(QueryBuilder $qb, $alias, $constarintsMap, &$parameters, $operator, $operands)
     {
         switch ($operator) {
-            case 'Between':
-                $attribute = $this->getFromMap($constarintsMap, $operands['ValueReference']['VALUE']);
-                $lower     = $this->addParameter($parameters, $attribute, $operands['LowerBoundary']['Literal']['VALUE']);
-                $upper     = $this->addParameter($parameters, $attribute, $operands['UpperBoundary']['Literal']['VALUE']);
-                $name      = $this->getName($alias, $attribute);
-                $expr = new Expr();
+            case 'PropertyIsBetween':
+                $attribute  = $this->getFromMap($constarintsMap, $operands['ValueReference']['VALUE']);
+                $lower      = $this->addParameter($parameters, $attribute,
+                    $operands['LowerBoundary']['Literal']['VALUE']);
+                $upper      = $this->addParameter($parameters, $attribute,
+                    $operands['UpperBoundary']['Literal']['VALUE']);
+                $name       = $this->getName($alias, $attribute);
+                $expr       = new Expr();
                 return $expr->between($name, $lower, $upper);
-            case 'EqualTo':
-                $attribute = $this->getFromMap($constarintsMap, $operands['children'][0]['PropertyName']['VALUE']);
-                $value     = $this->addParameter($parameters, $attribute, $operands['children'][1]['Literal']['VALUE']);
-                $name      = $this->getName($alias, $attribute);
-                $expr = new Expr();
+            case 'PropertyIsEqualTo':
+                $attribute  = $this->getFromMap($constarintsMap, $operands['children'][0]['PropertyName']['VALUE']);
+                $value      = $this->addParameter($parameters, $attribute, $operands['children'][1]['Literal']['VALUE']);
+                $name       = $this->getName($alias, $attribute);
+                $expr       = new Expr();
                 return $expr->eq($name, $value);
-            case 'NotEqualTo':
-                $attribute = $this->getFromMap($constarintsMap, $operands['children'][0]['PropertyName']['VALUE']);
-                $value     = $this->addParameter($parameters, $attribute, $operands['children'][1]['Literal']['VALUE']);
-                $name      = $this->getName($alias, $attribute);
-                $expr = new Expr();
+            case 'PropertyIsNotEqualTo':
+                $attribute  = $this->getFromMap($constarintsMap, $operands['children'][0]['PropertyName']['VALUE']);
+                $value      = $this->addParameter($parameters, $attribute, $operands['children'][1]['Literal']['VALUE']);
+                $name       = $this->getName($alias, $attribute);
+                $expr       = new Expr();
                 return $expr->neq($name, $value);
-            case 'Like':
-                $escape    = $operands['escapeChar'];
-                $wildcard = $operands['wildCard'];
+            case 'PropertyIsLike':
+                $escape     = $operands['escapeChar'];
+                $wildcard   = $operands['wildCard'];
                 $singlechar = $operands['singleChar'];
-                $value    = $operands['children'][1]['Literal']['VALUE'];
+                $value      = $operands['children'][1]['Literal']['VALUE'];
                 #repalce wildCard
-                $value   = preg_replace($this->getRegex($escape, $wildcard), self::DOCTRINE_WILDCARD, $value);
+                $value      = preg_replace($this->getRegex($escape, $wildcard), self::DOCTRINE_WILDCARD, $value);
                 #repalce singleChar
-                $value   = preg_replace($this->getRegex($escape, $singlechar), self::DOCTRINE_SINGLECHAR, $value);
+                $value      = preg_replace($this->getRegex($escape, $singlechar), self::DOCTRINE_SINGLECHAR, $value);
                 #repalce escape
-                $value   = preg_replace($this->getRegex($escape, $escape), self::DOCTRINE_ESCAPECHAR, $value);
-                $attribute = $this->getFromMap($constarintsMap, $operands['children'][0]['PropertyName']['VALUE']);
-                $value     = $this->addParameter($parameters, $attribute, $value);
-                $name      = $this->getName($alias, $attribute);
-                $expr = new Expr();
+                $value      = preg_replace($this->getRegex($escape, $escape), self::DOCTRINE_ESCAPECHAR, $value);
+                $attribute  = $this->getFromMap($constarintsMap, $operands['children'][0]['PropertyName']['VALUE']);
+                $value      = $this->addParameter($parameters, $attribute, $value);
+                $name       = $this->getName($alias, $attribute);
+                $expr       = new Expr();
                 return $expr->like($name, $value);
-            case 'GreaterThan':
-                $attribute = $this->getFromMap($constarintsMap, $operands['children'][0]['PropertyName']['VALUE']);
-                $value     = $this->addParameter($parameters, $attribute, $operands['children'][1]['Literal']['VALUE']);
-                $name      = $this->getName($alias, $attribute);
-                $expr = new Expr();
+            case 'PropertyIsGreaterThan':
+                $attribute  = $this->getFromMap($constarintsMap, $operands['children'][0]['PropertyName']['VALUE']);
+                $value      = $this->addParameter($parameters, $attribute, $operands['children'][1]['Literal']['VALUE']);
+                $name       = $this->getName($alias, $attribute);
+                $expr       = new Expr();
                 return $expr->gt($name, $value);
-            case 'GreaterThanEqualTo':
-                $attribute = $this->getFromMap($constarintsMap, $operands['children'][0]['PropertyName']['VALUE']);
-                $value     = $this->addParameter($parameters, $attribute, $operands['children'][1]['Literal']['VALUE']);
-                $name      = $this->getName($alias, $attribute);
-                $expr = new Expr();
+            case 'PropertyIsGreaterThanOrEqualTo':
+                $attribute  = $this->getFromMap($constarintsMap, $operands['children'][0]['PropertyName']['VALUE']);
+                $value      = $this->addParameter($parameters, $attribute, $operands['children'][1]['Literal']['VALUE']);
+                $name       = $this->getName($alias, $attribute);
+                $expr       = new Expr();
                 return $expr->gte($name, $value);
-            case 'LessThan':
-                $attribute = $this->getFromMap($constarintsMap, $operands['children'][0]['PropertyName']['VALUE']);
-                $value     = $this->addParameter($parameters, $attribute, $operands['children'][1]['Literal']['VALUE']);
-                $name      = $this->getName($alias, $attribute);
-                $expr = new Expr();
+            case 'PropertyIsLessThan':
+                $attribute  = $this->getFromMap($constarintsMap, $operands['children'][0]['PropertyName']['VALUE']);
+                $value      = $this->addParameter($parameters, $attribute, $operands['children'][1]['Literal']['VALUE']);
+                $name       = $this->getName($alias, $attribute);
+                $expr       = new Expr();
                 return $expr->lt($name, $value);
-            case 'LessThanEqualTo':
-                $attribute = $this->getFromMap($constarintsMap, $operands['children'][0]['PropertyName']['VALUE']);
-                $value     = $this->addParameter($parameters, $attribute, $operands['children'][1]['Literal']['VALUE']);
-                $name      = $this->getName($alias, $attribute);
-                $expr = new Expr();
+            case 'PropertyIsLessThanOrEqualTo':
+                $attribute  = $this->getFromMap($constarintsMap, $operands['children'][0]['PropertyName']['VALUE']);
+                $value      = $this->addParameter($parameters, $attribute, $operands['children'][1]['Literal']['VALUE']);
+                $name       = $this->getName($alias, $attribute);
+                $expr       = new Expr();
                 return $expr->lte($name, $value);
-            case 'NullCheck':
-                $attribute = $this->getFromMap($constarintsMap, $operands['children'][0]['PropertyName']['VALUE']);
-                $name      = $this->getName($alias, $attribute);
-                $expr = new Expr();
+            case 'PropertyIsNull':
+                $attribute  = $this->getFromMap($constarintsMap, $operands['children'][0]['PropertyName']['VALUE']);
+                $name       = $this->getName($alias, $attribute);
+                $expr       = new Expr();
                 return $expr->isNull($name);
             default:
                 throw new CswException('filter', CswException::NoApplicableCode);
