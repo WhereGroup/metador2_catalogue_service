@@ -144,7 +144,8 @@ class GetRecords extends AFindRecord
         return array_merge(parent::getParameters(),
             array(
             'typeNames' => $this->typeNameList,
-            'CONSTRAINTLANGUAGE' => $this->constraintLanguageList
+            'CONSTRAINTLANGUAGE' => $this->constraintLanguageList,
+            'ElementSetName' => $this->elementSetNameList
         ));
     }
 
