@@ -51,7 +51,7 @@ class DescribeRecord extends AOperation
     {
         parent::__construct($csw, $configuration);
         $this->typeNameList = $configuration['typeNameList'];
-        $this->typeName     = $this->typeNameList[0];
+        $this->typeName     = $this->typeNameList;
     }
 
     /**
@@ -115,26 +115,6 @@ class DescribeRecord extends AOperation
         $this->typeNameList = $typeNameList;
         return $this;
     }
-//
-//    /**
-//     * Sets typeName
-//     * @param type $typeName
-//     * @return \Plugins\WhereGroup\CatalogueServiceBundle\Component\DescribeRecord
-//     */
-//    public function setTypeName($typeName)
-//    {
-//        if ($typeName && is_string($typeName)) { # GET request
-//            $this->typeName = self::parseCsl($typeName);
-//        } elseif ($typeName && is_array($typeName)) { # POST request
-//            foreach ($typeName as $item) {
-//                if (!isset($this->typeNameList[$item])) {
-//                    $this->addCswException('section', CswException::InvalidParameterValue);
-//                }
-//            }
-//            $this->typeName = $typeName;
-//        }
-//        return $this;
-//    }
 
     /**
      * {@inheritdoc}
@@ -154,17 +134,14 @@ class DescribeRecord extends AOperation
         switch ($name) {
             case 'typeName':
                 $typeName = array();
-                if ($value && is_string($value)) { # GET request
+                if ($value && is_string($value)) { # GET request or POST single typeName
                     $typeName = self::parseCsl($value);
                 } elseif ($value && is_array($value)) { # POST request
                     $typeName = $value;
                 }
-                foreach ($typeName as $item) {
-                    if (!in_array($item, $this->typeNameList)) {
-                        $this->addCswException('typeName', CswException::InvalidParameterValue);
-                    }
+                if ($this->isListAtList($name, $typeName, $this->typeNameList, false)) {
+                    $this->typeName = $typeName;
                 }
-                $this->typeName = $typeName;
                 break;
             default:
                 parent::setParameter($name, $value);
