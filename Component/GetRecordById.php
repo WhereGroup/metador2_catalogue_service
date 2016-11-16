@@ -113,23 +113,28 @@ class GetRecordById extends AFindRecord
      */
     protected function render()
     {
-        $results = array();
-        foreach ($this->id as $id) {
-            try {
+        $xml = '';
+
+        try {
+            foreach ($this->id as $id) {
                 $record = $this->csw->getMetadata()->getByUUID($id);
-                if ($record->getPublic()) {
-                    $results[] = $this->csw->getMetadata()->getByUUID($id);
-                } else {
-                    throw new CswException('id', CswException::NoApplicableCode);
+
+                if (!$record->getPublic()) {
+                    // TODO: maby exception
+                    continue;
                 }
-            } catch (\Exception $e) {
-                throw new CswException('id', CswException::NoApplicableCode);
+
+                // GET Template
+                $className = $this->csw->container->get('metador_plugin')->getPluginClassName($record->getProfile());
+                $xml .= "\n" . $this->csw->getTemplating()->render($className .":Export:metadata.xml.twig", $record);
             }
+        } catch (\Exception $e) {
+            throw new CswException('id', CswException::NoApplicableCode);
         }
-        return $this->csw->getTemplating()->render(
-                $this->templates[$this->getOutputFormat()],
-                array(
-                    'getredcordbyid' => $this,
-                    'records' => $results));
+
+        return "<?xml version=\"1.0\" encoding=\"UTF-8\"?>
+<csw:GetRecordByIdResponse xmlns:csw=\"http://www.opengis.net/cat/csw/2.0.2\">
+$xml
+</csw:GetRecordByIdResponse>";
     }
 }

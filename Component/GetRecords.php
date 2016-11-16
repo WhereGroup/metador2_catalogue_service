@@ -352,18 +352,28 @@ class GetRecords extends AFindRecord
             $results  = $qb->getQuery()->getResult();
             $returned = count($results);
         }
-        # @TODO for self::RESULTTYPE_VALIDATE
+
+        $xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>
+<csw:GetRecordsResponse xmlns:ows=\"http://www.opengis.net/ows\"  xmlns:csw=\"http://www.opengis.net/cat/csw/2.0.2\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://www.opengis.net/cat/csw/2.0.2 http://schemas.opengis.net/csw/2.0.2/CSW-discovery.xsd\">";
+
         $time = new \DateTime();
-        return $this->csw->getTemplating()->render(
-                $this->templates[$this->getOutputFormat()],
-                array(
-                'timestamp' => $time->format('Y-m-d\TH:i:s'),
-                'matched' => $matched,
-                'returned' => $returned,
-                'getrecords' => $this,
-                'nextrecord' => $this->startPosition - 1,
-                'records' => $results
-                )
-        );
+        $timestamp = $time->format('Y-m-d\TH:i:s');
+
+        if (isset($this->requestId)) {
+            $xml .= "\n<csw:RequestId>" . $timestamp . "</csw:RequestId>";
+        }
+
+        $xml .= "\n<csw:SearchStatus timestamp=\"" . $timestamp . "\" />
+<csw:SearchResults numberOfRecordsMatched=\"" . $matched . "\" numberOfRecordsReturned=\"" . $returned . "\" elementSet=\"" . $this->elementSetName . "\" nextRecord=\"" . $this->startPosition - 1 . "\">";
+
+        foreach ($results as $record) {
+            $className = $this->csw->container->get('metador_plugin')->getPluginClassName($record->getProfile());
+            $xml .= "\n" . $this->csw->getTemplating()->render($className . ":Export:metadata.xml.twig", $record);
+        }
+
+        $xml .= "\n</csw:SearchResults>
+</csw:GetRecordsResponse>";
+
+        return $xml;
     }
 }
