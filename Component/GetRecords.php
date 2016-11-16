@@ -364,13 +364,13 @@ class GetRecords extends AFindRecord
         }
 
         $xml .= "\n<csw:SearchStatus timestamp=\"" . $timestamp . "\" />
-<csw:SearchResults numberOfRecordsMatched=\"" . $matched . "\" numberOfRecordsReturned=\"" . $returned . "\" elementSet=\"" . $this->elementSetName . "\" nextRecord=\"" . $this->startPosition - 1 . "\">";
+<csw:SearchResults numberOfRecordsMatched=\"" . $matched . "\" numberOfRecordsReturned=\"" . $returned . "\" elementSet=\"" . $this->elementSetName . "\" nextRecord=\"" . ($this->startPosition - 1) . "\">";
 
         foreach ($results as $record) {
             $className = $this->csw->container->get('metador_plugin')->getPluginClassName($record->getProfile());
             $xml .= "\n" . $this->csw->getTemplating()->render(
                 $className . ":Export:metadata.xml.twig",
-                $record->getObject()
+                array('p' => $record->getObject())
             );
         }
 

@@ -128,7 +128,7 @@ class GetRecordById extends AFindRecord
                 $className = $this->csw->container->get('metador_plugin')->getPluginClassName($record->getProfile());
                 $xml .= "\n" . $this->csw->getTemplating()->render(
                     $className . ":Export:metadata.xml.twig",
-                    $record->getObject()
+                    array('p' => $record->getObject())
                 );
             }
         } catch (\Exception $e) {
