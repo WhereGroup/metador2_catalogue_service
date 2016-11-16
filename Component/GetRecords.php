@@ -368,7 +368,10 @@ class GetRecords extends AFindRecord
 
         foreach ($results as $record) {
             $className = $this->csw->container->get('metador_plugin')->getPluginClassName($record->getProfile());
-            $xml .= "\n" . $this->csw->getTemplating()->render($className . ":Export:metadata.xml.twig", $record);
+            $xml .= "\n" . $this->csw->getTemplating()->render(
+                $className . ":Export:metadata.xml.twig",
+                $record->getObject()
+            );
         }
 
         $xml .= "\n</csw:SearchResults>

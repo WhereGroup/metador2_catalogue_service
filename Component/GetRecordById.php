@@ -126,7 +126,10 @@ class GetRecordById extends AFindRecord
 
                 // GET Template
                 $className = $this->csw->container->get('metador_plugin')->getPluginClassName($record->getProfile());
-                $xml .= "\n" . $this->csw->getTemplating()->render($className .":Export:metadata.xml.twig", $record);
+                $xml .= "\n" . $this->csw->getTemplating()->render(
+                    $className . ":Export:metadata.xml.twig",
+                    $record->getObject()
+                );
             }
         } catch (\Exception $e) {
             throw new CswException('id', CswException::NoApplicableCode);
