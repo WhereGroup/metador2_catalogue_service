@@ -1,4 +1,4 @@
-'wheregroup-catalogue-service':
+metador_catalogue_service:
     origin: WhereGroup
     name: 'Catalogue Service'
     description: 'Catalogue Service'
