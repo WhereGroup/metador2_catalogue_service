@@ -4,16 +4,24 @@
            xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
     <parameters>
         <!-- SERVICE -->
-        <parameter key="catalogue_service.csw.class">Plugins\WhereGroup\CatalogueServiceBundle\Component\Csw</parameter>
+        <parameter key="csw.class">Plugins\WhereGroup\CatalogueServiceBundle\Component\Csw</parameter>
+
+        <!-- EVENTLISTENER -->
+        <parameter key="csw.app.listener.class">Plugins\WhereGroup\CatalogueServiceBundle\EventListener\ApplicationListener</parameter>
     </parameters>
     <services>
         <!-- SERVICE -->
-        <service id="catalogue_service" class="%catalogue_service.csw.class%">
+        <service id="catalogue_service" class="%csw.class%">
             <argument type="service" id="service_container" />
             <argument type="service" id="request_stack" />
             <argument type="service" id="metador_metadata" />
             <argument type="service" id="metador_plugin" />
             <argument type="service" id="templating" />
+        </service>
+
+        <!-- EVENTLISTENER -->
+        <service id="catalogue_service_app_listener" class="%csw.app.listener.class%">
+            <tag name="kernel.event_listener" event="application.loading" method="onLoading"/>
         </service>
     </services>
 </container>

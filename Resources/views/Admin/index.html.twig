@@ -1,0 +1,41 @@
+{% extends 'MetadorThemeBundle:Admin:template.html.twig' %}
+
+{% block title %}Logging{% endblock %}
+
+{% block content %}
+    <div class="grid content-title">
+        <div class="row r-2">
+            <div class="col c-1-2">
+                <h1 class="title dm">{% trans %}Catalogue Service{% endtrans %}</h1>
+            </div>
+            <div class="col c-1-2 text-right">
+                <a href="{{ path('metador_admin_map_csw') }}" class="btn info medium">
+                    <span class="icon-plus-circle"></span> {% trans %}Neu{% endtrans %}
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <hr class="line-separator" />
+
+    <table class="table bordered">
+        <thead>
+            <tr>
+                {#<th>{% trans %}{% endtrans %}</th>#}
+                {#<th>{% trans %}{% endtrans %}</th>#}
+                {#<th>{% trans %}{% endtrans %}</th>#}
+            </tr>
+        </thead>
+        <tbody>
+        {#{% for row in rows  %}#}
+            {#<tr>#}
+                {#<td>#}
+                    {#<a href="{{ path('metador_admin_map_edit', {'id': row.id }) }}">{{ row.title }}</a>#}
+                {#</td>#}
+                {#<td>{{ row.visible }}</td>#}
+                {#<td>{{ row.priority }}</td>#}
+            {#</tr>#}
+        {#{% endfor %}#}
+        </tbody>
+    </table>
+{% endblock %}

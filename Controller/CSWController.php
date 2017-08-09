@@ -18,6 +18,17 @@ use Plugins\WhereGroup\CatalogueServiceBundle\Component\ContentSet;
  */
 class CSWController extends Controller
 {
+
+    /**
+     * @param $source
+     * @param $slug
+     * @Route("{source}/{slug}/", name="csw_default")
+     * @Method({"GET", "POST"})
+     */
+    public function defaultAction($source, $slug)
+    {
+
+    }
 //
 //    /**
 //     * @param $instance
