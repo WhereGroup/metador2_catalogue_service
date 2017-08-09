@@ -5,3 +5,60 @@ metador_catalogue_service:
     class_path: Plugins\WhereGroup\CatalogueServiceBundle
     class_name: CatalogueServiceBundle
     version: '1.0'
+    settings:
+        title:
+            type: string
+            label: Titel
+            description: CSW Titel
+        abstract:
+            type: text
+            label: Beschreibung
+            description: CSW Beschreibiung
+        providerName:
+            type: string
+            label: Betreiber
+            description: CSW Betreiber
+        providerSite:
+            type: string
+            label: Betreiber Seite
+            description: CSW Betreiber Seite
+        individualName:
+            type: string
+            label: Zuständige Person
+            description: Zuständige Person für den CSW
+        positionName:
+            type: string
+            label: Role
+            description: Role der zuständigen Person
+        phoneVoice:
+            type: string
+            label: Telefon
+            description: Telefon
+        phoneFacsimile:
+            type: string
+            label: FAX
+            description: FAX
+        deliveryPoint:
+            type: string
+            label: Straße
+            description: Straße
+        city:
+            type: string
+            label: Ort
+            description: Ort
+        postalCode:
+            type: string
+            label: PLZ
+            description: PLZ
+        administrativeArea:
+            type: string
+            label: Bundesland
+            description: Bundesland
+        country:
+            type: string
+            label: Land
+            description: Land
+        electronicMailAddress:
+            type: string
+            label: Mail
+            description: Mail

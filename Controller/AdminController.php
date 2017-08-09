@@ -25,6 +25,14 @@ class AdminController extends Controller
      */
     public function indexAction()
     {
+
+        $default = $this
+            ->get('metador_configuration')
+            ->getValues('plugin', 'metador_catalogue_service');
+
+
+        dump($default);
+
         return array();
     }
 
