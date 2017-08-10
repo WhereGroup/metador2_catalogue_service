@@ -9,33 +9,33 @@
                 <h1 class="title dm">{% trans %}Catalogue Service{% endtrans %}</h1>
             </div>
             <div class="col c-1-2 text-right">
-                <a href="{{ path('metador_admin_csw') }}" class="btn info medium">
+                <a href="{{ path('metador_admin_csw_new') }}" class="btn info medium">
                     <span class="icon-plus-circle"></span> {% trans %}Neu{% endtrans %}
                 </a>
             </div>
         </div>
     </div>
 
-    <hr class="line-separator" />
+    <hr class="line-separator"/>
 
     <table class="table bordered">
         <thead>
-            <tr>
-                {#<th>{% trans %}{% endtrans %}</th>#}
-                {#<th>{% trans %}{% endtrans %}</th>#}
-                {#<th>{% trans %}{% endtrans %}</th>#}
-            </tr>
+        <tr>
+            <th>{% trans %}Slug{% endtrans %}</th>
+            <th>{% trans %}Titel{% endtrans %}</th>
+            <th>{% trans %}Quelle{% endtrans %}</th>
+        </tr>
         </thead>
         <tbody>
-        {#{% for row in rows  %}#}
-            {#<tr>#}
-                {#<td>#}
-                    {#<a href="{{ path('metador_admin_map_edit', {'id': row.id }) }}">{{ row.title }}</a>#}
-                {#</td>#}
-                {#<td>{{ row.visible }}</td>#}
-                {#<td>{{ row.priority }}</td>#}
-            {#</tr>#}
-        {#{% endfor %}#}
+        {% for service in services %}
+            <tr>
+                <td>
+                    <a href="{{ path('metador_admin_csw_edit', {'slug': service.slug }) }}">{{ service.slug }}</a>
+                </td>
+                <td>{{ service.title }}</td>
+                <td>{{ service.source }}</td>
+            </tr>
+        {% endfor %}
         </tbody>
     </table>
 {% endblock %}
