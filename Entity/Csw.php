@@ -25,6 +25,7 @@ class Csw
     /**
      * @var string $source source
      * @ORM\Column(type="string", nullable=false)
+     * @Assert\NotBlank(message="Quelle darf nicht leer sein.")
      */
     protected $source;
 
@@ -61,6 +62,7 @@ class Csw
     /**
      * @var string $providerName ServiceProvider providerName
      * @ORM\Column(type="string", nullable=false)
+     * @Assert\NotBlank(message="Betreiber darf nicht leer sein.")
      */
     protected $providerName;
 
