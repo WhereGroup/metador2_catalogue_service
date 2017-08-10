@@ -4,19 +4,23 @@
            xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
     <parameters>
         <!-- SERVICE -->
-        <parameter key="csw.class">Plugins\WhereGroup\CatalogueServiceBundle\Component\Csw</parameter>
+        <parameter key="metador.csw.service.class">Plugins\WhereGroup\CatalogueServiceBundle\Component\Csw</parameter>
 
         <!-- EVENTLISTENER -->
         <parameter key="csw.app.listener.class">Plugins\WhereGroup\CatalogueServiceBundle\EventListener\ApplicationListener</parameter>
     </parameters>
     <services>
         <!-- SERVICE -->
-        <service id="catalogue_service" class="%csw.class%">
-            <argument type="service" id="service_container" />
-            <argument type="service" id="request_stack" />
-            <argument type="service" id="metador_metadata" />
-            <argument type="service" id="metador_plugin" />
-            <argument type="service" id="templating" />
+        <!--<service id="catalogue_service" class="%metador.csw.service.class%">-->
+            <!--<argument type="service" id="service_container" />-->
+            <!--<argument type="service" id="request_stack" />-->
+            <!--<argument type="service" id="metador_metadata" />-->
+            <!--<argument type="service" id="metador_plugin" />-->
+            <!--<argument type="service" id="templating" />-->
+        <!--</service>-->
+
+        <service id="metador_catalogue_service" class="%metador.csw.service.class%">
+            <argument type="service" id="doctrine.orm.default_entity_manager" />
         </service>
 
         <!-- EVENTLISTENER -->

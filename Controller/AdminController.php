@@ -2,6 +2,8 @@
 
 namespace Plugins\WhereGroup\CatalogueServiceBundle\Controller;
 
+use Plugins\WhereGroup\CatalogueServiceBundle\Entity\Csw;
+use Plugins\WhereGroup\CatalogueServiceBundle\Form\CswType;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Template;
@@ -25,15 +27,11 @@ class AdminController extends Controller
      */
     public function indexAction()
     {
+        $this->get('metador_core')->denyAccessUnlessGranted('ROLE_SYSTEM_SUPERUSER');
 
-        $default = $this
-            ->get('metador_configuration')
-            ->getValues('plugin', 'metador_catalogue_service');
-
-
-        dump($default);
-
-        return array();
+        return array(
+            'services' => $this->get('metador_catalogue_service')->all()
+        );
     }
 
 
@@ -44,19 +42,99 @@ class AdminController extends Controller
      */
     public function newAction()
     {
-        return array();
+        $this->get('metador_core')->denyAccessUnlessGranted('ROLE_SYSTEM_SUPERUSER');
+
+        $default = $this
+            ->get('metador_configuration')
+            ->getValues('plugin', 'metador_catalogue_service');
+
+        $form = $this
+            ->createForm(CswType::class, new Csw(), array('data' => $default))
+            ->handleRequest($this->get('request_stack')->getCurrentRequest())
+        ;
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            /**
+             * @var $entity Csw
+             */
+            $entity = $form->getData();
+
+            if ($this->get('metador_catalogue_service')->findBySlug($entity->getSlug())) {
+                $this->setFlashWarning(
+                    'new',
+                    '',
+                    'Catalogue Service existiert bereits.',
+                    array()
+                );
+
+                return $this->redirectToRoute('metador_admin_csw');
+            }
+
+            $this->get('metador_catalogue_service')->save($entity);
+
+            $this->setFlashSuccess(
+                'edit',
+                $entity->getSlug(),
+                'Catalogue Service %service% erfolgreich erstellt.',
+                array('%service%' => $entity->getTitle())
+            );
+
+            return $this->redirectToRoute('metador_admin_csw');
+        }
+
+        return array(
+            'form' => $form->createView()
+        );
     }
 
     /**
-     * @Route("/edit/{id}", name="metador_admin_csw_edit")
+     * @Route("/edit/{slug}", name="metador_admin_csw_edit")
      * @Method({"GET", "POST"})
-     * @Template("MetadorCoreBundle:Source:new.html.twig")
-     * @param $id
+     * @Template("CatalogueServiceBundle:Admin:new.html.twig")
+     * @param $slug
      * @return array
      */
-    public function editAction($id)
+    public function editAction($slug)
     {
-        return array();
+        $this->get('metador_core')->denyAccessUnlessGranted('ROLE_SYSTEM_SUPERUSER');
+
+        $form = $this
+            ->createForm(CswType::class, new Csw())
+            ->handleRequest($this->get('request_stack')->getCurrentRequest())
+        ;
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            /**
+             * @var $entity Csw
+             */
+            $entity = $form->getData();
+
+            if ($this->get('metador_catalogue_service')->findBySlug($entity->getSlug())) {
+                $this->setFlashWarning(
+                    'edit',
+                    '',
+                    'Catalogue Service existiert bereits.',
+                    array()
+                );
+
+                return $this->redirectToRoute('metador_admin_csw');
+            }
+
+            $this->get('metador_catalogue_service')->save($entity);
+
+            $this->setFlashSuccess(
+                'edit',
+                $entity->getSlug(),
+                'Catalogue Service %service% erfolgreich erstellt.',
+                array('%service%' => $entity->getTitle())
+            );
+
+            return $this->redirectToRoute('metador_admin_csw');
+        }
+
+        return array(
+            'form' => $form->createView()
+        );
     }
 
     /**
