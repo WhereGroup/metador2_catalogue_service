@@ -42,7 +42,7 @@ class Csw
 
     /**
      * @var string $keywords ServiceIdentification keywords
-     * @ORM\Column(type="string", nullable=true)
+     * @ORM\Column(type="text", nullable=true)
      */
     protected $keywords;
 
@@ -59,93 +59,82 @@ class Csw
     protected $accessConstraints;
 
     /**
-     * @var string $accessConstraints ServiceIdentification accessConstraints
+     * @var string $providerName ServiceProvider providerName
      * @ORM\Column(type="string", nullable=false)
      */
     protected $providerName;
 
     /**
-     * @var string $accessConstraints ServiceIdentification accessConstraints
+     * @var string $providerSite ServiceProvider providerSite
      * @ORM\Column(type="string", nullable=true)
      */
     protected $providerSite;
 
     /**
-     * @var string $accessConstraints ServiceIdentification accessConstraints
-     * @ORM\Column(type="string", nullable=true)
-     */
-    protected $serviceContact;
-
-    /**
-     * @var string $accessConstraints ServiceIdentification accessConstraints
+     * @var string $individualName ServiceProvider individualName
      * @ORM\Column(type="string", nullable=true)
      */
     protected $individualName;
 
     /**
-     * @var string $accessConstraints ServiceIdentification accessConstraints
+     * @var string $positionName ServiceProvider positionName
      * @ORM\Column(type="string", nullable=true)
      */
     protected $positionName;
 
     /**
-     * @var string $accessConstraints ServiceIdentification accessConstraints
+     * @var string $phoneVoice ServiceProvider $phoneVoicephoneVoice
      * @ORM\Column(type="string", nullable=true)
      */
     protected $phoneVoice;
 
     /**
-     * @var string $accessConstraints ServiceIdentification accessConstraints
+     * @var string $phoneFacsimile ServiceProvider phoneFacsimile
      * @ORM\Column(type="string", nullable=true)
      */
     protected $phoneFacsimile;
 
     /**
-     * @var string $accessConstraints ServiceIdentification accessConstraints
+     * @var string $deliveryPoint ServiceProvider deliveryPoint
      * @ORM\Column(type="string", nullable=true)
      */
     protected $deliveryPoint;
 
     /**
-     * @var string $accessConstraints ServiceIdentification accessConstraints
+     * @var string $city ServiceProvider city
      * @ORM\Column(type="string", nullable=true)
      */
     protected $city;
 
     /**
-     * @var string $accessConstraints ServiceIdentification accessConstraints
+     * @var string $administrativeArea ServiceProvider administrativeArea
      * @ORM\Column(type="string", nullable=true)
      */
     protected $administrativeArea;
 
     /**
-     * @var string $accessConstraints ServiceIdentification accessConstraints
+     * @var string $postalCode ServiceProvider postalCode
      * @ORM\Column(type="string", nullable=true)
      */
     protected $postalCode;
 
     /**
-     * @var string $accessConstraints ServiceIdentification accessConstraints
+     * @var string $country ServiceProvider country
      * @ORM\Column(type="string", nullable=true)
      */
     protected $country;
 
     /**
-     * @var string $accessConstraints ServiceIdentification accessConstraints
+     * @var string $electronicMailAddress ServiceProvider electronicMailAddress
      * @ORM\Column(type="string", nullable=true)
      */
     protected $electronicMailAddress;
 
     /**
-     * @var string $accessConstraints ServiceIdentification accessConstraints
+     * @var string $onlineResourse ServiceProvider onlineResourse
      * @ORM\Column(type="string", nullable=true)
      */
     protected $onlineResourse;
-
-
-
-
-
 
     /**
      * Set slug
@@ -361,30 +350,6 @@ class Csw
     public function getProviderSite()
     {
         return $this->providerSite;
-    }
-
-    /**
-     * Set serviceContact
-     *
-     * @param string $serviceContact
-     *
-     * @return Csw
-     */
-    public function setServiceContact($serviceContact)
-    {
-        $this->serviceContact = $serviceContact;
-
-        return $this;
-    }
-
-    /**
-     * Get serviceContact
-     *
-     * @return string
-     */
-    public function getServiceContact()
-    {
-        return $this->serviceContact;
     }
 
     /**
