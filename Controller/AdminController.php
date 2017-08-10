@@ -49,7 +49,7 @@ class AdminController extends Controller
             ->getValues('plugin', 'metador_catalogue_service');
 
         $form = $this
-            ->createForm(CswType::class, new Csw(), array('data' => $default))
+            ->createForm(CswType::class, new Csw())//, array('data' => $default))
             ->handleRequest($this->get('request_stack')->getCurrentRequest())
         ;
 
@@ -73,7 +73,7 @@ class AdminController extends Controller
             $this->get('metador_catalogue_service')->save($entity);
 
             $this->setFlashSuccess(
-                'edit',
+                'new',
                 $entity->getSlug(),
                 'Catalogue Service %service% erfolgreich erstellt.',
                 array('%service%' => $entity->getTitle())
