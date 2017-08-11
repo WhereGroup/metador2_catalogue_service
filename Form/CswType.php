@@ -3,6 +3,7 @@
 namespace Plugins\WhereGroup\CatalogueServiceBundle\Form;
 
 use Symfony\Component\Form\AbstractType;
+use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\Extension\Core\Type\UrlType;
@@ -98,6 +99,18 @@ class CswType extends AbstractType
             ))
             ->add('onlineResourse', TextType::class, array(
                 'label' => 'Onlineresourse',
+                'required' => false,
+            ))
+            ->add('doInsert', CheckboxType::class, array(
+                'label' => 'Einfügen',
+                'required' => false,
+            ))
+            ->add('doUpdate', CheckboxType::class, array(
+                'label' => 'Aktualisieren',
+                'required' => false,
+            ))
+            ->add('doDelete', CheckboxType::class, array(
+                'label' => 'Entfernen',
                 'required' => false,
             ))
         ;

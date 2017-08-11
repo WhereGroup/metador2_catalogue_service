@@ -107,23 +107,12 @@ class AdminController extends Controller
              */
             $entity = $form->getData();
 
-//            if ($this->get('metador_catalogue_service')->findBySlug($entity->getSlug())) {
-//                $this->setFlashWarning(
-//                    'edit',
-//                    $entity->getSlug(),
-//                    'Catalogue Service existiert bereits.',
-//                    array()
-//                );
-//
-//                return $this->redirectToRoute('metador_admin_csw');
-//            }
-
             $this->get('metador_catalogue_service')->save($entity);
 
             $this->setFlashSuccess(
                 'edit',
                 $entity->getSlug(),
-                'Catalogue Service %service% erfolgreich erstellt.',
+                'Catalogue Service %service% erfolgreich editiert.',
                 array('%service%' => $entity->getTitle())
             );
 

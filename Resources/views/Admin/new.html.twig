@@ -187,6 +187,17 @@
                 {#</div>#}
             </div>
         </div>
+
+        <hr class="line-separator" />
+
+        <div class="row r-1">
+            <div class="col c-1">
+                <div>{{ form_widget(form.doInsert, { 'attr': {'class': 'textarea'}}) }} {{ form_label(form.doInsert, null, { 'label_attr': {'class': 'form-label'}}) }}</div>
+                <div>{{ form_widget(form.doUpdate, { 'attr': {'class': 'textarea'}}) }} {{ form_label(form.doUpdate, null, { 'label_attr': {'class': 'form-label'}}) }}</div>
+                <div>{{ form_widget(form.doDelete, { 'attr': {'class': 'textarea'}}) }} {{ form_label(form.doDelete, null, { 'label_attr': {'class': 'form-label'}}) }}</div>
+            </div>
+        </div>
+
         <div class="row r-1">
             <div class="col c-1 text-right">
                 <button class="btn success medium">

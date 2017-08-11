@@ -27,7 +27,42 @@ class CSWController extends Controller
      */
     public function defaultAction($source, $slug)
     {
+        try {
+            $csw = $this->get('metador_catalogue_service');
+            $operation = $csw->createOperation();
 
+            $xml = $operation->createResult();
+            $response = new Response();
+            $response->headers->set('Content-Type', 'text/xml');
+            $response->setContent($xml);
+            return $response;
+        } catch (CswException $ex) {
+            $content = $this->get('templating')->render(
+                "CatalogueServiceBundle:CSW:exception.xml.twig",
+                array(
+                    'exception' => array(
+                        'code' => $ex->getCswCode(),
+                        'locator' => $ex->getLocator(),
+                        'text' => $ex->getText()
+                    )
+                )
+            );
+
+            return new Response($content, Response::HTTP_OK, array('content-type' => 'application/xml'));
+        } catch (\Exception $ex) {
+            $content = $this->get('templating')->render(
+                "CatalogueServiceBundle:CSW:exception.xml.twig",
+                array(
+                    'exception' => array(
+                        'code' => $ex->getCode(),
+                        'locator' => null,
+                        'text' => array($ex->getMessage())
+                    )
+                )
+            );
+            return new Response($content, Response::HTTP_OK, array('content-type' => 'application/xml'));
+        }
+        return $response;
     }
 //
 //    /**

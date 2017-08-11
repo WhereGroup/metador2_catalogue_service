@@ -73,23 +73,6 @@ class Csw
 
         return $this;
     }
-//
-//    /**
-//     * @param $slug
-//     * @param $name
-//     * @param string $description
-//     * @param bool $system
-//     */
-//    public function set($slug, $name, $description = '', $system = false)
-//    {
-//        $entity = new SourceEntity();
-//        $entity
-//            ->setSlug($slug)
-//            ->setName($name)
-//            ->setDescription($description)
-//            ->setSystem($system);
-//        $this->save($entity);
-//    }
 
     /**
      * @param $entity

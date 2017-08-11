@@ -140,6 +140,56 @@ class Csw
     protected $onlineResourse;
 
     /**
+     * @var $doInsert boolean is a csw transaction insert supported.
+     * @ORM\Column(type="boolean", nullable=true)
+     */
+    protected $doInsert = false;
+
+    /**
+     * @var $doUpdate boolean is a csw transaction update supported.
+     * @ORM\Column(type="boolean", nullable=true)
+     */
+    protected $doUpdate = false;
+
+    /**
+     * @var $doDelete boolean is a csw transaction delete supported.
+     * @ORM\Column(type="boolean", nullable=true)
+     */
+    protected $doDelete = false;
+
+    /**
+     * Creates a Csw instance from properties.
+     * @param array $serialized csw properties
+     * @return Csw
+     */
+    public static function fromArray(array $serialized)
+    {
+        $csw = new Csw();
+        $csw->slug = isset($serialized['slug']) ? $serialized['slug'] : null;
+        $csw->source = isset($serialized['source']) ? $serialized['source'] : null;
+        $csw->title = isset($serialized['title']) ? $serialized['title'] : null;
+        $csw->abstract = isset($serialized['abstract']) ? $serialized['abstract'] : null;
+        $csw->keywords = isset($serialized['keywords']) ? $serialized['keywords'] : null;
+        $csw->fees = isset($serialized['fees']) ? $serialized['fees'] : null;
+        $csw->accessConstraints = isset($serialized['accessConstraints']) ? $serialized['accessConstraints'] : null;
+        $csw->providerName = isset($serialized['providerName']) ? $serialized['providerName'] : null;
+        $csw->providerSite = isset($serialized['providerSite']) ? $serialized['providerSite'] : null;
+        $csw->individualName = isset($serialized['individualName']) ? $serialized['individualName'] : null;
+        $csw->positionName = isset($serialized['positionName']) ? $serialized['positionName'] : null;
+        $csw->phoneVoice = isset($serialized['phoneVoice']) ? $serialized['phoneVoice'] : null;
+        $csw->phoneFacsimile = isset($serialized['phoneFacsimile']) ? $serialized['phoneFacsimile'] : null;
+        $csw->deliveryPoint = isset($serialized['deliveryPoint']) ? $serialized['deliveryPoint'] : null;
+        $csw->city = isset($serialized['city']) ? $serialized['city'] : null;
+        $csw->administrativeArea = isset($serialized['administrativeArea']) ? $serialized['administrativeArea'] : null;
+        $csw->postalCode = isset($serialized['postalCode']) ? $serialized['postalCode'] : null;
+        $csw->country = isset($serialized['country']) ? $serialized['country'] : null;
+        $csw->electronicMailAddress = isset($serialized['electronicMailAddress']) ? $serialized['electronicMailAddress'] : null;
+        $csw->onlineResourse = isset($serialized['onlineResourse']) ? $serialized['onlineResourse'] : null;
+
+        return $csw;
+    }
+
+    /**
      * Set slug
      *
      * @param string $slug
@@ -620,34 +670,74 @@ class Csw
     }
 
     /**
-     * Creates a Csw instance from properties.
-     * @param array $serialized csw properties
+     * Set doInsert
+     *
+     * @param boolean $doInsert
+     *
      * @return Csw
      */
-    public static function fromArray(array $serialized)
+    public function setDoInsert($doInsert)
     {
-        $csw = new Csw();
-        $csw->slug = isset($serialized['slug']) ? $serialized['slug'] : null;
-        $csw->source = isset($serialized['source']) ? $serialized['source'] : null;
-        $csw->title = isset($serialized['title']) ? $serialized['title'] : null;
-        $csw->abstract = isset($serialized['abstract']) ? $serialized['abstract'] : null;
-        $csw->keywords = isset($serialized['keywords']) ? $serialized['keywords'] : null;
-        $csw->fees = isset($serialized['fees']) ? $serialized['fees'] : null;
-        $csw->accessConstraints = isset($serialized['accessConstraints']) ? $serialized['accessConstraints'] : null;
-        $csw->providerName = isset($serialized['providerName']) ? $serialized['providerName'] : null;
-        $csw->providerSite = isset($serialized['providerSite']) ? $serialized['providerSite'] : null;
-        $csw->individualName = isset($serialized['individualName']) ? $serialized['individualName'] : null;
-        $csw->positionName = isset($serialized['positionName']) ? $serialized['positionName'] : null;
-        $csw->phoneVoice = isset($serialized['phoneVoice']) ? $serialized['phoneVoice'] : null;
-        $csw->phoneFacsimile = isset($serialized['phoneFacsimile']) ? $serialized['phoneFacsimile'] : null;
-        $csw->deliveryPoint = isset($serialized['deliveryPoint']) ? $serialized['deliveryPoint'] : null;
-        $csw->city = isset($serialized['city']) ? $serialized['city'] : null;
-        $csw->administrativeArea = isset($serialized['administrativeArea']) ? $serialized['administrativeArea'] : null;
-        $csw->postalCode = isset($serialized['postalCode']) ? $serialized['postalCode'] : null;
-        $csw->country = isset($serialized['country']) ? $serialized['country'] : null;
-        $csw->electronicMailAddress = isset($serialized['electronicMailAddress']) ? $serialized['electronicMailAddress'] : null;
-        $csw->onlineResourse = isset($serialized['onlineResourse']) ? $serialized['onlineResourse'] : null;
+        $this->doInsert = $doInsert;
 
-        return $csw;
+        return $this;
+    }
+
+    /**
+     * Get doInsert
+     *
+     * @return boolean
+     */
+    public function getDoInsert()
+    {
+        return $this->doInsert;
+    }
+
+    /**
+     * Set doUpdate
+     *
+     * @param boolean $doUpdate
+     *
+     * @return Csw
+     */
+    public function setDoUpdate($doUpdate)
+    {
+        $this->doUpdate = $doUpdate;
+
+        return $this;
+    }
+
+    /**
+     * Get doUpdate
+     *
+     * @return boolean
+     */
+    public function getDoUpdate()
+    {
+        return $this->doUpdate;
+    }
+
+    /**
+     * Set doDelete
+     *
+     * @param boolean $doDelete
+     *
+     * @return Csw
+     */
+    public function setDoDelete($doDelete)
+    {
+        $this->doDelete = $doDelete;
+
+        return $this;
+    }
+
+    /**
+     * Get doDelete
+     *
+     * @return boolean
+     */
+    public function getDoDelete()
+    {
+        return $this->doDelete;
     }
 }
