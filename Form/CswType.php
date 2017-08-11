@@ -8,6 +8,7 @@ use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\Extension\Core\Type\UrlType;
 use Symfony\Component\Form\FormBuilderInterface;
+use Symfony\Component\Form\CallbackTransformer;
 
 /**
  * Class CswType
@@ -114,5 +115,22 @@ class CswType extends AbstractType
                 'required' => false,
             ))
         ;
+        
+        $callBackTransformer = new CallbackTransformer(
+            // transform the array to a string
+            function ($textAsArray) {
+                if (isset($textAsArray)) {
+                    return implode(', ', $textAsArray);
+                }
+            },
+            function ($textAsArray) {
+                // transform the string back to an array
+                if (isset($textAsArray)) {
+                    return explode(', ', $textAsArray);
+                }
+            }
+        );
+        $builder->get('keywords')->addModelTransformer($callBackTransformer);
+        $builder->get('accessConstraints')->addModelTransformer($callBackTransformer);
     }
 }

@@ -44,7 +44,7 @@ class Csw
 
     /**
      * @var string $keywords ServiceIdentification keywords
-     * @ORM\Column(type="text", nullable=true)
+     * @ORM\Column(type="array", nullable=true)
      */
     protected $keywords;
 
@@ -56,7 +56,7 @@ class Csw
 
     /**
      * @var string $accessConstraints ServiceIdentification accessConstraints
-     * @ORM\Column(type="string", nullable=true)
+     * @ORM\Column(type="array", nullable=true)
      */
     protected $accessConstraints;
 
