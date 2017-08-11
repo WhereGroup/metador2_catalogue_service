@@ -26,7 +26,6 @@ class Csw
     /**
      * @var string $source source
      * @ORM\Column(type="string", nullable=false)
-     * @Assert\NotNull(message="Quelle darf nicht null sein.")
      * @Assert\NotBlank(message="Quelle darf nicht leer sein.")
      */
     protected $source;

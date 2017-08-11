@@ -50,8 +50,7 @@ class AdminController extends Controller
 
         $form = $this
             ->createForm(CswType::class, Csw::fromArray($default))//, array('data' => $default))
-            ->handleRequest($this->get('request_stack')->getCurrentRequest())
-        ;
+            ->handleRequest($this->get('request_stack')->getCurrentRequest());
 
         if ($form->isSubmitted() && $form->isValid()) {
             /**
@@ -100,8 +99,7 @@ class AdminController extends Controller
 
         $form = $this
             ->createForm(CswType::class, $this->get('metador_catalogue_service')->findBySlug($slug))
-            ->handleRequest($this->get('request_stack')->getCurrentRequest())
-        ;
+            ->handleRequest($this->get('request_stack')->getCurrentRequest());
 
         if ($form->isSubmitted() && $form->isValid()) {
             /**

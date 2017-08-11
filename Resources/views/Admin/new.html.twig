@@ -1,6 +1,7 @@
 {% extends 'MetadorThemeBundle:Admin:template.html.twig' %}
 
-{% if form.vars.value.slug is defined and form.vars.value.slug is not empty %}
+{% if form.vars.value.slug is defined and form.vars.value.slug is not empty
+    and form.vars.value.source is defined and form.vars.value.source is not empty %}
     {% set title  = 'Catalogue Service bearbeiten'|trans %}
     {% set path   = 'metador_admin_csw_edit' %}
     {% set params = {slug: form.vars.value.slug} %}
@@ -34,6 +35,7 @@
         <div class="notify error">
             {{ form_errors(form) }}
             {{ form_errors(form.slug) }}
+            {{ form_errors(form.source) }}
         </div>
     {% endif %}
 
@@ -190,7 +192,8 @@
                 <button class="btn success medium">
                     <span class="icon-checkmark"></span> {% trans %}speichern{% endtrans %}
                 </button>
-                {% if form.vars.value.slug is defined and form.vars.value.slug is not empty %}
+                {% if form.vars.value.slug is defined and form.vars.value.slug is not empty
+                    and form.vars.value.source is defined and form.vars.value.source is not empty %}
                     <a href="{{ path('metador_admin_csw_confirm', params) }}" class="btn error medium">
                         <span class="icon-bin2"></span> {% trans %}löschen{% endtrans %}
                     </a>
