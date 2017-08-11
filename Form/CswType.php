@@ -126,7 +126,7 @@ class CswType extends AbstractType
             function ($textAsArray) {
                 // transform the string back to an array
                 if (isset($textAsArray)) {
-                    return explode(', ', $textAsArray);
+                    return preg_split('/\s?,\s?/', trim($textAsArray)) ;
                 }
             }
         );
