@@ -1,9 +1,9 @@
 {% extends 'MetadorThemeBundle:Admin:template.html.twig' %}
 
-{% if form.vars.value.id is defined and form.vars.value.id is not empty %}
+{% if form.vars.value.slug is defined and form.vars.value.slug is not empty %}
     {% set title  = 'Catalogue Service bearbeiten'|trans %}
     {% set path   = 'metador_admin_csw_edit' %}
-    {% set params = {id: form.vars.value.id} %}
+    {% set params = {slug: form.vars.value.slug} %}
 {% else %}
     {% set title  = 'Catalogue Service erstellen'|trans %}
     {% set path   = 'metador_admin_csw_new' %}
@@ -42,7 +42,12 @@
             <div class="col c-1-2">
                 <div>{{ form_label(form.slug, null, { 'label_attr': {'class': 'form-label'}}) }}</div>
                 <div class="form-field-wrapper">
+                {% if form.vars.value.slug is defined and form.vars.value.slug is not empty %}
+                    {# slug is a primary key field #}
+                    {{ form_widget(form.slug, { 'attr': {'class': 'input', 'readonly': 'readonly'}}) }}
+                {% else %}
                     {{ form_widget(form.slug, { 'attr': {'class': 'input'}}) }}
+                {% endif %}
                 </div>
             </div>
             <div class="col c-1-2">
@@ -185,8 +190,8 @@
                 <button class="btn success medium">
                     <span class="icon-checkmark"></span> {% trans %}speichern{% endtrans %}
                 </button>
-                {% if form.vars.value.id is defined and form.vars.value.id is not empty and not form.vars.value.system %}
-                    <a href="{{ path('metador_admin_source_confirm', params) }}" class="btn error medium">
+                {% if form.vars.value.slug is defined and form.vars.value.slug is not empty %}
+                    <a href="{{ path('metador_admin_csw_confirm', params) }}" class="btn error medium">
                         <span class="icon-bin2"></span> {% trans %}löschen{% endtrans %}
                     </a>
                 {% endif %}

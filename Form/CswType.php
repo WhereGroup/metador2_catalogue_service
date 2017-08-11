@@ -20,6 +20,7 @@ class CswType extends AbstractType
      */
     public function buildForm(FormBuilderInterface $builder, array $options)
     {
+        $a = 0;
         $builder
             ->add('slug', TextType::class, array(
                 'label' => 'Slug',
@@ -40,10 +41,12 @@ class CswType extends AbstractType
             ->add('fees', TextType::class, array(
                 'label' => 'Gebühren',
                 'required' => false,
+                'empty_data' => 'none'
             ))
             ->add('accessConstraints', TextType::class, array( // csv value
                 'label' => 'Zugangsbeschränkungen',
                 'required' => false,
+                'empty_data' => 'none'
             ))
             ->add('providerName', TextType::class, array(
                 'label' => 'Betreiber',

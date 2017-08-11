@@ -49,7 +49,7 @@ class AdminController extends Controller
             ->getValues('plugin', 'metador_catalogue_service');
 
         $form = $this
-            ->createForm(CswType::class, new Csw())//, array('data' => $default))
+            ->createForm(CswType::class, Csw::fromArray($default))//, array('data' => $default))
             ->handleRequest($this->get('request_stack')->getCurrentRequest())
         ;
 
@@ -99,7 +99,7 @@ class AdminController extends Controller
         $this->get('metador_core')->denyAccessUnlessGranted('ROLE_SYSTEM_SUPERUSER');
 
         $form = $this
-            ->createForm(CswType::class, new Csw())
+            ->createForm(CswType::class, $this->get('metador_catalogue_service')->findBySlug($slug))
             ->handleRequest($this->get('request_stack')->getCurrentRequest())
         ;
 
@@ -109,16 +109,16 @@ class AdminController extends Controller
              */
             $entity = $form->getData();
 
-            if ($this->get('metador_catalogue_service')->findBySlug($entity->getSlug())) {
-                $this->setFlashWarning(
-                    'edit',
-                    '',
-                    'Catalogue Service existiert bereits.',
-                    array()
-                );
-
-                return $this->redirectToRoute('metador_admin_csw');
-            }
+//            if ($this->get('metador_catalogue_service')->findBySlug($entity->getSlug())) {
+//                $this->setFlashWarning(
+//                    'edit',
+//                    $entity->getSlug(),
+//                    'Catalogue Service existiert bereits.',
+//                    array()
+//                );
+//
+//                return $this->redirectToRoute('metador_admin_csw');
+//            }
 
             $this->get('metador_catalogue_service')->save($entity);
 
@@ -138,13 +138,44 @@ class AdminController extends Controller
     }
 
     /**
-     * @Route("/confirm/{id}", name="metador_admin_csw_confirm")
+     * @Route("/confirm/{slug}", name="metador_admin_csw_confirm")
      * @Method({"GET", "POST"})
      * @Template()
      */
-    public function confirmAction($id)
+    public function confirmAction($slug)
     {
-        return array();
+        $this->get('metador_core')->denyAccessUnlessGranted('ROLE_SYSTEM_SUPERUSER');
+
+        $form = $this->createFormBuilder($this->get('metador_catalogue_service')->findBySlug($slug))
+            ->add('delete', 'submit', array(
+                'label' => 'löschen'
+            ))
+            ->getForm()
+            ->handleRequest($this->get('request_stack')->getCurrentRequest());
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            /**
+             * @var $entity Csw
+             */
+            $entity = $form->getData();
+            $name   = $entity->getTitle();
+            $id     = $entity->getSlug();
+
+            $this->get('metador_source')->remove($entity);
+
+            $this->setFlashSuccess(
+                'edit',
+                $id,
+                'Csw %csw% erfolgreich gelöscht.',
+                array('%csw%' => $id)
+            );
+
+            return $this->redirectToRoute('metador_admin_csw');
+        }
+
+        return array(
+            'form' => $form->createView()
+        );
     }
 
     /**

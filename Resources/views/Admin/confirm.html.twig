@@ -16,7 +16,7 @@
 
     <hr class="line-separator" />
 
-    {{ form_start(form, { 'action': path('metador_admin_csw_confirm', {id: form.vars.value.id}), 'method': 'POST', 'attr': {
+    {{ form_start(form, { 'action': path('metador_admin_csw_confirm', {slug: form.vars.value.slug}), 'method': 'POST', 'attr': {
         novalidate: 'novalidate', autocomplete: 'off'
     }}) }}
 
