@@ -49,7 +49,7 @@ class AdminController extends Controller
             ->getValues('plugin', 'metador_catalogue_service');
 
         $form = $this
-            ->createForm(CswType::class, Csw::fromArray($default))//, array('data' => $default))
+            ->createForm($this->get("csw_form_type"), Csw::fromArray($default))//, array('data' => $default))
             ->handleRequest($this->get('request_stack')->getCurrentRequest());
 
         if ($form->isSubmitted() && $form->isValid()) {

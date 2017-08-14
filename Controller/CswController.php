@@ -11,6 +11,7 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 use Plugins\WhereGroup\CatalogueServiceBundle\Component\CswException;
 use Plugins\WhereGroup\CatalogueServiceBundle\Component\ContentSet;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
+use WhereGroup\CoreBundle\Component\Source;
 
 /**
  * Class CSWController
@@ -19,12 +20,12 @@ use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
  */
 class CswController extends Controller
 {
-
     /**
      * @param $source
      * @param $slug
      * @Route("{source}/{slug}/", name="csw_default")
      * @Method({"GET", "POST"})
+     * @return Response
      */
     public function defaultAction($source, $slug)
     {

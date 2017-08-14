@@ -9,6 +9,8 @@ use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\Extension\Core\Type\UrlType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\Form\CallbackTransformer;
+use WhereGroup\CoreBundle\Component\Configuration;
+use WhereGroup\CoreBundle\Component\Source;
 
 /**
  * Class CswType
@@ -16,13 +18,37 @@ use Symfony\Component\Form\CallbackTransformer;
  */
 class CswType extends AbstractType
 {
+    private $source;
+    private $config;
+
+    /**
+     * CswController constructor.
+     * @param Source $source
+     */
+    public function __construct(Source $source, Configuration $config)
+    {
+        $this->source = $source;
+        $this->config = $config;
+    }
+
+    public function __destruct()
+    {
+        unset($this->source, $this->config);
+    }
+
     /**
      * @param FormBuilderInterface $builder
      * @param array $options
      */
     public function buildForm(FormBuilderInterface $builder, array $options)
     {
+
+        $sources = $this->source->all();
+        $default = $this->config->getValues('plugin', 'metador_catalogue_service');
+
+
         $a = 0;
+
         $builder
             ->add('slug', TextType::class, array(
                 'label' => 'Slug',
@@ -115,7 +141,7 @@ class CswType extends AbstractType
                 'required' => false,
             ))
         ;
-        
+
         $callBackTransformer = new CallbackTransformer(
             function ($textAsArray) {
                 // transform the array to a string

@@ -8,6 +8,9 @@
 
         <!-- EVENTLISTENER -->
         <parameter key="csw.app.listener.class">Plugins\WhereGroup\CatalogueServiceBundle\EventListener\ApplicationListener</parameter>
+
+        <!-- FORM TYPE -->
+        <parameter key="csw.form.type.class">Plugins\WhereGroup\CatalogueServiceBundle\Form\CswType</parameter>
     </parameters>
     <services>
         <!-- SERVICE -->
@@ -28,6 +31,13 @@
         <!-- EVENTLISTENER -->
         <service id="catalogue_service_app_listener" class="%csw.app.listener.class%">
             <tag name="kernel.event_listener" event="application.loading" method="onLoading"/>
+        </service>
+
+        <!-- FORM TYPE -->
+        <service id="csw_form_type" class="%csw.form.type.class%">
+            <argument type="service" id="metador_source" />
+            <argument type="service" id="metador_configuration" />
+            <tag name="form.type" alias="task" />
         </service>
     </services>
 </container>

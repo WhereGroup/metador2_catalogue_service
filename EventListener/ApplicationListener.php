@@ -20,7 +20,7 @@ class ApplicationListener
         if ($app->routeStartsWith('metador_admin')) {
             $app->add(
                 $app->get('AdminMenu', 'csw')
-                    ->icon('icon-map')
+                    ->icon('icon-stack')
                     ->label('Catalogue Service')
                     ->path('metador_admin_csw')
                     ->setRole('ROLE_SYSTEM_SUPERUSER')
