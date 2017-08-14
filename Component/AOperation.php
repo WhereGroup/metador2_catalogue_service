@@ -382,8 +382,8 @@ abstract class AOperation
         $result = null;
         foreach ($list as $item) {
             if ($result === null) {
-                $result = $this->isStringAtList($item, $item, $values, $mandatory);
-            } elseif (!$this->isStringAtList($item, $item, $values, $mandatory)) {
+                $result = $this->isStringAtList($name, $item, $values, $mandatory);
+            } elseif (!$this->isStringAtList($name, $item, $values, $mandatory)) {
                 $result = false;
             }
         }

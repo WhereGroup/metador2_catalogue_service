@@ -17,10 +17,10 @@ final class GetCapabilities extends AOperation
      */
     protected static $parameterMap = array(
         'version' => null,
-        'service' => '/csw:GetCapabilities/@service',
-        'acceptVersion' => '/csw:GetCapabilities/ows:AcceptVersions/ows:Version/text()',
-        'section' => '/csw:GetCapabilities/ows:Sections/ows:Section/text()',
-        'outputFormat' => '/csw:GetCapabilities/ows:AcceptFormats/ows:OutputFormat/text()',
+        'service' => '/'.self::PREFIX.':GetCapabilities/@service',
+        'acceptVersion' => '/'.self::PREFIX.':GetCapabilities/ows:AcceptVersions/ows:Version/text()',
+        'section' => '/'.self::PREFIX.':GetCapabilities/ows:Sections/ows:Section/text()',
+        'outputFormat' => '/'.self::PREFIX.':GetCapabilities/ows:AcceptFormats/ows:OutputFormat/text()',
     );
 
 //    /**

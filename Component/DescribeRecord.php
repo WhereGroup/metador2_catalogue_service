@@ -2,6 +2,8 @@
 
 namespace Plugins\WhereGroup\CatalogueServiceBundle\Component;
 
+use Plugins\WhereGroup\CatalogueServiceBundle\Entity\Csw as CswEntity;
+
 /**
  * The class DescribeRecord is a representation of the OGC CSW DescribeRecord operation.
  *
@@ -13,22 +15,34 @@ class DescribeRecord extends AOperation
      * {@inheritdoc}
      */
     protected static $parameterMap = array(
-        'version'      => '/' . Csw::CSW_PREFIX . ':DescribeRecord/@version',
-        'service'      => '/' . Csw::CSW_PREFIX . ':DescribeRecord/@service',
-        'typeName'     => '/' . Csw::CSW_PREFIX . ':DescribeRecord/' . Csw::CSW_PREFIX . ':TypeName/text()',
-        'outputFormat' => '/' . Csw::CSW_PREFIX . ':DescribeRecord/@outputFormat',
+        'version' => '/'.self::PREFIX.':DescribeRecord/@version',
+        'service' => '/'.self::PREFIX.':DescribeRecord/@service',
+        'typeName' => '/'.self::PREFIX.':DescribeRecord/'.self::PREFIX.':TypeName/text()',
+        'outputFormat' => '/'.self::PREFIX.':DescribeRecord/@outputFormat',
     );
 
     /**
      * {@inheritdoc}
      */
-    protected $name = 'DescribeRecord';
+    public static function getGETParameterMap()
+    {
+        return array_keys(self::$parameterMap);
+    }
 
     /**
-     * The list of all supported "typeNames"
-     * @var array $typeNameList
+     * {@inheritdoc}
      */
-    protected $typeNameList;
+    public static function getPOSTParameterMap()
+    {
+        $parameters = array();
+        foreach (self::$parameterMap as $key => $value) {
+            if ($value !== null) {
+                $parameters[$value] = $key;
+            }
+        }
+
+        return $parameters;
+    }
 
     /* Request parameters */
 
@@ -47,11 +61,11 @@ class DescribeRecord extends AOperation
     /**
      * {@inheritdoc}
      */
-    public function __construct(Csw $csw, $configuration)
+    public function __construct(CswEntity $entity)
     {
-        parent::__construct($csw, $configuration);
-        $this->typeNameList = $configuration['typeNameList'];
-        $this->typeName     = $this->typeNameList;
+        parent::__construct($entity);
+        $this->typeName = array('gmd:MD_Metadata');
+        $this->template = 'CatalogueServiceBundle:CSW:describerecord.xml.twig';
     }
 
     /**
@@ -66,37 +80,6 @@ class DescribeRecord extends AOperation
     }
 
     /**
-     * {@inheritdoc}
-     */
-    public static function getGETParameterMap()
-    {
-        return array_keys(self::$parameterMap);
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public static function getPOSTParameterMap()
-    {
-        $parameters       = array();
-        foreach (self::$parameterMap as $key => $value) {
-            if ($value !== null) {
-                $parameters[$value] = $key;
-            }
-        }
-        return $parameters;
-    }
-
-    /**
-     * Returns typeNameList
-     * @return array
-     */
-    public function getTypeNameList()
-    {
-        return $this->typeNameList;
-    }
-
-    /**
      * Returns typeName
      * @return string
      */
@@ -106,24 +89,22 @@ class DescribeRecord extends AOperation
     }
 
     /**
-     * Sets typeNameList
-     * @param array $typeNameList
-     * @return \Plugins\WhereGroup\CatalogueServiceBundle\Component\DescribeRecord
+     * Returns typeName
+     * @return string
      */
-    public function setTypeNameList($typeNameList)
+    public function setTypeName($typeName)
     {
-        $this->typeNameList = $typeNameList;
-        return $this;
-    }
+        $_typeName = array();
+        if ($typeName && is_string($typeName)) { # GET request or POST single typeName
+            $_typeName = self::parseCsl($typeName);
+        } elseif ($typeName && is_array($typeName)) { # POST request
+            $_typeName = $typeName;
+        }
+        if ($this->isListAtList('typeName', $_typeName, $this->typeName, false)) {
+            $this->typeName = $_typeName;
+        }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function getParameters()
-    {
-        return array(
-            'typeName' => $this->typeNameList,
-        );
+        return $this;
     }
 
     /**
@@ -133,15 +114,7 @@ class DescribeRecord extends AOperation
     {
         switch ($name) {
             case 'typeName':
-                $typeName = array();
-                if ($value && is_string($value)) { # GET request or POST single typeName
-                    $typeName = self::parseCsl($value);
-                } elseif ($value && is_array($value)) { # POST request
-                    $typeName = $value;
-                }
-                if ($this->isListAtList($name, $typeName, $this->typeNameList, false)) {
-                    $this->typeName = $typeName;
-                }
+                $this->setTypeName($value);
                 break;
             default:
                 parent::setParameter($name, $value);
@@ -151,13 +124,13 @@ class DescribeRecord extends AOperation
     /**
      * {@inheritdoc}
      */
-    protected function render()
+    protected function render($templating)
     {
-        return $this->csw->getTemplating()->render(
-                $this->templates[$this->getOutputFormat()],
-                array(
-                'describerecord' => $this
-                )
+        return $templating->render(
+            $this->template,
+            array(
+                'descrec' => $this,
+            )
         );
     }
 }
