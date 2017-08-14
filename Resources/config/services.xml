@@ -21,6 +21,8 @@
 
         <service id="metador_catalogue_service" class="%metador.csw.service.class%">
             <argument type="service" id="doctrine.orm.default_entity_manager" />
+            <argument type="service" id="request_stack" />
+            <argument type="service" id="router" />
         </service>
 
         <!-- EVENTLISTENER -->

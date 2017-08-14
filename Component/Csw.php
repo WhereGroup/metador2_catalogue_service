@@ -3,6 +3,12 @@
 namespace Plugins\WhereGroup\CatalogueServiceBundle\Component;
 
 use Doctrine\ORM\EntityManagerInterface;
+use Plugins\WhereGroup\CatalogueServiceBundle\Component\Parameter\GetParameterHandler;
+use Plugins\WhereGroup\CatalogueServiceBundle\Entity\Csw as CswEntity;
+use Symfony\Component\HttpFoundation\RequestStack;
+use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
+use Symfony\Component\Routing\RouterInterface;
+
 //use Symfony\Component\DependencyInjection\ContainerAwareTrait;
 //use Symfony\Component\DependencyInjection\ContainerInterface;
 //use Symfony\Component\HttpFoundation\RequestStack;
@@ -25,92 +31,8 @@ class Csw
 
     const ENTITY = "CatalogueServiceBundle:Csw";
 
-    /** @param EntityManagerInterface $em */
-    public function __construct(EntityManagerInterface $em)
-    {
-        $this->repo = $em->getRepository(self::ENTITY);
-    }
 
-    public function __destruct()
-    {
-        unset(
-            $this->repo
-        );
-    }
-
-    /**
-     * @return mixed
-     */
-    public function count()
-    {
-        return (int)$this->repo->count();
-    }
-
-    /**
-     * @return array|\WhereGroup\CoreBundle\Entity\Source[]
-     */
-    public function all()
-    {
-        return $this->repo->findAll();
-    }
-
-    /**
-     * @param $slug
-     * @return mixed
-     */
-    public function findBySlug($slug)
-    {
-        return $this->repo->findOneBySlug($slug);
-    }
-
-    /**
-     * @param $entity
-     * @return $this
-     */
-    public function save($entity)
-    {
-        $this->repo->save($entity);
-
-        return $this;
-    }
-
-    /**
-     * @param $entity
-     * @return $this
-     */
-    public function remove($entity)
-    {
-        $this->repo->remove($entity);
-
-        return $this;
-    }
-
-//    /**
-//     * The element prefix for csw namespace
-//     */
-//    const CSW_PREFIX = 'csw';
-//
-//    /**
-//     * The uri for csw namespace
-//     */
-//    const CSW_NAMESPACE = 'http://www.opengis.net/cat/csw/2.0.2';
-//
-//    /**
-//     * The service name
-//     */
-//    const SERVICE = 'CSW';
-//
-//    /**
-//     * The version
-//     */
-//    const VERSION = '2.0.2';
-//
-//    /**
-//     * The supported versions
-//     * @var $array $VERSIONLIST
-//     */
-//    static $VERSIONLIST     = array('2.0.2');
-//    protected $requestStack = null;
+    protected $requestStack = null;
 //    protected $metadata     = null;
 //    protected $plugin       = null;
 //
@@ -172,6 +94,70 @@ class Csw
 //            $this->requestStack, $this->metadata, $this->plugin, $this->templating, $this->operations, $this->sections
 //        );
 //    }
+
+    /** @param EntityManagerInterface $em */
+    public function __construct(EntityManagerInterface $em, RequestStack $requestStack, RouterInterface $router)
+    {
+        $this->repo = $em->getRepository(self::ENTITY);
+        $this->requestStack = $requestStack;
+        $this->router = $router;
+    }
+
+    public function __destruct()
+    {
+        unset(
+            $this->repo,
+            $this->requestStack
+        );
+    }
+
+    /**
+     * @return mixed
+     */
+    public function count()
+    {
+        return (int)$this->repo->count();
+    }
+
+    /**
+     * @return array|\WhereGroup\CoreBundle\Entity\Source[]
+     */
+    public function all()
+    {
+        return $this->repo->findAll();
+    }
+
+    /**
+     * @param $slug
+     * @return mixed
+     */
+    public function findBySlug($slug)
+    {
+        return $this->repo->findOneBySlug($slug);
+    }
+
+    /**
+     * @param $entity
+     * @return $this
+     */
+    public function save($entity)
+    {
+        $this->repo->save($entity);
+
+        return $this;
+    }
+
+    /**
+     * @param $entity
+     * @return $this
+     */
+    public function remove($entity)
+    {
+        $this->repo->remove($entity);
+
+        return $this;
+    }
+
 //
 //    public function getMetadata()
 //    {
@@ -207,45 +193,63 @@ class Csw
 //    {
 //        return $this->requestStack;
 //    }
-//
-//    /**
-//     * Creates an operation for a given operation name
-//     * @param type $operationName
-//     * @return \Plugins\WhereGroup\CatalogueServiceBundle\Component\AOperation
-//     * @throws CswException if the operation is not supported
-//     */
-//    public function operationForName($operationName)
-//    {
-//        try {
-//            $configuration = $this->operations[$operationName];
-//            $fullClass     = $configuration['class'];
-//
-//            return new $fullClass($this, $configuration);
-//        }
-//        catch (\Exception $e) {
-//            throw new CswException('request', CswException::OperationNotSupported);
-//        }
-//    }
-//
-//    /**
-//     * Creates an operation
-//     * @return \Plugins\WhereGroup\CatalogueServiceBundle\Component\AOperation
-//     */
-//    public function createOperation()
-//    {
-//        $handler = null;
-//        $request = $this->requestStack->getCurrentRequest();
-//
-//        if ($request->getMethod() === 'GET') {
-//            $handler = GetParameterHandler::create($this);
-//        }
-//
-//        if ($request->getMethod() === 'POST') {
+
+    /**
+     * Creates an operation for a given operation name
+     *
+     * @param string $operationName
+     * @param CswEntity $entity
+     * @return DescribeRecord|GetCapabilities|GetRecordById|GetRecords
+     * @throws CswException
+     */
+    public function operationForName($operationName, CswEntity $entity, $source, $slug)
+    {
+        switch ($operationName) {
+            case 'GetCapabilities':
+                $req = $this->requestStack->getCurrentRequest();
+                $urlBasic = $this->router->generate('csw_default', array('source' => $source, 'slug' => $slug),
+                    UrlGeneratorInterface::ABSOLUTE_URL);
+                $urlManager = $this->router->generate('csw_manager', array('source' => $source, 'slug' => $slug),
+                    UrlGeneratorInterface::ABSOLUTE_URL);
+                return new GetCapabilities($entity, $urlBasic, $urlManager);
+            case 'DescribeRecord':
+                return new DescribeRecord($entity);
+            case 'GetRecordById':
+                return new GetRecordById($entity);
+            case 'GetRecords':
+                return new GetRecords($entity);
+            default:
+                throw new CswException('request', CswException::OperationNotSupported);
+        }
+    }
+
+    /**
+     * Creates an operation
+     * @return \Plugins\WhereGroup\CatalogueServiceBundle\Component\AOperation
+     */
+    public function getOperation(CswEntity $entity, $source, $slug)
+    {
+        $handler = null;
+        $request = $this->requestStack->getCurrentRequest();
+
+        if ($request->getMethod() === 'GET') {
+            $handler = new GetParameterHandler();
+            $operationName = $handler->getParameter(
+                $this->requestStack->getCurrentRequest()->query->all(),
+                'request'
+            );
+            $operation = $handler->initOperation(
+                $this->operationForName($operationName, $entity, $source, $slug),
+                $this->requestStack->getCurrentRequest()->query->all()
+            );
+
+            return $operation;
+        } elseif ($request->getMethod() === 'POST') {
 //            $handler = PostSaxParameterHandler::create($this); #$request->getContent());
-//        }
-//
+        }
+
 //        return $handler->getOperation();
-//    }
+    }
 ////
 ////    /**
 ////     * @param $id

@@ -117,17 +117,13 @@ class CswType extends AbstractType
         ;
         
         $callBackTransformer = new CallbackTransformer(
-            // transform the array to a string
             function ($textAsArray) {
-                if (isset($textAsArray)) {
-                    return implode(', ', $textAsArray);
-                }
+                // transform the array to a string
+                return isset($textAsArray) ? implode(', ', $textAsArray) : '';
             },
-            function ($textAsArray) {
+            function ($textAsString) {
                 // transform the string back to an array
-                if (isset($textAsArray)) {
-                    return preg_split('/\s?,\s?/', trim($textAsArray)) ;
-                }
+                return isset($textAsString) ? preg_split('/\s?,\s?/', trim($textAsString)) : array();
             }
         );
         $builder->get('keywords')->addModelTransformer($callBackTransformer);

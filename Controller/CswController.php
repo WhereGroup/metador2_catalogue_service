@@ -10,13 +10,14 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 use Plugins\WhereGroup\CatalogueServiceBundle\Component\CswException;
 use Plugins\WhereGroup\CatalogueServiceBundle\Component\ContentSet;
+use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 /**
  * Class CSWController
  * @package Plugins\WhereGroup\CatalogueServiceBundle\Controller
  * @Route("/csw/")
  */
-class CSWController extends Controller
+class CswController extends Controller
 {
 
     /**
@@ -29,12 +30,20 @@ class CSWController extends Controller
     {
         try {
             $csw = $this->get('metador_catalogue_service');
-            $operation = $csw->createOperation();
 
-            $xml = $operation->createResult();
+            $entity = $csw->findBySlug($slug);
+
+//            $urlBasic = $this->generateUrl('csw_default', array('source' => $source, 'slug' => $slug),
+//                UrlGeneratorInterface::ABSOLUTE_URL);
+//            $urlManager = $this->generateUrl('csw_manager', array('source' => $source, 'slug' => $slug),
+//                UrlGeneratorInterface::ABSOLUTE_URL);
+
+            $operation = $csw->getOperation($entity, $source, $slug);
+            $xml = $operation->createResult($this->get('templating'));
             $response = new Response();
             $response->headers->set('Content-Type', 'text/xml');
             $response->setContent($xml);
+
             return $response;
         } catch (CswException $ex) {
             $content = $this->get('templating')->render(
@@ -43,8 +52,8 @@ class CSWController extends Controller
                     'exception' => array(
                         'code' => $ex->getCswCode(),
                         'locator' => $ex->getLocator(),
-                        'text' => $ex->getText()
-                    )
+                        'text' => $ex->getText(),
+                    ),
                 )
             );
 
@@ -56,13 +65,27 @@ class CSWController extends Controller
                     'exception' => array(
                         'code' => $ex->getCode(),
                         'locator' => null,
-                        'text' => array($ex->getMessage())
-                    )
+                        'text' => array($ex->getMessage()),
+                    ),
                 )
             );
+
             return new Response($content, Response::HTTP_OK, array('content-type' => 'application/xml'));
         }
+
         return $response;
+    }
+
+
+    /**
+     * @param $source
+     * @param $slug
+     * @Route("{source}/{slug}/", name="csw_manager")
+     * @Method({"GET", "POST"})
+     */
+    public function managerAction($source, $slug)
+    {
+
     }
 //
 //    /**
@@ -98,6 +121,7 @@ class CSWController extends Controller
             $response = new Response();
             $response->headers->set('Content-Type', 'text/xml');
             $response->setContent($xml);
+
             return $response;
         } catch (CswException $ex) {
             $content = $this->get('templating')->render(
@@ -106,8 +130,8 @@ class CSWController extends Controller
                     'exception' => array(
                         'code' => $ex->getCswCode(),
                         'locator' => $ex->getLocator(),
-                        'text' => $ex->getText()
-                    )
+                        'text' => $ex->getText(),
+                    ),
                 )
             );
 
@@ -119,12 +143,14 @@ class CSWController extends Controller
                     'exception' => array(
                         'code' => $ex->getCode(),
                         'locator' => null,
-                        'text' => array($ex->getMessage())
-                    )
+                        'text' => array($ex->getMessage()),
+                    ),
                 )
             );
+
             return new Response($content, Response::HTTP_OK, array('content-type' => 'application/xml'));
         }
+
         return $response;
     }
 
@@ -156,8 +182,8 @@ class CSWController extends Controller
                     'exception' => array(
                         'code' => $ex->getCswCode(),
                         'locator' => $ex->getLocator(),
-                        'text' => $ex->getText()
-                    )
+                        'text' => $ex->getText(),
+                    ),
                 )
             );
 
@@ -169,22 +195,14 @@ class CSWController extends Controller
                     'exception' => array(
                         'code' => $ex->getCode(),
                         'locator' => null,
-                        'text' => array($ex->getMessage())
-                    )
+                        'text' => array($ex->getMessage()),
+                    ),
                 )
             );
+
             return new Response($content, Response::HTTP_OK, array('content-type' => 'application/xml'));
         }
-        return $response;
-    }
 
-    /**
-     * @return StreamedResponse
-     * @Route("secured", name="csw_entry_point_secured")
-     * @Method({"GET", "POST"})
-     */
-    public function harvestAction()
-    {
-        return $this->serviceAction();
+        return $response;
     }
 }

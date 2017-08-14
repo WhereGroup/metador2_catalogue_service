@@ -2,6 +2,8 @@
 
 namespace Plugins\WhereGroup\CatalogueServiceBundle\Component;
 
+use Plugins\WhereGroup\CatalogueServiceBundle\Entity\Csw as CswEntity;
+
 /**
  * The class GetCapabilities is a representation of the OGC CSW GetCapabilities operation.
  *
@@ -9,33 +11,34 @@ namespace Plugins\WhereGroup\CatalogueServiceBundle\Component;
  */
 final class GetCapabilities extends AOperation
 {
+    const SECTIONS = array('ServiceIdentification', 'ServiceProvider', 'OperationsMetadata', 'Filter_Capabilities');
     /**
      * {@inheritdoc}
      */
     protected static $parameterMap = array(
-        'version'       => null,
-        'service'       => '/' . Csw::CSW_PREFIX . ':GetCapabilities/@service',
-        'acceptVersion' => '/' . Csw::CSW_PREFIX . ':GetCapabilities/ows:AcceptVersions/ows:Version/text()',
-        'section'       => '/' . Csw::CSW_PREFIX . ':GetCapabilities/ows:Sections/ows:Section/text()',
-        'outputFormat'  => '/' . Csw::CSW_PREFIX . ':GetCapabilities/ows:AcceptFormats/ows:OutputFormat/text()',
+        'version' => null,
+        'service' => '/csw:GetCapabilities/@service',
+        'acceptVersion' => '/csw:GetCapabilities/ows:AcceptVersions/ows:Version/text()',
+        'section' => '/csw:GetCapabilities/ows:Sections/ows:Section/text()',
+        'outputFormat' => '/csw:GetCapabilities/ows:AcceptFormats/ows:OutputFormat/text()',
     );
 
-    /**
-     * {@inheritdoc}
-     */
-    protected $name = 'GetCapabilities';
+//    /**
+//     * {@inheritdoc}
+//     */
+//    protected $name = 'GetCapabilities';
 
-    /**
-     * The list with all supported capabilities sections
-     * @var array $sectionList
-     */
-    protected $sectionList;
-
-    /**
-     * The list with all supported capabilities operations
-     * @var array $sectionList
-     */
-    protected $operations;
+//    /**
+//     * The list with all supported capabilities sections
+//     * @var array $sectionList
+//     */
+//    protected $sectionList;
+//
+//    /**
+//     * The list with all supported capabilities operations
+//     * @var array $sectionList
+//     */
+//    protected $operations;
 
     /* Request parameters */
 
@@ -51,30 +54,38 @@ final class GetCapabilities extends AOperation
      */
     protected $section;
 
+    protected $urlBasic;
+
+    protected $urlTransaction;
+
     /**
      * {@inheritdoc}
      */
-    public function __construct(Csw $csw, $configuration)
+    public function __construct(CswEntity $entity, $urlBasic, $urlTransaction)
     {
-        parent::__construct($csw, $configuration);
-        $this->sectionList = $this->csw->getSections();
-        $this->operations  = array();
-        $operations        = $this->csw->getOperations();
-
-        foreach ($operations as $name => $value) {
-            if ($name !== $this->name) {
-                $class                   = $value['class'];
-                $this->operations[$name] = new $class($this->csw, $value);
-            } else {
-                $this->operations[$name] = $this;
-            }
-        }
-        $this->sectionList = array();
-        $sectionList       = $this->csw->getSections();
-        foreach ($sectionList as $name => $value) {
-            $class                    = $value['class'];
-            $this->sectionList[$name] = new $class($value);
-        }
+        parent::__construct($entity);
+        $this->urlBasic = $urlBasic;
+        $this->urlTransaction = $urlTransaction;
+        $this->template = 'CatalogueServiceBundle:CSW:getcapabilities_response.xml.twig';
+        $this->section = array();
+//        $this->sectionList = $this->csw->getSections();
+//        $this->operations  = array();
+//        $operations        = $this->csw->getOperations();
+//
+//        foreach ($operations as $name => $value) {
+//            if ($name !== $this->name) {
+//                $class                   = $value['class'];
+//                $this->operations[$name] = new $class($this->csw, $value);
+//            } else {
+//                $this->operations[$name] = $this;
+//            }
+//        }
+//        $this->sectionList = array();
+//        $sectionList       = $this->csw->getSections();
+//        foreach ($sectionList as $name => $value) {
+//            $class                    = $value['class'];
+//            $this->sectionList[$name] = new $class($value);
+//        }
     }
 
     /**
@@ -82,11 +93,51 @@ final class GetCapabilities extends AOperation
      */
     public function __destruct()
     {
-        unset(
-            $this->sectionList, $this->operations, $this->acceptVersion, $this->section
-        );
-        parent::__destruct();
+//        unset(
+//            $this->sectionList, $this->operations, $this->acceptVersion, $this->section
+//        );
+//        parent::__destruct();
     }
+
+    /**
+     * @return mixed
+     */
+    public function getUrlBasic()
+    {
+        return $this->urlBasic;
+    }
+
+    /**
+     * @param mixed $urlBasic
+     * @return GetCapabilities
+     */
+    public function setUrlBasic($urlBasic)
+    {
+        $this->urlBasic = $urlBasic;
+
+        return $this;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getUrlTransaction()
+    {
+        return $this->urlTransaction;
+    }
+
+    /**
+     * @param mixed $urlTransaction
+     * @return GetCapabilities
+     */
+    public function setUrlTransaction($urlTransaction)
+    {
+        $this->urlTransaction = $urlTransaction;
+
+        return $this;
+    }
+
+
 
     /**
      * {@inheritdoc}
@@ -101,32 +152,33 @@ final class GetCapabilities extends AOperation
      */
     public static function getPOSTParameterMap()
     {
-        $parameters       = array();
+        $parameters = array();
         foreach (self::$parameterMap as $key => $value) {
             if ($value !== null) {
                 $parameters[$value] = $key;
             }
         }
+
         return $parameters;
     }
-
-    /**
-     * Returns the sectionList.
-     * @return array sectionList
-     */
-    public function getSectionList()
-    {
-        return $this->sectionList;
-    }
-
-    /**
-     * Returns the operations
-     * @return array operations
-     */
-    public function getOperations()
-    {
-        return $this->operations;
-    }
+//
+//    /**
+//     * Returns the sectionList.
+//     * @return array sectionList
+//     */
+//    public function getSectionList()
+//    {
+//        return $this->sectionList;
+//    }
+//
+//    /**
+//     * Returns the operations
+//     * @return array operations
+//     */
+//    public function getOperations()
+//    {
+//        return $this->operations;
+//    }
 
     /**
      * Returns the acceptVersion
@@ -135,6 +187,15 @@ final class GetCapabilities extends AOperation
     public function getAcceptVersion()
     {
         return $this->acceptVersion;
+    }
+
+    public function setAcceptVersion($value)
+    {
+        if ($value && is_string($value)) { # GET request
+            $this->acceptVersion = self::parseCsl($value);
+        } elseif ($value && is_array($value)) { # POST request
+            $this->acceptVersion = $value;
+        }
     }
 
     /**
@@ -147,54 +208,75 @@ final class GetCapabilities extends AOperation
     }
 
     /**
-     * Returns all supported sections with needed parameters for a GetCapabilities document.
-     * @return array
+     * @param mixed $section
      */
-    public function getSections()
+    public function setSection($section)
     {
-        if (!$this->section) {
-            return $this->sectionList;
-        } else {
-            $sections = array();
-            foreach ($this->sectionList as $key => $value) {
-                if (in_array($key, $this->section)) {
-                    $sections[$key] = $value;
+        $sectionArr = array();
+        if ($section && is_string($section)) { # GET request
+            $sectionArr = self::parseCsl($section);
+        } elseif ($section && is_array($section)) { # POST request or parsed GET
+            $sectionArr = $section;
+        }
+        if (count($sectionArr) > 0) {
+            foreach ($sectionArr as $item) {
+                if (!in_array($item, self::SECTIONS)) {
+                    $this->addCswException('section', CswException::InvalidParameterValue);
                 }
             }
-            return $sections;
+            $this->section = $sectionArr;
         }
     }
-
-    /**
-     * Sets the sectionList
-     * @param array $sectionList
-     * @return \Plugins\WhereGroup\CatalogueServiceBundle\Component\GetCapabilities
-     */
-    public function setSectionList($sectionList)
-    {
-        $this->sectionList = $sectionList;
-        return $this;
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function getParameters()
-    {
-        return array(
-            'sections' => array_keys($this->sectionList),
-        );
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function getConstraints()
-    {
-        return array(
-            'PostEncoding' => $this->postEncodingList
-        );
-    }
+//
+//    /**
+//     * Returns all supported sections with needed parameters for a GetCapabilities document.
+//     * @return array
+//     */
+//    public function getSections()
+//    {
+//        if (!$this->section) {
+//            return $this->sectionList;
+//        } else {
+//            $sections = array();
+//            foreach ($this->sectionList as $key => $value) {
+//                if (in_array($key, $this->section)) {
+//                    $sections[$key] = $value;
+//                }
+//            }
+//            return $sections;
+//        }
+//    }
+//
+//    /**
+//     * Sets the sectionList
+//     * @param array $sectionList
+//     * @return \Plugins\WhereGroup\CatalogueServiceBundle\Component\GetCapabilities
+//     */
+//    public function setSectionList($sectionList)
+//    {
+//        $this->sectionList = $sectionList;
+//        return $this;
+//    }
+//
+//    /**
+//     * {@inheritdoc}
+//     */
+//    public function getParameters()
+//    {
+//        return array(
+//            'sections' => array_keys($this->sectionList),
+//        );
+//    }
+//
+//    /**
+//     * {@inheritdoc}
+//     */
+//    public function getConstraints()
+//    {
+//        return array(
+//            'PostEncoding' => $this->postEncodingList
+//        );
+//    }
 
     /**
      * {@inheritdoc}
@@ -203,27 +285,10 @@ final class GetCapabilities extends AOperation
     {
         switch ($name) {
             case 'acceptVersion':
-                if ($value && is_string($value)) { # GET request
-                    $this->acceptVersion = self::parseCsl($value);
-                } elseif ($value && is_array($value)) { # POST request
-                    $this->acceptVersion = $value;
-                }
+                $this->setAcceptVersion($value);
                 break;
             case 'section':
-                $section = array();
-                if ($value && is_string($value)) { # GET request
-                    $section = self::parseCsl($value);
-                } elseif ($value && is_array($value)) { # POST request or parsed GET
-                    $section = $value;
-                }
-                if (count($section) > 0) {
-                    foreach ($section as $item) {
-                        if (!isset($this->sectionList[$item])) {
-                            $this->addCswException('section', CswException::InvalidParameterValue);
-                        }
-                    }
-                    $this->section = $section;
-                }
+                $this->setSection($value);
                 break;
             default:
                 parent::setParameter($name, $value);
@@ -241,13 +306,13 @@ final class GetCapabilities extends AOperation
         parent::validateParameter();
     }
 
-    protected function render()
+    protected function render($templating)
     {
-        return $this->csw->getTemplating()->render(
-                $this->templates[$this->getOutputFormat()],
-                array(
-                'getcapabilities' => $this
-                )
+        return $templating->render(
+            $this->template,
+            array(
+                'getcap' => $this,
+            )
         );
     }
 }

@@ -2,6 +2,8 @@
 
 namespace Plugins\WhereGroup\CatalogueServiceBundle\Component;
 
+use Plugins\WhereGroup\CatalogueServiceBundle\Entity\Csw as CswEntity;
+
 /**
  * Description of Operation
  *
@@ -9,59 +11,91 @@ namespace Plugins\WhereGroup\CatalogueServiceBundle\Component;
  */
 abstract class AOperation
 {
+    public static $ALLOW_GET = true;
+
+    public static $ALLOW_POST = true;
+
+    /**
+     * The element prefix for csw namespace
+     */
+    const PREFIX = 'csw';
+
+    /**
+     * The uri for csw namespace
+     */
+    const NSPACE = 'http://www.opengis.net/cat/csw/2.0.2';
+
+    /**
+     * The service name
+     */
+    const SERVICE = 'CSW';
+
+    /**
+     * The version
+     */
+    const VERSION = '2.0.2';
+
+    const OUTPUT_FORMAT = '';
+//
+//    /**
+//     * The supported versions
+//     * @var $array $VERSIONLIST
+//     */
+//    static $VERSIONLIST     = array('2.0.2');
+
     /**
      * The list of key values pair to find parameters at request.
      * @var array $parameterMap
      */
     protected static $parameterMap = array();
-
-    /**
-     * The operation's name
-     * @var string $name
-     */
-    protected $name;
-
-    /**
-     * The csw instance
-     * @var \Plugins\WhereGroup\CatalogueServiceBundle\Component\Csw $csw
-     */
-    protected $csw;
+//
+//    /**
+//     * The operation's name
+//     * @var string $name
+//     */
+//    protected $name;
+////
+//    /**
+//     * The csw instance
+//     * @var \Plugins\WhereGroup\CatalogueServiceBundle\Component\Csw $csw
+//     */
+//    protected $csw;
 
     /**
      * List with exceptions
      * @var array $exceptions
      */
     protected $exceptions;
-
-    /**
-     * The url to request the operation via http GET
-     * @var string $httpGet
-     */
-    protected $httpGet;
-
-    /**
-     * The url to request the operation via http POST
-     * @var string $httpPost
-     */
-    protected $httpPost;
-
-    /**
-     * List with supported response formats
-     * @var array $outputFormatList
-     */
-    protected $outputFormatList;
-
-    /**
-     * The list with all supported POST encodings.
-     * @var array $postEncodingList
-     */
-    protected $postEncodingList = array('XML');
-
-    /**
-     * The POST encoding for operation's request
-     * @var string $postEncoding
-     */
-    protected $postEncoding;
+//
+//    /**
+//     * The url to request the operation via http GET
+//     * @var string $httpGet
+//     */
+//    protected $httpGet;
+//
+//    /**
+//     * The url to request the operation via http POST
+//     * @var string $httpPost
+//     */
+//    protected $httpPost;
+//
+//    /**
+//     * List with supported response formats
+//     * @var array $outputFormatList
+//     */
+//    protected $outputFormatList;
+//
+//    /**
+//     * The list with all supported POST encodings.
+//     * @var array $postEncodingList
+//     */
+//    protected $postEncodingList = array('XML');
+//
+//    /**
+//     * The POST encoding for operation's request
+//     * @var string $postEncoding
+//     */
+//    protected $postEncoding;
 
     /* request parameters */
 
@@ -84,29 +118,32 @@ abstract class AOperation
     protected $outputFormat;
 
     /**
-     * Templates to response an operation results.
-     * @var array $templates
+     * Template to response an operation result.
+     * @var string $template
      */
-    protected $templates;
+    protected $template;
+
+    protected $entity;
 
     /**
      * Creates an instance.
      * @param \Plugins\WhereGroup\CatalogueServiceBundle\Component\Csw $csw
      * @param array $configuration configuration
      */
-    public function __construct(Csw $csw, $configuration)
+    public function __construct(CswEntity $entity)
     {
-        $this->csw              = $csw;
-        $this->httpGet          = $configuration['http']['get'] ? $this->csw->getHttpGet() : null;
-        $this->httpPost         = $configuration['http']['post'] ? $this->csw->getHttpPost() : null;
-        $this->outputFormatList = array_keys($configuration['outputFormatList']);
-        $this->outputFormat     = $this->outputFormatList[0]; # !!! IMPORTANT
-        $this->exceptions       = array();
-        $this->templates        = $configuration['outputFormatList'];
+        $this->entity = $entity;
+//        $this->csw = $csw;
+//        $this->httpGet = $configuration['http']['get'] ? $this->csw->getHttpGet() : null;
+//        $this->httpPost = $configuration['http']['post'] ? $this->csw->getHttpPost() : null;
+//        $this->outputFormatList = array_keys($configuration['outputFormatList']);
+//        $this->outputFormat = $this->outputFormatList[0]; # !!! IMPORTANT
+//        $this->exceptions = array();
+//        $this->templates = $configuration['outputFormatList'];
+//
+//        $this->postEncoding = $this->postEncodingList[0]; # !!! IMPORTANT
 
-        $this->postEncoding = $this->postEncodingList[0]; # !!! IMPORTANT
-
-        $this->version = Csw::VERSION;
+        $this->version = self::VERSION;
     }
 
     /**
@@ -116,9 +153,9 @@ abstract class AOperation
      */
     public function __destruct()
     {
-        unset(
-            $this->csw, $this->httpGet, $this->httpPost, $this->outputFormatList, $this->outputFormat, $this->exceptions
-        );
+//        unset(
+//            $this->csw, $this->httpGet, $this->httpPost, $this->outputFormatList, $this->outputFormat, $this->exceptions
+//        );
     }
 
     /**
@@ -137,28 +174,28 @@ abstract class AOperation
      * Returns an opreation's name
      * @return string name
      */
-    public function getName()
+    public function getEntity()
     {
-        return $this->name;
+        return $this->entity;
     }
-
-    /**
-     * Returns an url to request the operation via http GET.
-     * @return string url
-     */
-    public function getHttpGet()
-    {
-        return $this->httpGet;
-    }
-
-    /**
-     * Returns an url to request the operation via http POST.
-     * @return string url
-     */
-    public function getHttpPost()
-    {
-        return $this->httpPost;
-    }
+//
+//    /**
+//     * Returns an url to request the operation via http GET.
+//     * @return string url
+//     */
+//    public function getHttpGet()
+//    {
+//        return $this->httpGet;
+//    }
+//
+//    /**
+//     * Returns an url to request the operation via http POST.
+//     * @return string url
+//     */
+//    public function getHttpPost()
+//    {
+//        return $this->httpPost;
+//    }
 
     /**
      * Returns a service name (CSW).
@@ -178,62 +215,11 @@ abstract class AOperation
         return $this->version;
     }
 
-    /**
-     * Returns a list with supported output format/s.
-     * @return string url
-     */
-    public function getOutputFormatList()
+    public function setVersion($version)
     {
-        return $this->outputFormatList;
-    }
-
-    /**
-     * Returns a list with requested output format/s.
-     * @return string url
-     */
-    public function getOutputFormat()
-    {
-        return $this->outputFormat;
-    }
-
-    /**
-     * Returns a list with all supported post encodings.
-     * @return array supported post encodings
-     */
-    public function getPostEncodingList()
-    {
-        return $this->postEncodingList;
-    }
-
-    /**
-     * Returns the requested post encoding.
-     * @return string post encoding
-     */
-    public function getPostEncoding()
-    {
-        return $this->postEncoding;
-    }
-
-    /**
-     * Set an url to request the operation via http GET.
-     * @param string $httpGet
-     * @return \Plugins\WhereGroup\CatalogueServiceBundle\Component\AOperation
-     */
-    public function setHttpGet($httpGet)
-    {
-        $this->httpGet = $httpGet;
-        return $this;
-    }
-
-    /**
-     * Sets an url to request the operation via http GET.
-     * @param string $httpPost
-     * @return \Plugins\WhereGroup\CatalogueServiceBundle\Component\AOperation
-     */
-    public function setHttpPost($httpPost)
-    {
-        $this->httpPost = $httpPost;
-        return $this;
+        if ($version === self::VERSION) {
+            $this->version = $version;
+        }
     }
 
     /**
@@ -243,25 +229,32 @@ abstract class AOperation
      */
     public function setService($service)
     {
-        if ($service === Csw::SERVICE) {
+        if ($service === self::SERVICE) {
             $this->service = $service;
         } elseif ($service === null || $service === '') {
             $this->addCswException('service', CswException::InvalidParameterValue);
         } else {
             $this->addCswException('service', CswException::MissingParameterValue);
         }
+
         return $this;
     }
 
     /**
-     * Sets the list with supported output format for this operation.
-     * @param array $outputFormatList
-     * @return \Plugins\WhereGroup\CatalogueServiceBundle\Component\AOperation
+     * @param array $outputFormat
      */
-    public function setOutputFormatList($outputFormatList)
+    public function setOutputFormat($value)
     {
-        $this->outputFormatList = $outputFormatList;
-        return $this;
+        if ($value && is_string($value)) { # GET request
+            $outputFormat = self::parseCsl($value);
+            if ($this->outputFormat !== $outputFormat) {
+                $this->addCswException('outputFormat', CswException::InvalidParameterValue);
+            } else {
+                $this->outputFormat = $outputFormat;
+            }
+        } elseif ($value && !in_array($this->outputFormat, $value)) {
+            $this->addCswException('outputFormat', CswException::InvalidParameterValue);
+        }
     }
 
     /**
@@ -284,50 +277,6 @@ abstract class AOperation
     }
 
     /**
-     * Sets supported post encoding's list
-     * @param array $postEncodingList
-     * @return \Plugins\WhereGroup\CatalogueServiceBundle\Component\AOperation
-     */
-    public function setPostEncodingList($postEncodingList)
-    {
-        $this->postEncodingList = $postEncodingList;
-        return $this;
-    }
-
-    /**
-     * Sets the post encoding for the operation's request.
-     * @param string $postEncoding
-     * @return \Plugins\WhereGroup\CatalogueServiceBundle\Component\AOperation
-     */
-    public function setPostEncoding($postEncoding)
-    {
-        if ($postEncoding && !in_array($postEncoding, $this->postEncodingList)) {
-            $this->addCswException('PostEncoding', CswException::InvalidParameterValue);
-        } elseif ($postEncoding) {
-            $this->postEncoding = $postEncoding;
-        }
-        return $this;
-    }
-
-    /**
-     * Returns a parameter list for OperationsMetadata in GetCapabilities.
-     * @return array
-     */
-    public function getParameters()
-    {
-        return array();
-    }
-
-    /**
-     * Returns a constraint list for OperationsMetadata in GetCapabilities.
-     * @return array
-     */
-    public function getConstraints()
-    {
-        return array();
-    }
-
-    /**
      * Checks und sets a request parameter.
      * @param string $name parameter name
      * @param mixed $value parameter value
@@ -337,32 +286,18 @@ abstract class AOperation
     {
         switch ($name) {
             case 'version':
-                if ($value && in_array($value, Csw::$VERSIONLIST)) {
-                    $this->version = $value;
-                } else {
-                    $this->version = Csw::VERSION;
-                }
+                $this->setVersion($value);
                 break;
             case 'service':
                 $this->setService($value);
                 break;
             case 'outputFormat':
-                if ($value && is_string($value)) { # GET request
-                    $outputFormat = self::parseCsl($value);
-                    if (!in_array($this->outputFormat, $outputFormat)) {
-                        $this->addCswException('outputFormat', CswException::InvalidParameterValue);
-                    }
-                } elseif ($value && !in_array($this->outputFormat, $value)) {
-                    $this->addCswException('outputFormat', CswException::InvalidParameterValue);
-                }
-                break;
-            case 'PostEncoding':
-                $this->setPostEncoding($value);
+                $this->setOutputFormat($value);
                 break;
             case 'request':
                 break;
             default:
-                throw new \Exception('!!!!!not defined parameter:' . $name);
+                throw new \Exception('!!!!!not defined parameter:'.$name);
         }
     }
 
@@ -373,7 +308,7 @@ abstract class AOperation
      */
     protected function validateParameter()
     {
-        if (!in_array($this->version, Csw::$VERSIONLIST)) {
+        if ($this->version !== self::VERSION) {
             $this->addCswException('version', CswException::InvalidParameterValue);
         }
         if (count($this->exceptions) === 0) {
@@ -409,9 +344,9 @@ abstract class AOperation
      * @param \Plugins\WhereGroup\CatalogueServiceBundle\Component\AParameterHandler $handler
      * @return string response
      */
-    public function createResult()
+    public function createResult($templating)
     {
-        return $this->render();
+        return $this->render($templating);
     }
 
     /**
@@ -438,6 +373,7 @@ abstract class AOperation
                 return true;
             }
         }
+
         return false;
     }
 
@@ -447,10 +383,11 @@ abstract class AOperation
         foreach ($list as $item) {
             if ($result === null) {
                 $result = $this->isStringAtList($item, $item, $values, $mandatory);
-            } elseif(!$this->isStringAtList($item, $item, $values, $mandatory)) {
+            } elseif (!$this->isStringAtList($item, $item, $values, $mandatory)) {
                 $result = false;
             }
         }
+
         return $result !== null && $result !== false;
     }
 
@@ -461,9 +398,11 @@ abstract class AOperation
             return true;
         } elseif ($validString && !in_array($value, $values)) {
             $this->addCswException($name, CswException::InvalidParameterValue);
+
             return false;
         } elseif ($mandatory && (!$validString || !in_array($value, $values))) {
             $this->addCswException($name, CswException::InvalidParameterValue);
+
             return false;
         } else {
             return false;
@@ -487,6 +426,7 @@ abstract class AOperation
             return intval(trim($intToTest));
         } else {
             $this->addCswException($name, CswException::InvalidParameterValue);
+
             return null;
         }
     }
@@ -498,6 +438,7 @@ abstract class AOperation
                 return $int;
             } else {
                 $this->addCswException($name, CswException::InvalidParameterValue);
+
                 return null;
             }
         } else {
@@ -518,6 +459,7 @@ abstract class AOperation
             return $numberToTest;
         } else {
             $this->addCswException($name, CswException::InvalidParameterValue);
+
             return null;
         }
     }
@@ -526,5 +468,5 @@ abstract class AOperation
      * Renders a operation's result and returns as string
      * @return string the operation's result
      */
-    abstract protected function render();
+    abstract protected function render($templating);
 }

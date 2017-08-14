@@ -158,38 +158,6 @@ class Csw
     protected $doDelete = false;
 
     /**
-     * Creates a Csw instance from properties.
-     * @param array $serialized csw properties
-     * @return Csw
-     */
-    public static function fromArray(array $serialized)
-    {
-        $csw = new Csw();
-        $csw->slug = isset($serialized['slug']) ? $serialized['slug'] : null;
-        $csw->source = isset($serialized['source']) ? $serialized['source'] : null;
-        $csw->title = isset($serialized['title']) ? $serialized['title'] : null;
-        $csw->abstract = isset($serialized['abstract']) ? $serialized['abstract'] : null;
-        $csw->keywords = isset($serialized['keywords']) ? $serialized['keywords'] : null;
-        $csw->fees = isset($serialized['fees']) ? $serialized['fees'] : null;
-        $csw->accessConstraints = isset($serialized['accessConstraints']) ? $serialized['accessConstraints'] : null;
-        $csw->providerName = isset($serialized['providerName']) ? $serialized['providerName'] : null;
-        $csw->providerSite = isset($serialized['providerSite']) ? $serialized['providerSite'] : null;
-        $csw->individualName = isset($serialized['individualName']) ? $serialized['individualName'] : null;
-        $csw->positionName = isset($serialized['positionName']) ? $serialized['positionName'] : null;
-        $csw->phoneVoice = isset($serialized['phoneVoice']) ? $serialized['phoneVoice'] : null;
-        $csw->phoneFacsimile = isset($serialized['phoneFacsimile']) ? $serialized['phoneFacsimile'] : null;
-        $csw->deliveryPoint = isset($serialized['deliveryPoint']) ? $serialized['deliveryPoint'] : null;
-        $csw->city = isset($serialized['city']) ? $serialized['city'] : null;
-        $csw->administrativeArea = isset($serialized['administrativeArea']) ? $serialized['administrativeArea'] : null;
-        $csw->postalCode = isset($serialized['postalCode']) ? $serialized['postalCode'] : null;
-        $csw->country = isset($serialized['country']) ? $serialized['country'] : null;
-        $csw->electronicMailAddress = isset($serialized['electronicMailAddress']) ? $serialized['electronicMailAddress'] : null;
-        $csw->onlineResourse = isset($serialized['onlineResourse']) ? $serialized['onlineResourse'] : null;
-
-        return $csw;
-    }
-
-    /**
      * Set slug
      *
      * @param string $slug
@@ -739,5 +707,37 @@ class Csw
     public function getDoDelete()
     {
         return $this->doDelete;
+    }
+
+    /**
+     * Creates a Csw instance from properties.
+     * @param array $serialized csw properties
+     * @return Csw
+     */
+    public static function fromArray(array $serialized)
+    {
+        $csw = new Csw();
+        $csw->slug = isset($serialized['slug']) ? $serialized['slug'] : null;
+        $csw->source = isset($serialized['source']) ? $serialized['source'] : null;
+        $csw->title = isset($serialized['title']) ? $serialized['title'] : null;
+        $csw->abstract = isset($serialized['abstract']) ? $serialized['abstract'] : null;
+        $csw->keywords = isset($serialized['keywords']) ? $serialized['keywords'] : null;
+        $csw->fees = isset($serialized['fees']) ? $serialized['fees'] : null;
+        $csw->accessConstraints = isset($serialized['accessConstraints']) ? $serialized['accessConstraints'] : null;
+        $csw->providerName = isset($serialized['providerName']) ? $serialized['providerName'] : null;
+        $csw->providerSite = isset($serialized['providerSite']) ? $serialized['providerSite'] : null;
+        $csw->individualName = isset($serialized['individualName']) ? $serialized['individualName'] : null;
+        $csw->positionName = isset($serialized['positionName']) ? $serialized['positionName'] : null;
+        $csw->phoneVoice = isset($serialized['phoneVoice']) ? $serialized['phoneVoice'] : null;
+        $csw->phoneFacsimile = isset($serialized['phoneFacsimile']) ? $serialized['phoneFacsimile'] : null;
+        $csw->deliveryPoint = isset($serialized['deliveryPoint']) ? $serialized['deliveryPoint'] : null;
+        $csw->city = isset($serialized['city']) ? $serialized['city'] : null;
+        $csw->administrativeArea = isset($serialized['administrativeArea']) ? $serialized['administrativeArea'] : null;
+        $csw->postalCode = isset($serialized['postalCode']) ? $serialized['postalCode'] : null;
+        $csw->country = isset($serialized['country']) ? $serialized['country'] : null;
+        $csw->electronicMailAddress = isset($serialized['electronicMailAddress']) ? $serialized['electronicMailAddress'] : null;
+        $csw->onlineResourse = isset($serialized['onlineResourse']) ? $serialized['onlineResourse'] : null;
+
+        return $csw;
     }
 }
