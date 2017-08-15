@@ -712,33 +712,31 @@ class Csw
 
     /**
      * Creates a Csw instance from properties.
-     * @param array $serialized csw properties
-     * @return Csw
+     * @param array $kv csw properties
+     * @return $this
      */
-    public static function fromArray(array $serialized)
+    public function fromArray(array $kv)
     {
-        $csw = new Csw();
-        $csw->slug = isset($serialized['slug']) ? $serialized['slug'] : null;
-        $csw->source = isset($serialized['source']) ? $serialized['source'] : null;
-        $csw->title = isset($serialized['title']) ? $serialized['title'] : null;
-        $csw->abstract = isset($serialized['abstract']) ? $serialized['abstract'] : null;
-        $csw->keywords = isset($serialized['keywords']) ? $serialized['keywords'] : null;
-        $csw->fees = isset($serialized['fees']) ? $serialized['fees'] : null;
-        $csw->accessConstraints = isset($serialized['accessConstraints']) ? $serialized['accessConstraints'] : null;
-        $csw->providerName = isset($serialized['providerName']) ? $serialized['providerName'] : null;
-        $csw->providerSite = isset($serialized['providerSite']) ? $serialized['providerSite'] : null;
-        $csw->individualName = isset($serialized['individualName']) ? $serialized['individualName'] : null;
-        $csw->positionName = isset($serialized['positionName']) ? $serialized['positionName'] : null;
-        $csw->phoneVoice = isset($serialized['phoneVoice']) ? $serialized['phoneVoice'] : null;
-        $csw->phoneFacsimile = isset($serialized['phoneFacsimile']) ? $serialized['phoneFacsimile'] : null;
-        $csw->deliveryPoint = isset($serialized['deliveryPoint']) ? $serialized['deliveryPoint'] : null;
-        $csw->city = isset($serialized['city']) ? $serialized['city'] : null;
-        $csw->administrativeArea = isset($serialized['administrativeArea']) ? $serialized['administrativeArea'] : null;
-        $csw->postalCode = isset($serialized['postalCode']) ? $serialized['postalCode'] : null;
-        $csw->country = isset($serialized['country']) ? $serialized['country'] : null;
-        $csw->electronicMailAddress = isset($serialized['electronicMailAddress']) ? $serialized['electronicMailAddress'] : null;
-        $csw->onlineResourse = isset($serialized['onlineResourse']) ? $serialized['onlineResourse'] : null;
-
-        return $csw;
+        $this->slug = isset($kv['slug']) ? $kv['slug'] : null;
+        $this->source = isset($kv['source']) ? $kv['source'] : null;
+        $this->title = isset($kv['title']) ? $kv['title'] : null;
+        $this->abstract = isset($kv['abstract']) ? $kv['abstract'] : null;
+        $this->keywords = isset($kv['keywords']) ? $kv['keywords'] : null;
+        $this->fees = isset($kv['fees']) ? $kv['fees'] : null;
+        $this->accessConstraints = isset($kv['accessConstraints']) ? $kv['accessConstraints'] : null;
+        $this->providerName = isset($kv['providerName']) ? $kv['providerName'] : null;
+        $this->providerSite = isset($kv['providerSite']) ? $kv['providerSite'] : null;
+        $this->individualName = isset($kv['individualName']) ? $kv['individualName'] : null;
+        $this->positionName = isset($kv['positionName']) ? $kv['positionName'] : null;
+        $this->phoneVoice = isset($kv['phoneVoice']) ? $kv['phoneVoice'] : null;
+        $this->phoneFacsimile = isset($kv['phoneFacsimile']) ? $kv['phoneFacsimile'] : null;
+        $this->deliveryPoint = isset($kv['deliveryPoint']) ? $kv['deliveryPoint'] : null;
+        $this->city = isset($kv['city']) ? $kv['city'] : null;
+        $this->administrativeArea = isset($kv['administrativeArea']) ? $kv['administrativeArea'] : null;
+        $this->postalCode = isset($kv['postalCode']) ? $kv['postalCode'] : null;
+        $this->country = isset($kv['country']) ? $kv['country'] : null;
+        $this->electronicMailAddress = isset($kv['electronicMailAddress']) ? $kv['electronicMailAddress'] : null;
+        $this->onlineResourse = isset($kv['onlineResourse']) ? $kv['onlineResourse'] : null;
+        return $this;
     }
 }
