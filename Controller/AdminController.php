@@ -44,12 +44,12 @@ class AdminController extends Controller
     {
         $this->get('metador_core')->denyAccessUnlessGranted('ROLE_SYSTEM_SUPERUSER');
 
-        $default = $this
+        $cswDefaults = $this
             ->get('metador_configuration')
             ->getValues('plugin', 'metador_catalogue_service');
 
         $form = $this
-            ->createForm($this->get("csw_form_type"), Csw::fromArray($default))//, array('data' => $default))
+            ->createForm($this->get("csw_form_type"), Csw::fromArray($cswDefaults))//, array('data' => $cswDefaults))
             ->handleRequest($this->get('request_stack')->getCurrentRequest());
 
         if ($form->isSubmitted() && $form->isValid()) {

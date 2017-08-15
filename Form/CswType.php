@@ -4,6 +4,7 @@ namespace Plugins\WhereGroup\CatalogueServiceBundle\Form;
 
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
+use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\Extension\Core\Type\UrlType;
@@ -42,21 +43,16 @@ class CswType extends AbstractType
      */
     public function buildForm(FormBuilderInterface $builder, array $options)
     {
-
-        $sources = $this->source->all();
-        $default = $this->config->getValues('plugin', 'metador_catalogue_service');
-
-
-        $a = 0;
-
+        $sources = $this->source->allValues();
         $builder
             ->add('slug', TextType::class, array(
                 'label' => 'Slug',
-                'required' => true
+                'required' => true,
             ))
-            ->add('source', TextType::class, array(
+            ->add('source', ChoiceType::class, array(
                 'label' => 'Quelle',
                 'required' => true,
+                'choices' => $this->source->allValues()
             ))
             ->add('abstract', TextareaType::class, array(
                 'label' => 'Beschreibung',
@@ -69,12 +65,12 @@ class CswType extends AbstractType
             ->add('fees', TextType::class, array(
                 'label' => 'Gebühren',
                 'required' => false,
-                'empty_data' => 'none'
+                'empty_data' => 'none',
             ))
             ->add('accessConstraints', TextType::class, array( // csv value
                 'label' => 'Zugangsbeschränkungen',
                 'required' => false,
-                'empty_data' => 'none'
+                'empty_data' => 'none',
             ))
             ->add('providerName', TextType::class, array(
                 'label' => 'Betreiber',
@@ -139,16 +135,13 @@ class CswType extends AbstractType
             ->add('doDelete', CheckboxType::class, array(
                 'label' => 'Entfernen',
                 'required' => false,
-            ))
-        ;
+            ));
 
         $callBackTransformer = new CallbackTransformer(
-            function ($textAsArray) {
-                // transform the array to a string
+            function ($textAsArray) { // transform the array to a string
                 return isset($textAsArray) ? implode(', ', $textAsArray) : '';
             },
-            function ($textAsString) {
-                // transform the string back to an array
+            function ($textAsString) { // transform the string back to an array
                 return isset($textAsString) ? preg_split('/\s?,\s?/', trim($textAsString)) : array();
             }
         );
