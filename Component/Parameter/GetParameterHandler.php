@@ -11,35 +11,60 @@ use Plugins\WhereGroup\CatalogueServiceBundle\Component\CswException;
  *
  * @author Paul Schmidt<panadium@gmx.de>
  */
-class GetParameterHandler //implements IParameterHandler
+class GetParameterHandler
 {
+    /**
+     * @var array
+     */
+    private $requestParameters;
 
-    public function initOperation(AOperation $operation, array $requestParameters)
+    public function __construct(array $requestParameters)
+    {
+        $this->requestParameters = $requestParameters;
+    }
+
+    /**
+     * @return string
+     */
+    public function getOperationName()
+    {
+        return $this->getParameter('request');
+    }
+
+    /**
+     * @param AOperation $operation
+     * @return AOperation
+     */
+    public function initOperation(AOperation $operation)
     {
         $parameterMap = $operation->getGETParameterMap();
 
         $parameters = array();
         foreach ($parameterMap as $name) {
-            $parameters[$name] = $this->getParameter($requestParameters, $name);
+            $parameters[$name] = $this->getParameter($name);
         }
 
         $operation->setParameters($parameters);
+
         return $operation;
     }
 
 
     /**
-     * {@inheritdoc}
+     * @param $name
+     * @param bool $caseSensitive
+     * @param null $xpath
+     * @return mixed|null
      */
-    public function getParameter(array $requestParameters, $name, $caseSensitive = false, $xpath = null)
+    private function getParameter($name, $caseSensitive = false, $xpath = null)
     {
         if ($name === null) {
             return null;
         }
         if ($caseSensitive) {
-            return isset($requestParameters[$name]) ? $requestParameters[$name] : null;
+            return isset($requestParameters[$name]) ? $this->requestParameters[$name] : null;
         } else {
-            foreach ($requestParameters as $key => $value) {
+            foreach ($this->requestParameters as $key => $value) {
                 if (strtoupper($name) === strtoupper($key)) {
                     return $value;
                 }
@@ -48,41 +73,4 @@ class GetParameterHandler //implements IParameterHandler
             return null;
         }
     }
-//
-//    /**
-//     * {@inheritdoc}
-//     */
-//    public function getOperation()
-//    {
-//        if ($this->operation === null) {
-//            $this->setRequestParameters();
-//            $request = $this->getParameter('request');
-//
-//            if ($request) {
-//                $this->operation = $this->csw->operationForName($request);
-//                if (!$this->operation->getHttpGet()) {
-//                    throw new CswException('request', CswException::OperationNotSupported);
-//                }
-//                $parameterMap    = $this->operation->getGETParameterMap();
-//
-//                $parameters      = array();
-//                foreach ($parameterMap as $name) {
-//                    $parameters[$name] = $this->getParameter($name);
-//                }
-//
-//                $this->operation->setParameters($parameters);
-//            } else {
-//                throw new CswException('request', CswException::MissingParameterValue);
-//            }
-//        }
-//        return $this->operation;
-//    }
-//
-//    /**
-//     * Sets request parameters from request.
-//     */
-//    private function setRequestParameters()
-//    {
-//        $this->requestParameters = $this->csw->getRequestStack()->getCurrentRequest()->query->all();
-//    }
 }

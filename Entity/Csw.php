@@ -45,7 +45,7 @@ class Csw
 
     /**
      * @var string $keywords ServiceIdentification keywords
-     * @ORM\Column(type="array", nullable=true)
+     * @ORM\Column(type="array", nullable=false)
      */
     protected $keywords;
 
@@ -57,7 +57,7 @@ class Csw
 
     /**
      * @var string $accessConstraints ServiceIdentification accessConstraints
-     * @ORM\Column(type="array", nullable=true)
+     * @ORM\Column(type="array", nullable=false)
      */
     protected $accessConstraints;
 
@@ -157,6 +157,12 @@ class Csw
      * @ORM\Column(type="boolean", nullable=true)
      */
     protected $doDelete = false;
+
+    public function __construct()
+    {
+        $this->keywords = array();
+        $this->accessConstraints = array();
+    }
 
     /**
      * Set slug
@@ -721,9 +727,9 @@ class Csw
         $this->source = isset($kv['source']) ? $kv['source'] : null;
         $this->title = isset($kv['title']) ? $kv['title'] : null;
         $this->abstract = isset($kv['abstract']) ? $kv['abstract'] : null;
-        $this->keywords = isset($kv['keywords']) ? $kv['keywords'] : null;
+        $this->keywords = isset($kv['keywords']) ? $kv['keywords'] : array();
         $this->fees = isset($kv['fees']) ? $kv['fees'] : null;
-        $this->accessConstraints = isset($kv['accessConstraints']) ? $kv['accessConstraints'] : null;
+        $this->accessConstraints = isset($kv['accessConstraints']) ? $kv['accessConstraints'] : array();
         $this->providerName = isset($kv['providerName']) ? $kv['providerName'] : null;
         $this->providerSite = isset($kv['providerSite']) ? $kv['providerSite'] : null;
         $this->individualName = isset($kv['individualName']) ? $kv['individualName'] : null;
@@ -737,6 +743,7 @@ class Csw
         $this->country = isset($kv['country']) ? $kv['country'] : null;
         $this->electronicMailAddress = isset($kv['electronicMailAddress']) ? $kv['electronicMailAddress'] : null;
         $this->onlineResourse = isset($kv['onlineResourse']) ? $kv['onlineResourse'] : null;
+
         return $this;
     }
 }

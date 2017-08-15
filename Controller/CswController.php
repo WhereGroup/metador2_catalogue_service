@@ -10,6 +10,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 use Plugins\WhereGroup\CatalogueServiceBundle\Component\CswException;
 use Plugins\WhereGroup\CatalogueServiceBundle\Component\ContentSet;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use WhereGroup\CoreBundle\Component\Source;
 
@@ -30,22 +31,18 @@ class CswController extends Controller
     public function defaultAction($source, $slug)
     {
         try {
-            $csw = $this->get('metador_catalogue_service');
-
-            $entity = $csw->findBySlug($slug);
-
-//            $urlBasic = $this->generateUrl('csw_default', array('source' => $source, 'slug' => $slug),
-//                UrlGeneratorInterface::ABSOLUTE_URL);
-//            $urlManager = $this->generateUrl('csw_manager', array('source' => $source, 'slug' => $slug),
-//                UrlGeneratorInterface::ABSOLUTE_URL);
-
-            $operation = $csw->getOperation($entity, $source, $slug);
-            $xml = $operation->createResult($this->get('templating'));
-            $response = new Response();
-            $response->headers->set('Content-Type', 'text/xml');
-            $response->setContent($xml);
-
-            return $response;
+            $cswService = $this->get('metador_catalogue_service');
+            $entity = $cswService->findOneBySlugAndSource($slug, $source);
+            if ($entity === null) {
+                throw new \Exception('Csw mit slug:"'.$slug.'" und source:"'.$source.'" existiert nicht.');
+            }
+        } catch (\Exception $e) {
+            throw new NotFoundHttpException('Csw mit slug:"'.$slug.'" und source:"'.$source.'" existiert nicht.');
+        }
+        $content = null;
+        try {
+            $operation = $cswService->getOperation($entity);
+            $content = $operation->createResult($this->get('templating'));
         } catch (CswException $ex) {
             $content = $this->get('templating')->render(
                 "CatalogueServiceBundle:CSW:exception.xml.twig",
@@ -57,8 +54,6 @@ class CswController extends Controller
                     ),
                 )
             );
-
-            return new Response($content, Response::HTTP_OK, array('content-type' => 'application/xml'));
         } catch (\Exception $ex) {
             $content = $this->get('templating')->render(
                 "CatalogueServiceBundle:CSW:exception.xml.twig",
@@ -70,11 +65,9 @@ class CswController extends Controller
                     ),
                 )
             );
-
-            return new Response($content, Response::HTTP_OK, array('content-type' => 'application/xml'));
         }
 
-        return $response;
+        return new Response($content, Response::HTTP_OK, array('content-type' => 'application/xml'));
     }
 
 

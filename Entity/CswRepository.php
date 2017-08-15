@@ -23,6 +23,23 @@ class CswRepository extends EntityRepository
             ->getQuery()
             ->getSingleScalarResult();
     }
+
+    /**
+     * @param $slug
+     * @param $source
+     * @return mixed
+     */
+    public function findOneBySlugAndSource($slug, $source)
+    {
+        return $this
+            ->createQueryBuilder('c')
+            ->select('c')
+            ->where('c.slug = :slug AND c.source = :source')
+            ->setParameters(array('slug' => $slug, 'source' => $source))
+            ->getQuery()
+            ->getSingleResult();
+    }
+
     /**
      * @param $entity
      * @return $this

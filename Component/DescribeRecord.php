@@ -2,7 +2,6 @@
 
 namespace Plugins\WhereGroup\CatalogueServiceBundle\Component;
 
-use Plugins\WhereGroup\CatalogueServiceBundle\Entity\Csw as CswEntity;
 
 /**
  * The class DescribeRecord is a representation of the OGC CSW DescribeRecord operation.
@@ -15,10 +14,10 @@ class DescribeRecord extends AOperation
      * {@inheritdoc}
      */
     protected static $parameterMap = array(
-        'version' => '/'.self::PREFIX.':DescribeRecord/@version',
-        'service' => '/'.self::PREFIX.':DescribeRecord/@service',
-        'typeName' => '/'.self::PREFIX.':DescribeRecord/'.self::PREFIX.':TypeName/text()',
-        'outputFormat' => '/'.self::PREFIX.':DescribeRecord/@outputFormat',
+        'version' => '/csw:DescribeRecord/@version',
+        'service' => '/csw:DescribeRecord/@service',
+        'typeName' => '/csw:DescribeRecord/csw:TypeName/text()',
+        'outputFormat' => '/csw:DescribeRecord/@outputFormat',
     );
 
     /**
@@ -61,22 +60,11 @@ class DescribeRecord extends AOperation
     /**
      * {@inheritdoc}
      */
-    public function __construct(CswEntity $entity)
+    public function __construct(\Plugins\WhereGroup\CatalogueServiceBundle\Entity\Csw $entity)
     {
         parent::__construct($entity);
         $this->typeName = array('gmd:MD_Metadata');
         $this->template = 'CatalogueServiceBundle:CSW:describerecord.xml.twig';
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function __destruct()
-    {
-        unset(
-            $this->typeNameList, $this->typeName
-        );
-        parent::__destruct();
     }
 
     /**

@@ -13,12 +13,12 @@ class GetRecordById extends AFindRecord
      * {@inheritdoc}
      */
     static $parameterMap = array(
-        'version' => '/' . Csw::CSW_PREFIX . ':GetRecordById/@version',
-        'service' => '/' . Csw::CSW_PREFIX . ':GetRecordById/@service',
-        'outputSchema' => '/' . Csw::CSW_PREFIX . ':GetRecordById/@outputSchema',
-        'outputFormat' => '/' . Csw::CSW_PREFIX . ':GetRecordById/@outputFormat',
-        'elementSetName' => '/' . Csw::CSW_PREFIX . ':GetRecordById/' . Csw::CSW_PREFIX . ':ElementSetName/text()',
-        'id' => '/' . Csw::CSW_PREFIX . ':GetRecordById/' . Csw::CSW_PREFIX . ':Id/text()',
+        'version' => '/csw:GetRecordById/@version',
+        'service' => '/csw:GetRecordById/@service',
+        'outputSchema' => '/csw:GetRecordById/@outputSchema',
+        'outputFormat' => '/csw:GetRecordById/@outputFormat',
+        'elementSetName' => '/csw:GetRecordById/csw:ElementSetName/text()',
+        'id' => '/csw:GetRecordById/csw:Id/text()',
     );
     protected $outputSchema;
     protected $id;
@@ -31,20 +31,9 @@ class GetRecordById extends AFindRecord
     /**
      * {@inheritdoc}
      */
-    public function __construct(Csw $csw = null, $configuration = array())
+    public function __construct(\Plugins\WhereGroup\CatalogueServiceBundle\Entity\Csw $entity = null)
     {
-        parent::__construct($csw, $configuration);
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function __destruct()
-    {
-        unset(
-            $this->outputSchema, $this->id
-        );
-        parent::__destruct();
+        parent::__construct($entity);
     }
 
     /**
@@ -66,28 +55,31 @@ class GetRecordById extends AFindRecord
                 $parameters[$value] = $key;
             }
         }
+
         return $parameters;
     }
 
     /**
-     * {@inheritdoc}
+     * @return mixed
      */
-    public function getParameters()
+    public function getId()
     {
-        return array_merge(parent::getParameters(),
-            array(
-            'ElementSetName' => $this->elementSetNameList
-        ));
+        return $this->id;
     }
 
     /**
-     * {@inheritdoc}
+     * @param mixed $id
+     * @return GetRecordById
      */
-    public function getConstraints()
+    public function setId($id)
     {
-        return array(
-            'PostEncoding' => $this->postEncodingList
-        );
+        if ($id && is_string($id)) {
+            $this->id = $this->parseCsl($id);
+        } elseif ($id && is_array($id)) {
+            $this->id = $id;
+        }
+
+        return $this;
     }
 
     /**
@@ -97,11 +89,7 @@ class GetRecordById extends AFindRecord
     {
         switch ($name) {
             case 'id':
-                if ($value && is_string($value)) {
-                    $this->id = $this->parseCsl($value);
-                } elseif ($value && is_array($value)) {
-                    $this->id = $value;
-                }
+                $this->setId($value);
                 break;
             default:
                 parent::setParameter($name, $value);
@@ -111,7 +99,7 @@ class GetRecordById extends AFindRecord
     /**
      * {@inheritdoc}
      */
-    protected function render()
+    protected function render($templating)
     {
         $xml = '';
 
@@ -126,18 +114,18 @@ class GetRecordById extends AFindRecord
 
                 // GET Template
                 $className = $this->csw->container->get('metador_plugin')->getPluginClassName($record->getProfile());
-                $xml .= "\n" . $this->csw->getTemplating()->render(
-                    $className . ":Export:metadata.xml.twig",
-                    array('p' => $record->getObject())
-                );
+                $xml .= "\n".$this->csw->getTemplating()->render(
+                        $className.":Export:metadata.xml.twig",
+                        array('p' => $record->getObject())
+                    );
             }
         } catch (\Exception $e) {
             throw new CswException('id', CswException::NoApplicableCode);
         }
 
         return "<?xml version=\"1.0\" encoding=\"UTF-8\"?>
-<csw:GetRecordByIdResponse xmlns:csw=\"http://www.opengis.net/cat/csw/2.0.2\">
-$xml
-</csw:GetRecordByIdResponse>";
+            <csw:GetRecordByIdResponse xmlns:csw=\"http://www.opengis.net/cat/csw/2.0.2\">
+                $xml
+            </csw:GetRecordByIdResponse>";
     }
 }

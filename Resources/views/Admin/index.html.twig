@@ -30,7 +30,7 @@
         {% for service in services %}
             <tr>
                 <td>
-                    <a href="{{ path('metador_admin_csw_edit', {'slug': service.slug }) }}">{{ service.slug }}</a>
+                    <a href="{{ path('metador_admin_csw_edit', {'slug': service.slug, 'source': service.source }) }}">{{ service.slug }}</a>
                 </td>
                 <td>{{ service.title }}</td>
                 <td>{{ service.source }}</td>

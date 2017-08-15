@@ -57,7 +57,7 @@ class AdminController extends Controller
              */
             $entity = $form->getData();
 
-            if ($this->get('metador_catalogue_service')->findBySlug($entity->getSlug())) {
+            if ($this->get('metador_catalogue_service')->findOneBySlugAndSource($entity->getSlug(), $entity->getSource())) {
                 $this->setFlashWarning(
                     'new',
                     '',
@@ -86,18 +86,18 @@ class AdminController extends Controller
     }
 
     /**
-     * @Route("/edit/{slug}", name="metador_admin_csw_edit")
+     * @Route("/edit/{source}/{slug}", name="metador_admin_csw_edit")
      * @Method({"GET", "POST"})
      * @Template("CatalogueServiceBundle:Admin:new.html.twig")
      * @param $slug
      * @return array
      */
-    public function editAction($slug)
+    public function editAction($source, $slug)
     {
         $this->get('metador_core')->denyAccessUnlessGranted('ROLE_SYSTEM_SUPERUSER');
 
         $form = $this
-            ->createForm(CswType::class, $this->get('metador_catalogue_service')->findBySlug($slug))
+            ->createForm(CswType::class, $this->get('metador_catalogue_service')->findOneBySlugAndSource($slug, $source))
             ->handleRequest($this->get('request_stack')->getCurrentRequest());
 
         if ($form->isSubmitted() && $form->isValid()) {

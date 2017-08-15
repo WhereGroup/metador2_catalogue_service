@@ -38,58 +38,43 @@ class GetRecords extends AFindRecord
 ////        'deistributedSearch' for GET
 //        '/csw:GetRecords/csw:DistributedSearch/@hopCount' => 'hopCount',
     );
-    protected $constraintLanguageList;
-    protected $typeNameList;
-    protected $constraintList;
-    protected $geometryQueryables;
-    protected $resultTypeList;
+//    protected $constraintLanguageList;
+//    protected $typeNameList;
+//    protected $constraintList;
+//    protected $geometryQueryables;
+//    protected $resultTypeList;
 
     /* Request parameters */
-    protected $constraintLanguage;
     protected $typeNames;
     protected $startPosition;
     protected $maxRecords;
     protected $sortBy;
-    protected $namespace;
+    protected $constraint;
+    protected $constraintLanguage;
+    protected $resultType;
     protected $requestId;
+
+    protected $namespace;
     protected $responseHandler;
     protected $elementName;
-    protected $constraint;
     protected $deistributedSearch;
     protected $hopCount;
-    protected $resultType;
 
     /**
      * {@inheritdoc}
      */
-    public function __construct(Csw $csw = null, $configuration = array())
+    public function __construct(\Plugins\WhereGroup\CatalogueServiceBundle\Entity\Csw $entity = null)
     {
-        parent::__construct($csw, $configuration);
-        $this->name                   = 'GetRecords';
-        $this->constraintLanguageList = $configuration['constraintLanguageList'];
-        $this->resultTypeList         = $configuration['resultTypeList'];
-        $this->resultType             = $this->resultTypeList[0];
-        $this->typeNameList           = $configuration['typeNameList'];
-        $this->typeName               = $this->typeNameList[0];
-        $this->constraintList         = $configuration['constraintList'];
-        $this->geometryQueryables     = $configuration['GeometryQueryables'];
+        parent::__construct($entity);
+        $this->resultType             = self::RESULTTYPE_HITS;
+        $this->typeNames               = array('gmd:MD_Metadata');
+        $this->constraintLanguage = 'FILTER';
 
         $this->startPosition = 1; # default value s. xsd
         $this->maxRecords    = 10; # default value s. xsd
         $this->sortBy        = array();
 //        $this->deistributedSearch = false;
 //        $this->hopCount = 2; # default value s. xsd
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function __destruct()
-    {
-        unset(
-            $this->constraintLanguageList, $this->typeNameList
-        );
-        parent::__destruct();
     }
 
     /**
@@ -108,33 +93,118 @@ class GetRecords extends AFindRecord
         return self::$parameterMap;
     }
 
-    public function getConstraintLanguageList()
+    /**
+     * @return array
+     */
+    public function getTypeNames()
     {
-        return $this->constraintLanguageList;
+        return $this->typeNames;
     }
 
+    /**
+     * @param $typeNames
+     * @return $this
+     */
+    public function setTypeNames($typeNames)
+    {
+        $typeNameArr = preg_split('/[\s,]/', $typeNames);
+        $this->isListAtList('typeNames', $typeNameArr, $this->typeNames, false); # only check
+        return $this;
+    }
+
+    /**
+     * @return int
+     */
+    public function getStartPosition()
+    {
+        return $this->startPosition;
+    }
+
+    /**
+     * @param mixed $startPosition
+     * @return $this
+     */
+    public function setStartPosition($startPosition)
+    {
+        if ($startPosition !== null) {
+            $this->startPosition = self::getGreaterThan('startPosition',
+                self::getPositiveInteger(startPosition, $startPosition), 0);
+        }
+        return $this;
+    }
+
+    /**
+     * @return int
+     */
+    public function getMaxRecords()
+    {
+        return $this->maxRecords;
+    }
+
+    /**
+     * @param mixed $maxRecords
+     * @return $this
+     */
+    public function setMaxRecords($maxRecords)
+    {
+        if ($maxRecords !== null) {
+            $this->maxRecords = self::getGreaterThan('maxRecords',
+                self::getPositiveInteger('maxRecords', $maxRecords), 0);
+        }
+        return $this;
+    }
+
+    /**
+     * @return array
+     */
+    public function getSortBy()
+    {
+        return $this->sortBy;
+    }
+
+    /**
+     * @param array $sortBy
+     */
+    public function setSortBy($sortBy)
+    {
+        $this->sortBy = $sortBy; # @TODO split and check if items supported/exist
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getConstraint()
+    {
+        return $this->constraint;
+    }
+
+    /**
+     * @param $constraint
+     * @return $this
+     */
+    public function setConstraint($constraint)
+    {
+        $this->constraint = $constraint;
+        return $this;
+    }
+
+
+    /**
+     * @return string
+     */
     public function getConstraintLanguage()
     {
         return $this->constraintLanguage;
     }
 
-    public function getTypeNameList()
-    {
-        return $this->typeNameList;
-    }
-
-    public function getTypeName()
-    {
-        return $this->typeName;
-    }
-
     /**
-     * Returns the result type list.
-     * @return array result type list
+     * @param $constraintLanguage
+     * @return $this
      */
-    public function getResultTypeList()
+    public function setConstraintLanguage($constraintLanguage)
     {
-        return $this->resultTypeList;
+        self::isStringAtList('constraintLanguage', $constraintLanguage, array($this->constraintLanguage), false);
+        return $this;
     }
 
     /**
@@ -146,56 +216,38 @@ class GetRecords extends AFindRecord
         return $this->resultType;
     }
 
-    public function setConstraintLanguageList($constraintLanguageList)
-    {
-        $this->constraintLanguageList = $constraintLanguageList;
-        return $this;
-    }
-
-    public function setTypeNameList($typeNameList)
-    {
-        $this->typeNameList = $typeNameList;
-        return $this;
-    }
-
     /**
-     *
-     * @param type $resultTypeList
-     * @return \Plugins\WhereGroup\CatalogueServiceBundle\Component\AFindRecord
+     * @param string $resultType
+     * @return $this
      */
-    public function setResultTypeList($resultTypeList)
+    public function setResultType($resultType)
     {
-        $this->resultTypeList = $resultTypeList;
-        return $this;
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function getParameters()
-    {
-        return array_merge(parent::getParameters(),
-            array(
-            'typeNames' => $this->typeNameList,
-            'resultType' => $this->resultTypeList,
-            'CONSTRAINTLANGUAGE' => $this->constraintLanguageList,
-            'ElementSetName' => $this->elementSetNameList
-        ));
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function getConstraints()
-    {
-        $constraints = array(
-            'PostEncoding' => $this->postEncodingList
-        );
-        if (isset($this->constraintList['SupportedISOQueryables'])) {
-            $constraints['SupportedISOQueryables'] = array_keys($this->constraintList['SupportedISOQueryables']);
+        if (self::isStringAtList('resultType', $resultType, self::RESULTTYPE, false)) {
+            $this->resultType = $resultType;
         }
-        return $constraints;
+        return $this;
     }
+
+    /**
+     * @return mixed
+     */
+    public function getRequestId()
+    {
+        return $this->requestId;
+    }
+
+    /**
+     * @param mixed $requestId
+     * @return GetRecords
+     */
+    public function setRequestId($requestId)
+    {
+        $this->requestId = $requestId;
+
+        return $this;
+    }
+
+
 
     /**
      * {@inheritdoc}
@@ -204,51 +256,40 @@ class GetRecords extends AFindRecord
     {
         switch ($name) {
             case 'resultType':
-                if (self::isStringAtList($name, $value, $this->resultTypeList, false)) {
-                    $this->resultType = $value;
-                }
+                $this->setResultType($value);
                 break;
             case 'typeNames':
-                $typeNames = preg_split('/[\s,]/', $value);
-                if ($this->isListAtList($name, $typeNames, $this->typeNameList, false)) {
-                    $this->typeNames = $typeNames;
-                }
+                $this->setTypeNames($value);
                 break;
             case 'startPosition':
-                if ($value !== null) {
-                    $this->startPosition = self::getGreaterThan($name, self::getPositiveInteger($name, $value), 0);
-                }
+                $this->setStartPosition($value);
                 break;
             case 'maxRecords':
-                if ($value !== null) {
-                    $this->maxRecords = self::getGreaterThan($name, self::getPositiveInteger($name, $value), 0);
-                }
+                $this->setMaxRecords($value);
                 break;
             case 'constraintLanguage':
-                if (self::isStringAtList($name, $value, $this->constraintLanguageList, false)) {
-                    $this->constraintLanguage = $value;
-                }
+                $this->setConstraintLanguage($value);
                 break;
             case 'Constraint':
-                $this->constraint = $value;
+                $this->setConstraint($value);
                 break;
             case 'sortBy':
-                $this->sortBy     = $value; # @TODO split and check if items supported/exist
+                $this->setSortBy($value);
+                break;
+            case 'requestId':
+                $this->setRequestId($value);
                 break;
             case 'namespace':
                 // not yet implemented
                 break;
-            case 'requestId':
-                $this->requestId  = $value;
-                break;
             case 'responseHandler':
 //                  not yet implemented
                 break;
-            case 'elementName':
-                // @TODO if exists
-                break;
             case 'ResponseHandler':
 //                 not yet implemented
+                break;
+            case 'elementName':
+                // @TODO if exists
                 break;
             case 'deistributedSearch':
 //                not yet implemented
@@ -312,7 +353,7 @@ class GetRecords extends AFindRecord
     /**
      * {@inheritdoc}
      */
-    protected function render()
+    protected function render($templating)
     {
         $name           = 'm';
         /** @var QueryBuilder $qb */

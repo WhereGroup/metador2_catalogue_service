@@ -4,7 +4,7 @@
     and form.vars.value.source is defined and form.vars.value.source is not empty %}
     {% set title  = 'Catalogue Service bearbeiten'|trans %}
     {% set path   = 'metador_admin_csw_edit' %}
-    {% set params = {slug: form.vars.value.slug} %}
+    {% set params = {slug: form.vars.value.slug, source: form.vars.value.source} %}
 {% else %}
     {% set title  = 'Catalogue Service erstellen'|trans %}
     {% set path   = 'metador_admin_csw_new' %}

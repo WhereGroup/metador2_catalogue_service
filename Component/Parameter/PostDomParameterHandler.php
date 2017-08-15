@@ -2,7 +2,7 @@
 
 namespace Plugins\WhereGroup\CatalogueServiceBundle\Component\Parameter;
 
-use Plugins\WhereGroup\CatalogueServiceBundle\Component\Csw;
+use Plugins\WhereGroup\CatalogueServiceBundle\Component\AOperation;
 use Plugins\WhereGroup\CatalogueServiceBundle\Component\CswException;
 
 /**
@@ -10,15 +10,10 @@ use Plugins\WhereGroup\CatalogueServiceBundle\Component\CswException;
  *
  * @author Paul Schmidt<panadium@gmx.de>
  */
-class PostDomParameterHandler implements IParameterHandler
+class PostDomParameterHandler// implements IParameterHandler
 {
     const EXTERNAL_PREFIX = 'my_prefix';
-    
-    protected $csw;
-    protected $rootPrefix;
-    protected $rootUri;
-    protected $operation;
-    
+
     /**
      * The requested xml
      * @var \DOMDocument $dom
@@ -31,76 +26,80 @@ class PostDomParameterHandler implements IParameterHandler
      */
     protected $xpath;
 
+    /**
+     * @var string
+     */
+    protected $rootPrefix;
 
     /**
-     * Creates an instance.
-     * @param Csw $csw
+     * @var string
+     */
+    protected $rootUri;
+
+    /**
+     * PostDomParameterHandler constructor.
+     * @param $content
      * @param string $rootPrefix
      * @param string $rootUri
+     * @throws CswException
      */
-    public function __construct(Csw $csw, $rootPrefix = 'csw', $rootUri = 'http://www.opengis.net/cat/csw/2.0.2')
+    public function __construct($content, $rootPrefix = 'csw', $rootUri = 'http://www.opengis.net/cat/csw/2.0.2')
     {
-        $this->csw = $csw;
         $this->rootPrefix = $rootPrefix;
-        $this->rootUri    = $rootUri;
+        $this->rootUri = $rootUri;
+
+        $dom = new \DOMDocument();
+        if (!@$dom->loadXML($content, LIBXML_DTDLOAD | LIBXML_DTDATTR | LIBXML_NOENT | LIBXML_XINCLUDE)) {
+            throw new CswException('Can\'t parse a string to xml', CswException::ParsingError);
+        }
+        $this->dom = $dom;
+        $this->xpath = new \DOMXPath($this->dom);
+        foreach ($this->xpath->query('//namespace::*') as $node) {
+            if (strlen($node->prefix)) {
+                $this->xpath->registerNamespace($node->prefix, $node->namespaceURI);
+            } else {
+                if ($node->namespaceURI === $this->rootUri) {
+                    $this->xpath->registerNamespace($this->rootPrefix, $node->namespaceURI);
+                } else {
+                    $this->xpath->registerNamespace(self::EXTERNAL_PREFIX, $node->namespaceURI);
+                }
+            }
+        }
     }
 
     /**
-     * {@inheritdoc}
+     * @return string
      */
-    public static function create(Csw $csw, $rootPrefix = 'csw', $rootUri = 'http://www.opengis.net/cat/csw/2.0.2')
+    public function getOperationName()
     {
-        return new self($csw, $rootPrefix, $rootUri);
+        return $this->dom->documentElement->localName;
     }
 
     /**
-     * {@inheritdoc}
+     * @param AOperation $operation
      */
-    public function getParameter($name = null, $xpath = null, $caseSensitive = true)
+    public function initOperation(AOperation $operation)
     {
-        if (!$this->dom || ($name === null && $xpath === null)) {
+        $parameterMap = $operation->getPOSTParameterMap();
+        $parameters = array();
+        foreach ($parameterMap as $key => $value) {
+            $parameters[$value] = $this->getParameter($key);
+        }
+        $this->operation->setParameters($parameters);
+    }
+
+    /**
+     * @param string $xpath
+     * @return mixed|null
+     */
+    protected function getParameter($xpath)
+    {
+        if (!$this->dom) {
             return null;
         }
         $result = $this->getValue($xpath);
-        return $result;
-    }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function getOperation()
-    {
-        if($this->operation === null) {
-            $dom = new \DOMDocument();
-            $content = $this->csw->getRequestStack()->getCurrentRequest()->getContent();
-            if (!@$dom->loadXML($content, LIBXML_DTDLOAD | LIBXML_DTDATTR | LIBXML_NOENT | LIBXML_XINCLUDE)) {
-                throw new CswException('Can\'t parse a string to xml', CswException::ParsingError);
-            }
-            $this->dom = $dom;
-            $this->xpath = new \DOMXPath($this->dom);
-            foreach ($this->xpath->query('//namespace::*') as $node) {
-                if (strlen($node->prefix)) {
-                    $this->xpath->registerNamespace($node->prefix, $node->namespaceURI);
-                } else {
-                    if ($node->namespaceURI === $this->rootUri) {
-                        $this->xpath->registerNamespace($this->rootPrefix, $node->namespaceURI);
-                    } else {
-                        $this->xpath->registerNamespace(self::EXTERNAL_PREFIX, $node->namespaceURI);
-                    }
-                }
-            }
-            $this->operation = $this->csw->operationForName($this->dom->documentElement->localName);
-            if (!$this->operation->getHttpPost()) {
-                throw new CswException('request', CswException::OperationNotSupported);
-            }
-            $parameterMap       = $this->operation->getPOSTParameterMap();
-            $parameters = array();
-            foreach ($parameterMap as $key => $value) {
-                $parameters[$value] = $this->getParameter(null, $key);
-            }
-            $this->operation->setParameters($parameters);
-        }
-        return $this->operation;
+        return $result;
     }
 
     /**
@@ -122,6 +121,7 @@ class PostDomParameterHandler implements IParameterHandler
             foreach ($list as $item) {
                 $result[] = $this->getNodeValue($item);
             }
+
             return $result;
         }
     }
@@ -138,14 +138,20 @@ class PostDomParameterHandler implements IParameterHandler
                 return null;
             } elseif ($node->nodeType == XML_ATTRIBUTE_NODE) {
                 return $node->value;
-            } else if ($node->nodeType == XML_TEXT_NODE) {
-                return $node->wholeText;
-            } else if ($node->nodeType == XML_ELEMENT_NODE) {
-                return $node;
-            } else if ($node->nodeType == XML_CDATA_SECTION_NODE) {
-                return $node->wholeText;
             } else {
-                return null;
+                if ($node->nodeType == XML_TEXT_NODE) {
+                    return $node->wholeText;
+                } else {
+                    if ($node->nodeType == XML_ELEMENT_NODE) {
+                        return $node;
+                    } else {
+                        if ($node->nodeType == XML_CDATA_SECTION_NODE) {
+                            return $node->wholeText;
+                        } else {
+                            return null;
+                        }
+                    }
+                }
             }
         } catch (\Exception $e) {
             return null;

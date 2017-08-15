@@ -2,8 +2,6 @@
 
 namespace Plugins\WhereGroup\CatalogueServiceBundle\Component;
 
-use Plugins\WhereGroup\CatalogueServiceBundle\Entity\Csw as CswEntity;
-
 /**
  * Description of Operation
  *
@@ -35,67 +33,22 @@ abstract class AOperation
      */
     const VERSION = '2.0.2';
 
-    const OUTPUT_FORMAT = '';
-//
-//    /**
-//     * The supported versions
-//     * @var $array $VERSIONLIST
-//     */
-//    static $VERSIONLIST     = array('2.0.2');
-
     /**
      * The list of key values pair to find parameters at request.
      * @var array $parameterMap
      */
     protected static $parameterMap = array();
-//
-//    /**
-//     * The operation's name
-//     * @var string $name
-//     */
-//    protected $name;
-////
-//    /**
-//     * The csw instance
-//     * @var \Plugins\WhereGroup\CatalogueServiceBundle\Component\Csw $csw
-//     */
-//    protected $csw;
 
     /**
      * List with exceptions
      * @var array $exceptions
      */
     protected $exceptions;
-//
-//    /**
-//     * The url to request the operation via http GET
-//     * @var string $httpGet
-//     */
-//    protected $httpGet;
-//
-//    /**
-//     * The url to request the operation via http POST
-//     * @var string $httpPost
-//     */
-//    protected $httpPost;
-//
-//    /**
-//     * List with supported response formats
-//     * @var array $outputFormatList
-//     */
-//    protected $outputFormatList;
-//
-//    /**
-//     * The list with all supported POST encodings.
-//     * @var array $postEncodingList
-//     */
-//    protected $postEncodingList = array('XML');
-//
-//    /**
-//     * The POST encoding for operation's request
-//     * @var string $postEncoding
-//     */
-//    protected $postEncoding;
+
+    /**
+     * @var CswEntity entity
+     */
+    protected $entity;
 
     /* request parameters */
 
@@ -123,39 +76,24 @@ abstract class AOperation
      */
     protected $template;
 
-    protected $entity;
-
     /**
-     * Creates an instance.
-     * @param \Plugins\WhereGroup\CatalogueServiceBundle\Component\Csw $csw
-     * @param array $configuration configuration
+     * AOperation constructor.
+     * @param \Plugins\WhereGroup\CatalogueServiceBundle\Entity\Csw $entity
      */
-    public function __construct(CswEntity $entity)
+    public function __construct(\Plugins\WhereGroup\CatalogueServiceBundle\Entity\Csw $entity)
     {
         $this->entity = $entity;
-//        $this->csw = $csw;
-//        $this->httpGet = $configuration['http']['get'] ? $this->csw->getHttpGet() : null;
-//        $this->httpPost = $configuration['http']['post'] ? $this->csw->getHttpPost() : null;
-//        $this->outputFormatList = array_keys($configuration['outputFormatList']);
-//        $this->outputFormat = $this->outputFormatList[0]; # !!! IMPORTANT
-//        $this->exceptions = array();
-//        $this->templates = $configuration['outputFormatList'];
-//
-//        $this->postEncoding = $this->postEncodingList[0]; # !!! IMPORTANT
-
         $this->version = self::VERSION;
     }
 
     /**
-     * Destroies an instance.
-     * @param \Plugins\WhereGroup\CatalogueServiceBundle\Component\Csw $csw
-     * @param array $configuration configuration
+     * AOperation destructor.
      */
     public function __destruct()
     {
-//        unset(
-//            $this->csw, $this->httpGet, $this->httpPost, $this->outputFormatList, $this->outputFormat, $this->exceptions
-//        );
+        unset(
+            $this->entity
+        );
     }
 
     /**
@@ -178,28 +116,10 @@ abstract class AOperation
     {
         return $this->entity;
     }
-//
-//    /**
-//     * Returns an url to request the operation via http GET.
-//     * @return string url
-//     */
-//    public function getHttpGet()
-//    {
-//        return $this->httpGet;
-//    }
-//
-//    /**
-//     * Returns an url to request the operation via http POST.
-//     * @return string url
-//     */
-//    public function getHttpPost()
-//    {
-//        return $this->httpPost;
-//    }
 
     /**
      * Returns a service name (CSW).
-     * @return string url
+     * @return string
      */
     public function getService()
     {
@@ -207,25 +127,9 @@ abstract class AOperation
     }
 
     /**
-     * Returns a list with requested version/s.
-     * @return string url
-     */
-    public function getVersion()
-    {
-        return $this->version;
-    }
-
-    public function setVersion($version)
-    {
-        if ($version === self::VERSION) {
-            $this->version = $version;
-        }
-    }
-
-    /**
      * Sets the service name.
-     * @param string $service
-     * @return \Plugins\WhereGroup\CatalogueServiceBundle\Component\AOperation
+     * @param $service
+     * @return $this
      */
     public function setService($service)
     {
@@ -241,38 +145,37 @@ abstract class AOperation
     }
 
     /**
-     * @param array $outputFormat
+     * @return string
      */
-    public function setOutputFormat($value)
+    public function getVersion()
     {
-        if ($value && is_string($value)) { # GET request
-            $outputFormat = self::parseCsl($value);
+        return $this->version;
+    }
+
+    /**
+     * @param string $version
+     */
+    public function setVersion($version)
+    {
+        if ($version === self::VERSION) {
+            $this->version = $version;
+        }
+    }
+
+    /**
+     * @param mixed $outputFormat
+     */
+    public function setOutputFormat($outputFormat)
+    {
+        if ($outputFormat && is_string($outputFormat)) { # GET request
+            $outputFormat = self::parseCsl($outputFormat);
             if ($this->outputFormat !== $outputFormat) {
                 $this->addCswException('outputFormat', CswException::InvalidParameterValue);
             } else {
                 $this->outputFormat = $outputFormat;
             }
-        } elseif ($value && !in_array($this->outputFormat, $value)) {
+        } elseif ($outputFormat && !in_array($this->outputFormat, $outputFormat)) {
             $this->addCswException('outputFormat', CswException::InvalidParameterValue);
-        }
-    }
-
-    /**
-     * Adds an CswException into the exception's list.
-     * @param string $locator an exception locator
-     * @param integer $code a CswException code
-     */
-    public function addCswException($locator, $code)
-    {
-        $found = false;
-        foreach ($this->exceptions as $exception) {
-            if ($exception->getMessage() === $locator && $exception->getCode() === $code) {
-                $found = true;
-                break;
-            }
-        }
-        if (!$found) {
-            $this->exceptions[] = new CswException($locator, $code);
         }
     }
 
@@ -298,6 +201,25 @@ abstract class AOperation
                 break;
             default:
                 throw new \Exception('!!!!!not defined parameter:'.$name);
+        }
+    }
+
+    /**
+     * Adds an CswException into the exception's list.
+     * @param string $locator an exception locator
+     * @param integer $code a CswException code
+     */
+    public function addCswException($locator, $code)
+    {
+        $found = false;
+        foreach ($this->exceptions as $exception) {
+            if ($exception->getMessage() === $locator && $exception->getCode() === $code) {
+                $found = true;
+                break;
+            }
+        }
+        if (!$found) {
+            $this->exceptions[] = new CswException($locator, $code);
         }
     }
 
@@ -341,8 +263,8 @@ abstract class AOperation
 
     /**
      * Creates and returns the operation result.
-     * @param \Plugins\WhereGroup\CatalogueServiceBundle\Component\AParameterHandler $handler
-     * @return string response
+     * @param $templating
+     * @return mixed
      */
     public function createResult($templating)
     {
@@ -391,6 +313,14 @@ abstract class AOperation
         return $result !== null && $result !== false;
     }
 
+    /**
+     * @param string $name
+     * @param string $value
+     * @param array $values
+     * @param bool $mandatory
+     * @return bool
+     * @throws CswException
+     */
     protected function isStringAtList($name, $value, array $values, $mandatory = false)
     {
         $validString = $value !== null && is_string($value) && $value !== '';
@@ -409,6 +339,10 @@ abstract class AOperation
         }
     }
 
+    /**
+     * @param string $string
+     * @return null|string
+     */
     protected static function normalizeString($string)
     {
         if ($string === null || $string === '' || trim($string) === '') {
@@ -418,6 +352,12 @@ abstract class AOperation
         }
     }
 
+    /**
+     * @param string $name parameter name
+     * @param mixed $intToTest value to convert into integer
+     * @return int|null
+     * @throws CswException if can not be converted
+     */
     protected function getInteger($name, $intToTest)
     {
         if (is_integer($intToTest)) {
@@ -431,6 +371,12 @@ abstract class AOperation
         }
     }
 
+    /**
+     * @param string $name parameter name
+     * @param mixed $intToTest
+     * @return int|null
+     * @throws CswException if $intToTest is not positive
+     */
     protected function getPositiveInteger($name, $intToTest)
     {
         if (($int = self::getInteger($name, $intToTest)) !== null) {
@@ -466,7 +412,8 @@ abstract class AOperation
 
     /**
      * Renders a operation's result and returns as string
-     * @return string the operation's result
+     * @param $templating
+     * @return mixed
      */
     abstract protected function render($templating);
 }

@@ -17,30 +17,27 @@ abstract class AFindRecord extends AOperation
     const ELEMENTSET_SUMMARY = 'summary';
     const ELEMENTSET_FULL = 'full';
 
-    protected $outputSchemaList;
-    protected $outputSchema; // default value is a first position at the list $outputSchemaList
-    protected $elementSetNameList;
+    const ELEMENTSETNAME = array('brief', 'summary', 'full');
+    const RESULTTYPE = array('hits', 'results', 'validate');
+
+    /**
+     * @var string
+     */
+    protected $outputSchema;
+
+    /**
+     * @var string
+     */
     protected $elementSetName;
 
     /**
      * {@inheritdoc}
      */
-    public function __construct(Csw $csw = null, $configuration = array())
+    public function __construct(\Plugins\WhereGroup\CatalogueServiceBundle\Entity\Csw $entity)
     {
-        parent::__construct($csw, $configuration);
-        $this->outputSchemaList = $configuration['outputSchemaList'];
-        $this->outputSchema   = $this->outputSchemaList[0];
-        $this->elementSetNameList = $configuration['elementSetNameList'];
-        $this->elementSetName     = 'summary';
-    }
-
-    /**
-     * Returns the output schema list.
-     * @return array output schema list
-     */
-    public function getOutputSchemaList()
-    {
-        return $this->outputSchemaList;
+        parent::__construct($entity);
+        $this->outputSchema = "http://www.isotc211.org/2005/gmd";
+        $this->elementSetName = 'summary';
     }
 
     /**
@@ -52,9 +49,16 @@ abstract class AFindRecord extends AOperation
         return $this->outputSchema;
     }
 
-    public function getElementSetNameList()
+    /**
+     * @param mixed $outputSchema
+     * @return AFindRecord
+     */
+    public function setOutputSchema($outputSchema)
     {
-        return $this->elementSetNameList;
+        // use function to check only
+        self::isStringAtList('outputSchema', $outputSchema, array($this->outputSchema), false);
+
+        return $this;
     }
 
     public function getElementSetName()
@@ -62,32 +66,17 @@ abstract class AFindRecord extends AOperation
         return $this->elementSetName;
     }
 
-    public function setElementSetNameList($elementSetNameList)
-    {
-        $this->elementSetNameList = $elementSetNameList;
-        return $this;
-    }
-
     /**
-     *
-     * @param type $outputSchemaList
-     * @return \Plugins\WhereGroup\CatalogueServiceBundle\Component\AFindRecord
+     * @param string $elementSetName
+     * @return AFindRecord
      */
-    public function setOutputSchemaList($outputSchemaList)
+    public function setElementSetName($elementSetName)
     {
-        $this->outputSchemaList = $outputSchemaList;
-        return $this;
-    }
+        if (self::isStringAtList('ElementSetName', $elementSetName, self::ELEMENTSETNAME, false)) {
+            $this->elementSetName = $elementSetName;
+        }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function getParameters()
-    {
-        return array(
-            'outputSchema' => $this->outputSchemaList,
-            'outputFormat' => $this->outputFormatList
-        );
+        return $this;
     }
 
     /**
@@ -97,17 +86,10 @@ abstract class AFindRecord extends AOperation
     {
         switch ($name) {
             case 'elementSetName':
-                if ($value && !in_array($value, $this->elementSetNameList)) {
-                    throw new CswException('ElementSetName', CswException::InvalidParameterValue);
-                } elseif ($value && in_array($value, $this->elementSetNameList)) {
-                    $this->elementSetName = $value;
-                }
+                $this->setElementSetName($value);
                 break;
             case 'outputSchema':
-                if(self::isStringAtList($name, $value, $this->outputSchemaList, false)) {
-//                    $this->setOutputSchema($value);
-                    $this->outputSchema = $value;
-                }
+                $this->setOutputSchema($value);
                 break;
             default:
                 parent::setParameter($name, $value);

@@ -2,7 +2,7 @@
 
 namespace Plugins\WhereGroup\CatalogueServiceBundle\Component;
 
-use Plugins\WhereGroup\CatalogueServiceBundle\Entity\Csw as CswEntity;
+use Symfony\Bundle\TwigBundle\TwigEngine;
 
 /**
  * The class GetCapabilities is a representation of the OGC CSW GetCapabilities operation.
@@ -17,28 +17,21 @@ final class GetCapabilities extends AOperation
      */
     protected static $parameterMap = array(
         'version' => null,
-        'service' => '/'.self::PREFIX.':GetCapabilities/@service',
-        'acceptVersion' => '/'.self::PREFIX.':GetCapabilities/ows:AcceptVersions/ows:Version/text()',
-        'section' => '/'.self::PREFIX.':GetCapabilities/ows:Sections/ows:Section/text()',
-        'outputFormat' => '/'.self::PREFIX.':GetCapabilities/ows:AcceptFormats/ows:OutputFormat/text()',
+        'service' => '/csw:GetCapabilities/@service',
+        'acceptVersion' => '/csw:GetCapabilities/ows:AcceptVersions/ows:Version/text()',
+        'section' => '/csw:GetCapabilities/ows:Sections/ows:Section/text()',
+        'outputFormat' => '/csw:GetCapabilities/ows:AcceptFormats/ows:OutputFormat/text()',
     );
 
-//    /**
-//     * {@inheritdoc}
-//     */
-//    protected $name = 'GetCapabilities';
+    /**
+     * @var string url for csw basic
+     */
+    protected $urlBasic;
 
-//    /**
-//     * The list with all supported capabilities sections
-//     * @var array $sectionList
-//     */
-//    protected $sectionList;
-//
-//    /**
-//     * The list with all supported capabilities operations
-//     * @var array $sectionList
-//     */
-//    protected $operations;
+    /**
+     * @var string url for csw transaction
+     */
+    protected $urlTransaction;
 
     /* Request parameters */
 
@@ -54,49 +47,16 @@ final class GetCapabilities extends AOperation
      */
     protected $section;
 
-    protected $urlBasic;
-
-    protected $urlTransaction;
-
     /**
      * {@inheritdoc}
      */
-    public function __construct(CswEntity $entity, $urlBasic, $urlTransaction)
+    public function __construct(\Plugins\WhereGroup\CatalogueServiceBundle\Entity\Csw $entity, $urlBasic, $urlTAction)
     {
         parent::__construct($entity);
         $this->urlBasic = $urlBasic;
-        $this->urlTransaction = $urlTransaction;
+        $this->urlTransaction = $urlTAction;
         $this->template = 'CatalogueServiceBundle:CSW:getcapabilities_response.xml.twig';
         $this->section = array();
-//        $this->sectionList = $this->csw->getSections();
-//        $this->operations  = array();
-//        $operations        = $this->csw->getOperations();
-//
-//        foreach ($operations as $name => $value) {
-//            if ($name !== $this->name) {
-//                $class                   = $value['class'];
-//                $this->operations[$name] = new $class($this->csw, $value);
-//            } else {
-//                $this->operations[$name] = $this;
-//            }
-//        }
-//        $this->sectionList = array();
-//        $sectionList       = $this->csw->getSections();
-//        foreach ($sectionList as $name => $value) {
-//            $class                    = $value['class'];
-//            $this->sectionList[$name] = new $class($value);
-//        }
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function __destruct()
-    {
-//        unset(
-//            $this->sectionList, $this->operations, $this->acceptVersion, $this->section
-//        );
-//        parent::__destruct();
     }
 
     /**
@@ -161,24 +121,6 @@ final class GetCapabilities extends AOperation
 
         return $parameters;
     }
-//
-//    /**
-//     * Returns the sectionList.
-//     * @return array sectionList
-//     */
-//    public function getSectionList()
-//    {
-//        return $this->sectionList;
-//    }
-//
-//    /**
-//     * Returns the operations
-//     * @return array operations
-//     */
-//    public function getOperations()
-//    {
-//        return $this->operations;
-//    }
 
     /**
      * Returns the acceptVersion
@@ -227,56 +169,6 @@ final class GetCapabilities extends AOperation
             $this->section = $sectionArr;
         }
     }
-//
-//    /**
-//     * Returns all supported sections with needed parameters for a GetCapabilities document.
-//     * @return array
-//     */
-//    public function getSections()
-//    {
-//        if (!$this->section) {
-//            return $this->sectionList;
-//        } else {
-//            $sections = array();
-//            foreach ($this->sectionList as $key => $value) {
-//                if (in_array($key, $this->section)) {
-//                    $sections[$key] = $value;
-//                }
-//            }
-//            return $sections;
-//        }
-//    }
-//
-//    /**
-//     * Sets the sectionList
-//     * @param array $sectionList
-//     * @return \Plugins\WhereGroup\CatalogueServiceBundle\Component\GetCapabilities
-//     */
-//    public function setSectionList($sectionList)
-//    {
-//        $this->sectionList = $sectionList;
-//        return $this;
-//    }
-//
-//    /**
-//     * {@inheritdoc}
-//     */
-//    public function getParameters()
-//    {
-//        return array(
-//            'sections' => array_keys($this->sectionList),
-//        );
-//    }
-//
-//    /**
-//     * {@inheritdoc}
-//     */
-//    public function getConstraints()
-//    {
-//        return array(
-//            'PostEncoding' => $this->postEncodingList
-//        );
-//    }
 
     /**
      * {@inheritdoc}
@@ -306,6 +198,9 @@ final class GetCapabilities extends AOperation
         parent::validateParameter();
     }
 
+    /**
+     * {@inheritdoc}
+     */
     protected function render($templating)
     {
         return $templating->render(

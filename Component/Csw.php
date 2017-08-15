@@ -4,10 +4,12 @@ namespace Plugins\WhereGroup\CatalogueServiceBundle\Component;
 
 use Doctrine\ORM\EntityManagerInterface;
 use Plugins\WhereGroup\CatalogueServiceBundle\Component\Parameter\GetParameterHandler;
+use Plugins\WhereGroup\CatalogueServiceBundle\Component\Parameter\PostDomParameterHandler;
 use Plugins\WhereGroup\CatalogueServiceBundle\Entity\Csw as CswEntity;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Routing\RouterInterface;
+use WhereGroup\CoreBundle\Entity\Source;
 
 //use Symfony\Component\DependencyInjection\ContainerAwareTrait;
 //use Symfony\Component\DependencyInjection\ContainerInterface;
@@ -29,73 +31,20 @@ class Csw
      */
     protected $repo = null;
 
+
     const ENTITY = "CatalogueServiceBundle:Csw";
 
-
+    /**
+     * @var null|RequestStack
+     */
     protected $requestStack = null;
-//    protected $metadata     = null;
-//    protected $plugin       = null;
-//
-//    /**
-//     * URL for GET requests
-//     * @var string $httpGet
-//     */
-//    protected $httpGet;
-//
-//    /**
-//     * URL for POST requests
-//     * @var string $httpPost
-//     */
-//    protected $httpPost;
-//
-//    /**
-//     * The configuration parameters of supported sections
-//     * @var array $sections
-//     */
-//    protected $sections = array();
-//
-//    /**
-//     * The configuration parameters of supported operations
-//     * @var array $sections
-//     */
-//    protected $operations = array();
-//
-//    /** @var TimedTwigEngine $templating */
-//    protected $templating = null;
-//
-//    /**
-//     * Csw constructor.
-//     * @param RequestStack $requestStack
-//     * @param Metadata $metadata
-//     * @param Plugin $plugin
-//     * @param $templating
-//     */
-//    public function __construct(ContainerInterface $container, RequestStack $requestStack, Metadata $metadata, Plugin $plugin, $templating)
-//    {
-//
-//        $this->container    = $container;
-//        $this->requestStack = $requestStack;
-//        $this->metadata     = $metadata;
-//        $this->plugin       = $plugin;
-//        $this->templating   = $templating;
-//        $req                = $this->requestStack->getCurrentRequest();
-//        $url                = $req->getSchemeAndHttpHost() . $req->getBaseUrl() . $req->getPathInfo();
-//        $this->httpGet      = ($this->httpPost = $url) . '?';
-//        $this->operations   = $container->getParameter('csw')['Operations'];
-//        $this->sections     = $container->getParameter('csw')['Sections'];
-//    }
-//
-//    /**
-//     * Csw destructor
-//     */
-//    public function __destruct()
-//    {
-//        unset(
-//            $this->requestStack, $this->metadata, $this->plugin, $this->templating, $this->operations, $this->sections
-//        );
-//    }
 
-    /** @param EntityManagerInterface $em */
+    /**
+     * Csw constructor.
+     * @param EntityManagerInterface $em
+     * @param RequestStack $requestStack
+     * @param RouterInterface $router
+     */
     public function __construct(EntityManagerInterface $em, RequestStack $requestStack, RouterInterface $router)
     {
         $this->repo = $em->getRepository(self::ENTITY);
@@ -103,11 +52,15 @@ class Csw
         $this->router = $router;
     }
 
+    /**
+     *
+     */
     public function __destruct()
     {
         unset(
             $this->repo,
-            $this->requestStack
+            $this->requestStack,
+            $this->router
         );
     }
 
@@ -129,11 +82,12 @@ class Csw
 
     /**
      * @param $slug
+     * @param $source
      * @return mixed
      */
-    public function findBySlug($slug)
+    public function findOneBySlugAndSource($slug, $source)
     {
-        return $this->repo->findOneBySlug($slug);
+        return $this->repo->findOneBySlugAndSource($slug, $source);
     }
 
     /**
@@ -158,59 +112,30 @@ class Csw
         return $this;
     }
 
-//
-//    public function getMetadata()
-//    {
-//        return $this->metadata;
-//    }
-//
-//    public function getOperations()
-//    {
-//        return $this->operations;
-//    }
-//
-//    public function getTemplating()
-//    {
-//        return $this->templating;
-//    }
-//
-//    public function getSections()
-//    {
-//        return $this->sections;
-//    }
-//
-//    public function getHttpGet()
-//    {
-//        return $this->httpGet;
-//    }
-//
-//    public function getHttpPost()
-//    {
-//        return $this->httpPost;
-//    }
-//
-//    public function getRequestStack()
-//    {
-//        return $this->requestStack;
-//    }
-
     /**
      * Creates an operation for a given operation name
      *
      * @param string $operationName
      * @param CswEntity $entity
-     * @return DescribeRecord|GetCapabilities|GetRecordById|GetRecords
+     * @return AOperation
      * @throws CswException
      */
-    public function operationForName($operationName, CswEntity $entity, $source, $slug)
+    public function operationForName($operationName, CswEntity $entity)
     {
         switch ($operationName) {
             case 'GetCapabilities':
                 $req = $this->requestStack->getCurrentRequest();
-                $urlBasic = $this->router->generate('csw_default', array('source' => $source, 'slug' => $slug),
+                $urlBasic = $this->router->generate('csw_default', array(
+                    'source' => $entity->getSource(),
+                    'slug' => $entity->getSlug(),
+                ),
                     UrlGeneratorInterface::ABSOLUTE_URL);
-                $urlManager = $this->router->generate('csw_manager', array('source' => $source, 'slug' => $slug),
+                $urlManager = $this->router->generate('csw_manager', array(
+                    'source' => $entity->getSource(),
+                    'slug' => $entity->getSlug(),
+                ),
                     UrlGeneratorInterface::ABSOLUTE_URL);
+
                 return new GetCapabilities($entity, $urlBasic, $urlManager);
             case 'DescribeRecord':
                 return new DescribeRecord($entity);
@@ -227,49 +152,22 @@ class Csw
      * Creates an operation
      * @return \Plugins\WhereGroup\CatalogueServiceBundle\Component\AOperation
      */
-    public function getOperation(CswEntity $entity, $source, $slug)
+    public function getBasicOperation(CswEntity $entity)
     {
         $handler = null;
         $request = $this->requestStack->getCurrentRequest();
-
+        $operation = null;
         if ($request->getMethod() === 'GET') {
-            $handler = new GetParameterHandler();
-            $operationName = $handler->getParameter(
-                $this->requestStack->getCurrentRequest()->query->all(),
-                'request'
-            );
-            $operation = $handler->initOperation(
-                $this->operationForName($operationName, $entity, $source, $slug),
-                $this->requestStack->getCurrentRequest()->query->all()
-            );
+            $handler = new GetParameterHandler($this->requestStack->getCurrentRequest()->query->all());
+            $operationName = $handler->getOperationName();
+            $operation = $handler->initOperation($this->operationForName($operationName, $entity));
 
             return $operation;
         } elseif ($request->getMethod() === 'POST') {
-//            $handler = PostSaxParameterHandler::create($this); #$request->getContent());
+            $handler = new PostDomParameterHandler($request->getContent());
+            $operationName = $handler->getOperationName();
+            $operation = $handler->initOperation($this->operationForName($operationName, $entity));
         }
-
-//        return $handler->getOperation();
+        return $operation;
     }
-////
-////    /**
-////     * @param $id
-////     * @return string
-////     */
-////    public function getRecordById($id)
-////    {
-////        /** @var \WhereGroup\CoreBundle\Entity\Metadata $entity */
-////        $entity = $this->metadata->getByUUID($id);
-////
-////        // get data object
-////        $p = $entity->getObject();
-////
-////        // get profile
-////        $className = $this->plugin->getPluginClassName($p['_profile']);
-////
-////        // render metadata
-////        return $this->templating->render($className . ":Export:metadata.xml.twig",
-////                array(
-////                "p" => $p
-////        ));
-////    }
 }

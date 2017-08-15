@@ -46,9 +46,9 @@ class Harvest extends AOperation
     /**
      * {@inheritdoc}
      */
-    public function __construct(Csw $csw = null, $configuration = array())
+    public function __construct(Csw $entity = null, $configuration = array())
     {
-        parent::__construct($csw, $configuration);
+        parent::__construct($entity, $configuration);
     }
 
     /**
