@@ -141,22 +141,46 @@ class Csw
     protected $onlineResourse;
 
     /**
-     * @var $doInsert boolean is a csw transaction insert supported.
+     * @var $insert boolean is a csw transaction insert supported.
      * @ORM\Column(type="boolean", nullable=true)
      */
-    protected $doInsert = false;
+    protected $insert = false;
 
     /**
-     * @var $doUpdate boolean is a csw transaction update supported.
+     * @var $update boolean is a csw transaction update supported.
      * @ORM\Column(type="boolean", nullable=true)
      */
-    protected $doUpdate = false;
+    protected $update = false;
 
     /**
-     * @var $doDelete boolean is a csw transaction delete supported.
+     * @var $delete boolean is a csw transaction delete supported.
      * @ORM\Column(type="boolean", nullable=true)
      */
-    protected $doDelete = false;
+    protected $delete = false;
+
+    /**
+     * @var string $dataset
+     * @ORM\Column(type="string", nullable=true)
+     */
+    protected $dataset;
+
+    /**
+     * @var string $service
+     * @ORM\Column(type="string", nullable=true)
+     */
+    protected $service;
+
+    /**
+     * @var string $series
+     * @ORM\Column(type="string", nullable=true)
+     */
+    protected $series;
+
+    /**
+     * @var string $tile
+     * @ORM\Column(type="string", nullable=true)
+     */
+    protected $tile;
 
     public function __construct()
     {
@@ -645,75 +669,171 @@ class Csw
     }
 
     /**
-     * Set doInsert
+     * Set insert
      *
-     * @param boolean $doInsert
+     * @param boolean $insert
      *
      * @return Csw
      */
-    public function setDoInsert($doInsert)
+    public function setInsert($insert)
     {
-        $this->doInsert = $doInsert;
+        $this->insert = $insert;
 
         return $this;
     }
 
     /**
-     * Get doInsert
+     * Get insert
      *
      * @return boolean
      */
-    public function getDoInsert()
+    public function getInsert()
     {
-        return $this->doInsert;
+        return $this->insert;
     }
 
     /**
-     * Set doUpdate
+     * Set update
      *
-     * @param boolean $doUpdate
+     * @param boolean $update
      *
      * @return Csw
      */
-    public function setDoUpdate($doUpdate)
+    public function setUpdate($update)
     {
-        $this->doUpdate = $doUpdate;
+        $this->update = $update;
 
         return $this;
     }
 
     /**
-     * Get doUpdate
+     * Get update
      *
      * @return boolean
      */
-    public function getDoUpdate()
+    public function getUpdate()
     {
-        return $this->doUpdate;
+        return $this->update;
     }
 
     /**
-     * Set doDelete
+     * Set delete
      *
-     * @param boolean $doDelete
+     * @param boolean $delete
      *
      * @return Csw
      */
-    public function setDoDelete($doDelete)
+    public function setDelete($delete)
     {
-        $this->doDelete = $doDelete;
+        $this->delete = $delete;
 
         return $this;
     }
 
     /**
-     * Get doDelete
+     * Get delete
      *
      * @return boolean
      */
-    public function getDoDelete()
+    public function getDelete()
     {
-        return $this->doDelete;
+        return $this->delete;
+    }
+
+    /**
+     * Set dataset
+     *
+     * @param string $dataset
+     *
+     * @return Csw
+     */
+    public function setDataset($dataset)
+    {
+        $this->dataset = $dataset;
+
+        return $this;
+    }
+
+    /**
+     * Get dataset
+     *
+     * @return string
+     */
+    public function getDataset()
+    {
+        return $this->dataset;
+    }
+
+    /**
+     * Set service
+     *
+     * @param string $service
+     *
+     * @return Csw
+     */
+    public function setService($service)
+    {
+        $this->service = $service;
+
+        return $this;
+    }
+
+    /**
+     * Get service
+     *
+     * @return string
+     */
+    public function getService()
+    {
+        return $this->service;
+    }
+
+    /**
+     * Set series
+     *
+     * @param string $series
+     *
+     * @return Csw
+     */
+    public function setSeries($series)
+    {
+        $this->series = $series;
+
+        return $this;
+    }
+
+    /**
+     * Get series
+     *
+     * @return string
+     */
+    public function getSeries()
+    {
+        return $this->series;
+    }
+
+    /**
+     * Set tile
+     *
+     * @param string $tile
+     *
+     * @return Csw
+     */
+    public function setTile($tile)
+    {
+        $this->tile = $tile;
+
+        return $this;
+    }
+
+    /**
+     * Get tile
+     *
+     * @return string
+     */
+    public function getTile()
+    {
+        return $this->tile;
     }
 
     /**
@@ -728,8 +848,8 @@ class Csw
         $this->title = isset($kv['title']) ? $kv['title'] : null;
         $this->abstract = isset($kv['abstract']) ? $kv['abstract'] : null;
         $this->keywords = isset($kv['keywords']) ? $kv['keywords'] : array();
-        $this->fees = isset($kv['fees']) ? $kv['fees'] : null;
-        $this->accessConstraints = isset($kv['accessConstraints']) ? $kv['accessConstraints'] : array();
+        $this->fees = isset($kv['fees']) ? $kv['fees'] : 'none';
+        $this->accessConstraints = isset($kv['accessConstraints']) ? $kv['accessConstraints'] : array('none');
         $this->providerName = isset($kv['providerName']) ? $kv['providerName'] : null;
         $this->providerSite = isset($kv['providerSite']) ? $kv['providerSite'] : null;
         $this->individualName = isset($kv['individualName']) ? $kv['individualName'] : null;

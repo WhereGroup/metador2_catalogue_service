@@ -21,20 +21,22 @@ class CswType extends AbstractType
 {
     private $source;
     private $config;
+    private $plugin;
 
     /**
      * CswController constructor.
      * @param Source $source
      */
-    public function __construct(Source $source, Configuration $config)
+    public function __construct(Source $source, Configuration $config, $plugin = null)
     {
         $this->source = $source;
         $this->config = $config;
+        $this->plugin = $plugin;
     }
 
     public function __destruct()
     {
-        unset($this->source, $this->config);
+        unset($this->source, $this->config, $this->plugin);
     }
 
     /**
@@ -43,7 +45,12 @@ class CswType extends AbstractType
      */
     public function buildForm(FormBuilderInterface $builder, array $options)
     {
-        $sources = $this->source->allValues();
+//        $sources = $this->source->allValues();
+//        $profiles = $this->plugin->getActiveProfiles();
+        $profiles = array();
+        foreach ($this->plugin->getActiveProfiles() as $key => $value){
+            $profiles[$key] = $value['name'];
+        }
         $builder
             ->add('slug', TextType::class, array(
                 'label' => 'Slug',
@@ -124,17 +131,37 @@ class CswType extends AbstractType
                 'label' => 'Onlineresourse',
                 'required' => false,
             ))
-            ->add('doInsert', CheckboxType::class, array(
+            ->add('insert', CheckboxType::class, array(
                 'label' => 'Einfügen',
                 'required' => false,
             ))
-            ->add('doUpdate', CheckboxType::class, array(
+            ->add('update', CheckboxType::class, array(
                 'label' => 'Aktualisieren',
                 'required' => false,
             ))
-            ->add('doDelete', CheckboxType::class, array(
+            ->add('delete', CheckboxType::class, array(
                 'label' => 'Entfernen',
                 'required' => false,
+            ))
+            ->add('service', ChoiceType::class, array(
+                'label' => 'Service',
+                'required' => false,
+                'choices' => $profiles
+            ))
+            ->add('dataset', ChoiceType::class, array(
+                'label' => 'Dataset',
+                'required' => false,
+                'choices' => $profiles
+            ))
+            ->add('series', ChoiceType::class, array(
+                'label' => 'Series',
+                'required' => false,
+                'choices' => $profiles
+            ))
+            ->add('tile', ChoiceType::class, array(
+                'label' => 'Tile',
+                'required' => false,
+                'choices' => $profiles
             ));
 
         $callBackTransformer = new CallbackTransformer(
