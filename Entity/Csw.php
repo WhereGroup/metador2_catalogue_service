@@ -159,33 +159,48 @@ class Csw
     protected $delete = false;
 
     /**
-     * @var string $dataset
-     * @ORM\Column(type="string", nullable=true)
+     * @var string $profileMapping profile mapping
+     * @ORM\Column(type="array", nullable=true)
      */
-    protected $dataset;
+    protected $profileMapping;
 
     /**
-     * @var string $service
-     * @ORM\Column(type="string", nullable=true)
+     * Creates a Csw instance from properties.
+     * @param array $kv csw properties
+     * @return $this
      */
-    protected $service;
+    public function fromArray(array $kv)
+    {
+        $this->slug = isset($kv['slug']) ? $kv['slug'] : null;
+        $this->source = isset($kv['source']) ? $kv['source'] : null;
+        $this->title = isset($kv['title']) ? $kv['title'] : null;
+        $this->abstract = isset($kv['abstract']) ? $kv['abstract'] : null;
+        $this->keywords = isset($kv['keywords']) ? $kv['keywords'] : array();
+        $this->fees = isset($kv['fees']) ? $kv['fees'] : 'none';
+        $this->accessConstraints = isset($kv['accessConstraints']) ? $kv['accessConstraints'] : array('none');
+        $this->providerName = isset($kv['providerName']) ? $kv['providerName'] : null;
+        $this->providerSite = isset($kv['providerSite']) ? $kv['providerSite'] : null;
+        $this->individualName = isset($kv['individualName']) ? $kv['individualName'] : null;
+        $this->positionName = isset($kv['positionName']) ? $kv['positionName'] : null;
+        $this->phoneVoice = isset($kv['phoneVoice']) ? $kv['phoneVoice'] : null;
+        $this->phoneFacsimile = isset($kv['phoneFacsimile']) ? $kv['phoneFacsimile'] : null;
+        $this->deliveryPoint = isset($kv['deliveryPoint']) ? $kv['deliveryPoint'] : null;
+        $this->city = isset($kv['city']) ? $kv['city'] : null;
+        $this->administrativeArea = isset($kv['administrativeArea']) ? $kv['administrativeArea'] : null;
+        $this->postalCode = isset($kv['postalCode']) ? $kv['postalCode'] : null;
+        $this->country = isset($kv['country']) ? $kv['country'] : null;
+        $this->electronicMailAddress = isset($kv['electronicMailAddress']) ? $kv['electronicMailAddress'] : null;
+        $this->onlineResourse = isset($kv['onlineResourse']) ? $kv['onlineResourse'] : null;
 
-    /**
-     * @var string $series
-     * @ORM\Column(type="string", nullable=true)
-     */
-    protected $series;
+        return $this;
+    }
 
-    /**
-     * @var string $tile
-     * @ORM\Column(type="string", nullable=true)
-     */
-    protected $tile;
 
     public function __construct()
     {
         $this->keywords = array();
         $this->accessConstraints = array();
+        $this->profileMapping = array();
     }
 
     /**
@@ -741,129 +756,26 @@ class Csw
     }
 
     /**
-     * Set dataset
+     * Set profileMapping
      *
-     * @param string $dataset
-     *
-     * @return Csw
-     */
-    public function setDataset($dataset)
-    {
-        $this->dataset = $dataset;
-
-        return $this;
-    }
-
-    /**
-     * Get dataset
-     *
-     * @return string
-     */
-    public function getDataset()
-    {
-        return $this->dataset;
-    }
-
-    /**
-     * Set service
-     *
-     * @param string $service
+     * @param array $profileMapping
      *
      * @return Csw
      */
-    public function setService($service)
+    public function setProfileMapping($profileMapping)
     {
-        $this->service = $service;
+        $this->profileMapping = $profileMapping;
 
         return $this;
     }
 
     /**
-     * Get service
+     * Get profileMapping
      *
-     * @return string
+     * @return array
      */
-    public function getService()
+    public function getProfileMapping()
     {
-        return $this->service;
-    }
-
-    /**
-     * Set series
-     *
-     * @param string $series
-     *
-     * @return Csw
-     */
-    public function setSeries($series)
-    {
-        $this->series = $series;
-
-        return $this;
-    }
-
-    /**
-     * Get series
-     *
-     * @return string
-     */
-    public function getSeries()
-    {
-        return $this->series;
-    }
-
-    /**
-     * Set tile
-     *
-     * @param string $tile
-     *
-     * @return Csw
-     */
-    public function setTile($tile)
-    {
-        $this->tile = $tile;
-
-        return $this;
-    }
-
-    /**
-     * Get tile
-     *
-     * @return string
-     */
-    public function getTile()
-    {
-        return $this->tile;
-    }
-
-    /**
-     * Creates a Csw instance from properties.
-     * @param array $kv csw properties
-     * @return $this
-     */
-    public function fromArray(array $kv)
-    {
-        $this->slug = isset($kv['slug']) ? $kv['slug'] : null;
-        $this->source = isset($kv['source']) ? $kv['source'] : null;
-        $this->title = isset($kv['title']) ? $kv['title'] : null;
-        $this->abstract = isset($kv['abstract']) ? $kv['abstract'] : null;
-        $this->keywords = isset($kv['keywords']) ? $kv['keywords'] : array();
-        $this->fees = isset($kv['fees']) ? $kv['fees'] : 'none';
-        $this->accessConstraints = isset($kv['accessConstraints']) ? $kv['accessConstraints'] : array('none');
-        $this->providerName = isset($kv['providerName']) ? $kv['providerName'] : null;
-        $this->providerSite = isset($kv['providerSite']) ? $kv['providerSite'] : null;
-        $this->individualName = isset($kv['individualName']) ? $kv['individualName'] : null;
-        $this->positionName = isset($kv['positionName']) ? $kv['positionName'] : null;
-        $this->phoneVoice = isset($kv['phoneVoice']) ? $kv['phoneVoice'] : null;
-        $this->phoneFacsimile = isset($kv['phoneFacsimile']) ? $kv['phoneFacsimile'] : null;
-        $this->deliveryPoint = isset($kv['deliveryPoint']) ? $kv['deliveryPoint'] : null;
-        $this->city = isset($kv['city']) ? $kv['city'] : null;
-        $this->administrativeArea = isset($kv['administrativeArea']) ? $kv['administrativeArea'] : null;
-        $this->postalCode = isset($kv['postalCode']) ? $kv['postalCode'] : null;
-        $this->country = isset($kv['country']) ? $kv['country'] : null;
-        $this->electronicMailAddress = isset($kv['electronicMailAddress']) ? $kv['electronicMailAddress'] : null;
-        $this->onlineResourse = isset($kv['onlineResourse']) ? $kv['onlineResourse'] : null;
-
-        return $this;
+        return $this->profileMapping;
     }
 }

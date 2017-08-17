@@ -2,14 +2,18 @@
 
 namespace Plugins\WhereGroup\CatalogueServiceBundle\Form;
 
+use Plugins\WhereGroup\CatalogueServiceBundle\Entity\Csw;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
+use Symfony\Component\Form\Extension\Core\Type\HiddenType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\Extension\Core\Type\UrlType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\Form\CallbackTransformer;
+use Symfony\Component\Form\FormEvent;
+use Symfony\Component\Form\FormEvents;
 use WhereGroup\CoreBundle\Component\Configuration;
 use WhereGroup\CoreBundle\Component\Source;
 
@@ -45,12 +49,10 @@ class CswType extends AbstractType
      */
     public function buildForm(FormBuilderInterface $builder, array $options)
     {
-//        $sources = $this->source->allValues();
-//        $profiles = $this->plugin->getActiveProfiles();
-        $profiles = array();
-        foreach ($this->plugin->getActiveProfiles() as $key => $value){
-            $profiles[$key] = $value['name'];
-        }
+        $profiles = array_combine(
+            array_keys($this->plugin->getActiveProfiles()),
+            array_keys($this->plugin->getActiveProfiles())
+        );
         $builder
             ->add('slug', TextType::class, array(
                 'label' => 'Slug',
@@ -59,7 +61,7 @@ class CswType extends AbstractType
             ->add('source', ChoiceType::class, array(
                 'label' => 'Quelle',
                 'required' => true,
-                'choices' => $this->source->allValues()
+                'choices' => $this->source->allValues(),
             ))
             ->add('abstract', TextareaType::class, array(
                 'label' => 'Beschreibung',
@@ -143,28 +145,9 @@ class CswType extends AbstractType
                 'label' => 'Entfernen',
                 'required' => false,
             ))
-            ->add('service', ChoiceType::class, array(
-                'label' => 'Service',
-                'required' => false,
-                'choices' => $profiles
-            ))
-            ->add('dataset', ChoiceType::class, array(
-                'label' => 'Dataset',
-                'required' => false,
-                'choices' => $profiles
-            ))
-            ->add('series', ChoiceType::class, array(
-                'label' => 'Series',
-                'required' => false,
-                'choices' => $profiles
-            ))
-            ->add('tile', ChoiceType::class, array(
-                'label' => 'Tile',
-                'required' => false,
-                'choices' => $profiles
-            ));
+            ->add('profileMapping', HiddenType::class);
 
-        $callBackTransformer = new CallbackTransformer(
+        $stringArrayTransformer = new CallbackTransformer(
             function ($textAsArray) { // transform the array to a string
                 return isset($textAsArray) ? implode(', ', $textAsArray) : '';
             },
@@ -172,7 +155,58 @@ class CswType extends AbstractType
                 return isset($textAsString) ? preg_split('/\s?,\s?/', trim($textAsString)) : array();
             }
         );
-        $builder->get('keywords')->addModelTransformer($callBackTransformer);
-        $builder->get('accessConstraints')->addModelTransformer($callBackTransformer);
+        $builder->get('keywords')->addModelTransformer($stringArrayTransformer);
+        $builder->get('accessConstraints')->addModelTransformer($stringArrayTransformer);
+        $fields = $this->config->get('hierarchy_levels', 'plugin', 'metador_core');
+        $builder->addEventListener(FormEvents::PRE_SET_DATA, function (FormEvent $event) use ($fields, $profiles) {
+            /**
+             * @var Csw
+             */
+            $data = $event->getData();
+            if (null === $data) {
+                return;
+            }
+            $form = $event->getForm();
+            $pm = array();
+            if (is_array($data->getProfileMapping())) {
+                $pm = $data->getProfileMapping();
+            } elseif (is_string($data->getProfileMapping())) {
+                $pm = unserialize($data->getProfileMapping());
+            }
+
+            foreach ($fields as $field) {
+                $_data = '';
+                if ($pm && isset($pm[$field])) {
+                    $_data = $pm[$field];
+                }
+                $form
+                    ->add($field, ChoiceType::class, array(
+                        'required' => false,
+                        'choices' => $profiles,
+                        'mapped' => false,
+                        'data' => $_data,
+                    ));
+            }
+        });
+
+        $builder->addEventListener(FormEvents::PRE_SUBMIT,
+            function (FormEvent $event) use ($fields, $profiles) {
+                $data = $event->getData();
+                if (null === $data) {
+                    return;
+                }
+                $pm = array();
+                foreach ($fields as $field) {
+                    if (isset($data[$field])) {
+                        $pm[$field] = $data[$field];
+                    }
+                }
+                $data['profileMapping'] = serialize($pm);
+                $event->setData($data);
+                $form = $event->getForm();
+                $form->remove('profileMapping');
+                $form->add('profileMapping', HiddenType::class);
+            }
+        );
     }
 }

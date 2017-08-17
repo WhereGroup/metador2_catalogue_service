@@ -180,41 +180,20 @@ and form.vars.value.source is defined and form.vars.value.source is not empty %}
                     {{ form_widget(form.onlineResourse, { 'attr': {'class': 'input'}}) }}
                 </div>
             </div>
-            <div class="col c-1-2">
-                {#<div>{{ form_label(form.city, null, { 'label_attr': {'class': 'form-label'}}) }}</div>#}
-                {#<div class="form-field-wrapper">#}
-                {#{{ form_widget(form.city, { 'attr': {'class': 'input'}}) }}#}
-                {#</div>#}
-            </div>
+            <div class="col c-1-2"></div>
         </div>
-        <div class="row r-2">
-            <div class="col c-1-2">
-                <div>{{ form_label(form.service, null, { 'label_attr': {'class': 'form-label'}}) }}</div>
+
+        <hr class="line-separator"/>
+        {% for hierarchy_level in get_setting('hierarchy_levels', 'plugin', 'metador_core') %}
+        <div class="row r-1">
+            <div class="col c-1">
+                <div>{{ form_label(form[hierarchy_level], null, { 'label_attr': {'class': 'form-label'}}) }}</div>
                 <div class="form-field-wrapper">
-                    {{ form_widget(form.service, { 'attr': {'class': 'input'}}) }}
-                </div>
-            </div>
-            <div class="col c-1-2">
-                <div>{{ form_label(form.dataset, null, { 'label_attr': {'class': 'form-label'}}) }}</div>
-                <div class="form-field-wrapper">
-                    {{ form_widget(form.dataset, { 'attr': {'class': 'input'}}) }}
+                    {{ form_widget(form[hierarchy_level], { 'attr': {'class': 'input'}}) }}
                 </div>
             </div>
         </div>
-        <div class="row r-2">
-            <div class="col c-1-2">
-                <div>{{ form_label(form.series, null, { 'label_attr': {'class': 'form-label'}}) }}</div>
-                <div class="form-field-wrapper">
-                    {{ form_widget(form.series, { 'attr': {'class': 'input'}}) }}
-                </div>
-            </div>
-            <div class="col c-1-2">
-                <div>{{ form_label(form.tile, null, { 'label_attr': {'class': 'form-label'}}) }}</div>
-                <div class="form-field-wrapper">
-                    {{ form_widget(form.tile, { 'attr': {'class': 'input'}}) }}
-                </div>
-            </div>
-        </div>
+        {%  endfor %}
         <hr class="line-separator"/>
         <div class="row r-1">
             <div class="col c-1">
