@@ -155,10 +155,21 @@ class CswType extends AbstractType
                 return isset($textAsString) ? preg_split('/\s?,\s?/', trim($textAsString)) : array();
             }
         );
+        $stringAssocArrayTransformer = new CallbackTransformer(
+            function ($textAsArray) {
+                return ''; // ignore value after FormEvents::PRE_SET_DATA and FormEvents::PRE_SUBMIT
+            },
+            function ($textAsString) {
+                return isset($textAsString) ? $textAsString : array(); // use value before data store
+            }
+        );
+        $builder->get('profileMapping')->addModelTransformer($stringAssocArrayTransformer);
         $builder->get('keywords')->addModelTransformer($stringArrayTransformer);
         $builder->get('accessConstraints')->addModelTransformer($stringArrayTransformer);
         $fields = $this->config->get('hierarchy_levels', 'plugin', 'metador_core');
-        $builder->addEventListener(FormEvents::PRE_SET_DATA, function (FormEvent $event) use ($fields, $profiles) {
+        $builder->addEventListener(
+            FormEvents::PRE_SET_DATA,
+            function (FormEvent $event) use ($fields, $profiles) {
             /**
              * @var Csw
              */
@@ -166,14 +177,8 @@ class CswType extends AbstractType
             if (null === $data) {
                 return;
             }
+            $pm = $data->getProfileMapping();
             $form = $event->getForm();
-            $pm = array();
-            if (is_array($data->getProfileMapping())) {
-                $pm = $data->getProfileMapping();
-            } elseif (is_string($data->getProfileMapping())) {
-                $pm = unserialize($data->getProfileMapping());
-            }
-
             foreach ($fields as $field) {
                 $_data = '';
                 if ($pm && isset($pm[$field])) {
@@ -189,7 +194,8 @@ class CswType extends AbstractType
             }
         });
 
-        $builder->addEventListener(FormEvents::PRE_SUBMIT,
+        $builder->addEventListener(
+            FormEvents::PRE_SUBMIT,
             function (FormEvent $event) use ($fields, $profiles) {
                 $data = $event->getData();
                 if (null === $data) {
@@ -197,15 +203,14 @@ class CswType extends AbstractType
                 }
                 $pm = array();
                 foreach ($fields as $field) {
-                    if (isset($data[$field])) {
+                    if (isset($data[$field]) && $data[$field]) {
                         $pm[$field] = $data[$field];
                     }
                 }
-                $data['profileMapping'] = serialize($pm);
+                $data['profileMapping'] = $pm;
                 $event->setData($data);
                 $form = $event->getForm();
-                $form->remove('profileMapping');
-                $form->add('profileMapping', HiddenType::class);
+                $form->get('profileMapping')->setData($pm);
             }
         );
     }
