@@ -55,7 +55,6 @@ final class GetCapabilities extends AOperation
         parent::__construct($entity);
         $this->urlBasic = $urlBasic;
         $this->urlTransaction = $urlTAction;
-        $this->template = 'CatalogueServiceBundle:CSW:getcapabilities_response.xml.twig';
         $this->section = array();
     }
 
@@ -97,12 +96,10 @@ final class GetCapabilities extends AOperation
         return $this;
     }
 
-
-
     /**
      * {@inheritdoc}
      */
-    public static function getGETParameterMap()
+    public function getGETParameterMap()
     {
         return array_keys(self::$parameterMap);
     }
@@ -110,7 +107,7 @@ final class GetCapabilities extends AOperation
     /**
      * {@inheritdoc}
      */
-    public static function getPOSTParameterMap()
+    public function getPOSTParameterMap()
     {
         $parameters = array();
         foreach (self::$parameterMap as $key => $value) {
@@ -196,18 +193,5 @@ final class GetCapabilities extends AOperation
             $this->exceptions[] = new CswException('acceptVersion', CswException::VersionNegotiationFailed);
         }
         parent::validateParameter();
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    protected function render($templating)
-    {
-        return $templating->render(
-            $this->template,
-            array(
-                'getcap' => $this,
-            )
-        );
     }
 }

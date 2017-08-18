@@ -26,20 +26,7 @@ class GetRecordById extends AFindRecord
     /**
      * {@inheritdoc}
      */
-    protected $name = 'GetRecordById';
-
-    /**
-     * {@inheritdoc}
-     */
-    public function __construct(\Plugins\WhereGroup\CatalogueServiceBundle\Entity\Csw $entity = null)
-    {
-        parent::__construct($entity);
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public static function getGETParameterMap()
+    public function getGETParameterMap()
     {
         return array_keys(self::$parameterMap);
     }
@@ -47,7 +34,7 @@ class GetRecordById extends AFindRecord
     /**
      * {@inheritdoc}
      */
-    public static function getPOSTParameterMap()
+    public function getPOSTParameterMap()
     {
         $parameters = array();
         foreach (self::$parameterMap as $key => $value) {
@@ -94,38 +81,5 @@ class GetRecordById extends AFindRecord
             default:
                 parent::setParameter($name, $value);
         }
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    protected function render($templating)
-    {
-        $xml = '';
-
-        try {
-            foreach ($this->id as $id) {
-                $record = $this->csw->getMetadata()->getByUUID($id);
-
-                if (!$record->getPublic()) {
-                    // TODO: maby exception
-                    continue;
-                }
-
-                // GET Template
-                $className = $this->csw->container->get('metador_plugin')->getPluginClassName($record->getProfile());
-                $xml .= "\n".$this->csw->getTemplating()->render(
-                        $className.":Export:metadata.xml.twig",
-                        array('p' => $record->getObject())
-                    );
-            }
-        } catch (\Exception $e) {
-            throw new CswException('id', CswException::NoApplicableCode);
-        }
-
-        return "<?xml version=\"1.0\" encoding=\"UTF-8\"?>
-            <csw:GetRecordByIdResponse xmlns:csw=\"http://www.opengis.net/cat/csw/2.0.2\">
-                $xml
-            </csw:GetRecordByIdResponse>";
     }
 }

@@ -7,24 +7,28 @@ use Plugins\WhereGroup\CatalogueServiceBundle\Component\Csw;
 use Plugins\WhereGroup\CatalogueServiceBundle\Component\CswException;
 
 /**
- * {@inheritdoc}
- *
- * @author Paul Schmidt<panadium@gmx.de>
+ * Class GetParameterHandler
+ * @package Plugins\WhereGroup\CatalogueServiceBundle\Component\Parameter
+ * @author Paul Schmidt <panadium@gmx.de>
  */
-class GetParameterHandler
+class GetParameterHandler implements IParameterHandler
 {
     /**
      * @var array
      */
     private $requestParameters;
 
+    /**
+     * GetParameterHandler constructor.
+     * @param array $requestParameters
+     */
     public function __construct(array $requestParameters)
     {
         $this->requestParameters = $requestParameters;
     }
 
     /**
-     * @return string
+     * {@inheritdoc}
      */
     public function getOperationName()
     {
@@ -32,8 +36,7 @@ class GetParameterHandler
     }
 
     /**
-     * @param AOperation $operation
-     * @return AOperation
+     * {@inheritdoc}
      */
     public function initOperation(AOperation $operation)
     {
@@ -48,7 +51,6 @@ class GetParameterHandler
 
         return $operation;
     }
-
 
     /**
      * @param $name

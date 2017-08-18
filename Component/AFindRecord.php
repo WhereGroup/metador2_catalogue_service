@@ -17,7 +17,7 @@ abstract class AFindRecord extends AOperation
     const ELEMENTSET_SUMMARY = 'summary';
     const ELEMENTSET_FULL = 'full';
 
-    const ELEMENTSETNAME = array('brief', 'summary', 'full');
+    const ELEMENTSET = array('brief', 'summary', 'full');
     const RESULTTYPE = array('hits', 'results', 'validate');
 
     /**
@@ -61,6 +61,9 @@ abstract class AFindRecord extends AOperation
         return $this;
     }
 
+    /**
+     * @return string
+     */
     public function getElementSetName()
     {
         return $this->elementSetName;
@@ -72,7 +75,7 @@ abstract class AFindRecord extends AOperation
      */
     public function setElementSetName($elementSetName)
     {
-        if (self::isStringAtList('ElementSetName', $elementSetName, self::ELEMENTSETNAME, false)) {
+        if (self::isStringAtList('ElementSetName', $elementSetName, self::ELEMENTSET, false)) {
             $this->elementSetName = $elementSetName;
         }
 

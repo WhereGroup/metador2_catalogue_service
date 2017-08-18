@@ -27,6 +27,8 @@
             <argument type="service" id="doctrine.orm.default_entity_manager" />
             <argument type="service" id="request_stack" />
             <argument type="service" id="router" />
+            <argument type="service" id="metador_plugin" />
+            <argument type="service" id="metador_metadata" />
         </service>
 
         <!-- EVENTLISTENER -->

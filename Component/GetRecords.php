@@ -2,15 +2,10 @@
 
 namespace Plugins\WhereGroup\CatalogueServiceBundle\Component;
 
-//use Doctrine\ORM\Query\Expr\Select;
-//use Doctrine\ORM\Query\Expr\From;
-use Doctrine\ORM\Query\Expr;
-use Plugins\WhereGroup\CatalogueServiceBundle\Component\Filter\FilterCapabilities;
-
 /**
- * The class GetRecords is a representation of the OGC CSW GetCapabilities operation.
- *
- * @author Paul Schmidt<panadium@gmx.de>
+ * Class GetRecords
+ * @package Plugins\WhereGroup\CatalogueServiceBundle\Component
+ * @author Paul Schmidt <panadium@gmx.de>
  */
 class GetRecords extends AFindRecord
 {
@@ -80,7 +75,7 @@ class GetRecords extends AFindRecord
     /**
      * {@inheritdoc}
      */
-    public static function getGETParameterMap()
+    public function getGETParameterMap()
     {
         return array_merge(array('constraintLanguage'), array_values(self::$parameterMap));
     }
@@ -88,7 +83,7 @@ class GetRecords extends AFindRecord
     /**
      * {@inheritdoc}
      */
-    public static function getPOSTParameterMap()
+    public function getPOSTParameterMap()
     {
         return self::$parameterMap;
     }
@@ -307,7 +302,7 @@ class GetRecords extends AFindRecord
     /**
      * {@inheritdoc}
      */
-    protected function validateParameter()
+    public function validateParameter()
     {
         // check contstarint and constraintLanguage
         if ($this->constraint) {
@@ -348,76 +343,5 @@ class GetRecords extends AFindRecord
             }
         }
         return parent::validateParameter();
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    protected function render($templating)
-    {
-        $name           = 'm';
-        /** @var QueryBuilder $qb */
-        $qb             = $this->csw->getMetadata()->getQueryBuilder($name);
-        $filter         = new FilterCapabilities();
-        $parameters     = array();
-        $constarintsMap = array();
-        foreach ($this->constraintList as $key => $value) {
-            $constarintsMap = array_merge_recursive($constarintsMap, $value);
-        }
-        $constarintsMap = array_merge_recursive(
-            isset($this->geometryQueryables) ? $this->geometryQueryables : array(), $constarintsMap);
-
-        $num                         = count($parameters);
-        $finalExpr                   = new Expr\Comparison($name . '.public', '=', ':public' . $num);
-        $parameters['public' . $num] = true;
-        $filterExpr                  = null;
-        if ($this->constraint) {
-            $filterExpr = $filter->generateFilter($qb, $name, $constarintsMap, $parameters, $this->constraint);
-        }
-        $qb->select('count(' . $name . '.id)');
-        if ($filterExpr) {
-            $finalExpr = new Expr\Andx(array($filterExpr, $finalExpr));
-        }
-        $qb->add('where', $finalExpr)->setParameters($parameters);
-        $query    = $qb->getQuery();
-        $matched  = $qb->getQuery()->getSingleScalarResult();
-        $returned = $matched;
-        $results  = array();
-        if ($this->resultType === self::RESULTTYPE_RESULTS) {# || $this->resultType === self::RESULTTYPE_VALIDATE) {
-            $qb->select($name);
-            $qb->add('where', $finalExpr)->setParameters($parameters);
-            $qb->setFirstResult($this->startPosition - 1)
-                ->setMaxResults($this->maxRecords);
-            FilterCapabilities::generateSortBy($qb, $name, $constarintsMap, $this->sortBy);
-
-            $results  = $qb->getQuery()->getResult();
-            $returned = count($results);
-        }
-
-        $xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>
-<csw:GetRecordsResponse xmlns:ows=\"http://www.opengis.net/ows\"  xmlns:csw=\"http://www.opengis.net/cat/csw/2.0.2\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://www.opengis.net/cat/csw/2.0.2 http://schemas.opengis.net/csw/2.0.2/CSW-discovery.xsd\">";
-
-        $time = new \DateTime();
-        $timestamp = $time->format('Y-m-d\TH:i:s');
-
-        if (isset($this->requestId)) {
-            $xml .= "\n<csw:RequestId>" . $timestamp . "</csw:RequestId>";
-        }
-
-        $xml .= "\n<csw:SearchStatus timestamp=\"" . $timestamp . "\" />
-<csw:SearchResults numberOfRecordsMatched=\"" . $matched . "\" numberOfRecordsReturned=\"" . $returned . "\" elementSet=\"" . $this->elementSetName . "\" nextRecord=\"" . ($this->startPosition - 1) . "\">";
-
-        foreach ($results as $record) {
-            $className = $this->csw->container->get('metador_plugin')->getPluginClassName($record->getProfile());
-            $xml .= "\n" . $this->csw->getTemplating()->render(
-                $className . ":Export:metadata.xml.twig",
-                array('p' => $record->getObject())
-            );
-        }
-
-        $xml .= "\n</csw:SearchResults>
-</csw:GetRecordsResponse>";
-
-        return $xml;
     }
 }

@@ -71,12 +71,6 @@ abstract class AOperation
     protected $outputFormat;
 
     /**
-     * Template to response an operation result.
-     * @var string $template
-     */
-    protected $template;
-
-    /**
      * AOperation constructor.
      * @param \Plugins\WhereGroup\CatalogueServiceBundle\Entity\Csw $entity
      */
@@ -100,13 +94,13 @@ abstract class AOperation
      * Returns a parameter map.
      * @return array parameter map
      */
-    abstract public static function getGETParameterMap();
+    abstract public function getGETParameterMap();
 
     /**
      * Returns a parameter map.
      * @return array parameter map
      */
-    abstract public static function getPOSTParameterMap();
+    abstract public function getPOSTParameterMap();
 
     /**
      * Returns an opreation's name
@@ -228,7 +222,7 @@ abstract class AOperation
      * @return boolean true if all request parameter are valid otherwise false.
      * @throws \Plugins\WhereGroup\CatalogueServiceBundle\Component\CswException if a parameter isn't valid.
      */
-    protected function validateParameter()
+    public function validateParameter()
     {
         if ($this->version !== self::VERSION) {
             $this->addCswException('version', CswException::InvalidParameterValue);
@@ -253,22 +247,12 @@ abstract class AOperation
         foreach ($parameters as $key => $value) {
             $this->setParameter($key, $value);
         }
-        $this->validateParameter();
+//        $this->validateParameter(); // call manually
     }
 
     public function getContentSet()
     {
         return new ContentSet($this);
-    }
-
-    /**
-     * Creates and returns the operation result.
-     * @param $templating
-     * @return mixed
-     */
-    public function createResult($templating)
-    {
-        return $this->render($templating);
     }
 
     /**
@@ -409,11 +393,4 @@ abstract class AOperation
             return null;
         }
     }
-
-    /**
-     * Renders a operation's result and returns as string
-     * @param $templating
-     * @return mixed
-     */
-    abstract protected function render($templating);
 }

@@ -6,11 +6,11 @@ use Plugins\WhereGroup\CatalogueServiceBundle\Component\AOperation;
 use Plugins\WhereGroup\CatalogueServiceBundle\Component\CswException;
 
 /**
- * Description of GetHandler
- *
- * @author Paul Schmidt<panadium@gmx.de>
+ * Class PostDomParameterHandler
+ * @package Plugins\WhereGroup\CatalogueServiceBundle\Component\Parameter
+ * @author Paul Schmidt <panadium@gmx.de>
  */
-class PostDomParameterHandler// implements IParameterHandler
+class PostDomParameterHandler implements IParameterHandler
 {
     const EXTERNAL_PREFIX = 'my_prefix';
 
@@ -68,7 +68,7 @@ class PostDomParameterHandler// implements IParameterHandler
     }
 
     /**
-     * @return string
+     * {@inheritdoc}
      */
     public function getOperationName()
     {
@@ -76,7 +76,7 @@ class PostDomParameterHandler// implements IParameterHandler
     }
 
     /**
-     * @param AOperation $operation
+     * {@inheritdoc}
      */
     public function initOperation(AOperation $operation)
     {
@@ -85,21 +85,20 @@ class PostDomParameterHandler// implements IParameterHandler
         foreach ($parameterMap as $key => $value) {
             $parameters[$value] = $this->getParameter($key);
         }
-        $this->operation->setParameters($parameters);
+        $operation->setParameters($parameters);
     }
 
     /**
      * @param string $xpath
      * @return mixed|null
      */
-    protected function getParameter($xpath)
+    protected function getParameter($xpath, $contextElm = null, $allowSingle = true)
     {
         if (!$this->dom) {
             return null;
         }
-        $result = $this->getValue($xpath);
 
-        return $result;
+        return $this->getValue($xpath, $contextElm, $allowSingle);
     }
 
     /**
@@ -108,13 +107,13 @@ class PostDomParameterHandler// implements IParameterHandler
      * @param \DOMElement $contextElm the node to use as context for evaluating the XPath expression.
      * @return mixed
      */
-    protected function getValue($xpath, $contextElm = null)
+    protected function getValue($xpath, $contextElm = null, $allowSingle = true)
     {
         // DOMNodeList
         $list = $this->xpath->query($xpath, $contextElm ? $contextElm : $this->dom->documentElement);
         if ($list->length === 0) {
             return null;
-        } elseif ($list->length === 1) {
+        } elseif ($list->length === 1 && $allowSingle) {
             return $this->getNodeValue($list->item(0));
         } else {
             $result = array();

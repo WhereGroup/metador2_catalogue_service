@@ -23,7 +23,7 @@ class DescribeRecord extends AOperation
     /**
      * {@inheritdoc}
      */
-    public static function getGETParameterMap()
+    public function getGETParameterMap()
     {
         return array_keys(self::$parameterMap);
     }
@@ -31,7 +31,7 @@ class DescribeRecord extends AOperation
     /**
      * {@inheritdoc}
      */
-    public static function getPOSTParameterMap()
+    public function getPOSTParameterMap()
     {
         $parameters = array();
         foreach (self::$parameterMap as $key => $value) {
@@ -64,7 +64,6 @@ class DescribeRecord extends AOperation
     {
         parent::__construct($entity);
         $this->typeName = array('gmd:MD_Metadata');
-        $this->template = 'CatalogueServiceBundle:CSW:describerecord.xml.twig';
     }
 
     /**
@@ -107,18 +106,5 @@ class DescribeRecord extends AOperation
             default:
                 parent::setParameter($name, $value);
         }
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    protected function render($templating)
-    {
-        return $templating->render(
-            $this->template,
-            array(
-                'descrec' => $this,
-            )
-        );
     }
 }
