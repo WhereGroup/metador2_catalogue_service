@@ -32,6 +32,12 @@ class Csw
     protected $source;
 
     /**
+     * @var string $username user name
+     * @ORM\Column(type="string", nullable=true)
+     */
+    protected $username;
+
+    /**
      * @var string $title ServiceIdentification title
      * @ORM\Column(type="string", nullable=true)
      */
@@ -249,6 +255,30 @@ class Csw
     public function getSource()
     {
         return $this->source;
+    }
+
+    /**
+     * Set username
+     *
+     * @param string $username
+     *
+     * @return Csw
+     */
+    public function setUsername($username)
+    {
+        $this->username = $username;
+
+        return $this;
+    }
+
+    /**
+     * Get username
+     *
+     * @return string
+     */
+    public function getUsername()
+    {
+        return $this->username;
     }
 
     /**

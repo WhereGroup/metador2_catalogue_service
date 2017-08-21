@@ -40,8 +40,8 @@ and form.vars.value.source is defined and form.vars.value.source is not empty %}
     {% endif %}
 
     <div class="grid space responsive">
-        <div class="row r-2">
-            <div class="col c-1-2">
+        <div class="row r-3">
+            <div class="col c-1-3">
                 <div>{{ form_label(form.slug, null, { 'label_attr': {'class': 'form-label'}}) }}</div>
                 <div class="form-field-wrapper">
                     {% if form.vars.value.slug is defined and form.vars.value.slug is not empty %}
@@ -52,10 +52,16 @@ and form.vars.value.source is defined and form.vars.value.source is not empty %}
                     {% endif %}
                 </div>
             </div>
-            <div class="col c-1-2">
+            <div class="col c-1-3">
                 <div>{{ form_label(form.source, null, { 'label_attr': {'class': 'form-label'}}) }}</div>
                 <div class="form-field-wrapper">
                     {{ form_widget(form.source, { 'attr': {'class': 'input'}}) }}
+                </div>
+            </div>
+            <div class="col c-1-3">
+                <div>{{ form_label(form.username, null, { 'label_attr': {'class': 'form-label'}}) }}</div>
+                <div class="form-field-wrapper">
+                    {{ form_widget(form.username, { 'attr': {'class': 'input'}}) }}
                 </div>
             </div>
         </div>

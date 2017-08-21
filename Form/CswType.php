@@ -16,6 +16,7 @@ use Symfony\Component\Form\FormEvent;
 use Symfony\Component\Form\FormEvents;
 use WhereGroup\CoreBundle\Component\Configuration;
 use WhereGroup\CoreBundle\Component\Source;
+use WhereGroup\UserBundle\Component\User;
 
 /**
  * Class CswType
@@ -26,15 +27,21 @@ class CswType extends AbstractType
     private $source;
     private $config;
     private $plugin;
+    private $user;
 
     /**
      * CswController constructor.
      * @param Source $source
      */
-    public function __construct(Source $source, Configuration $config, $plugin = null)
-    {
+    public function __construct(
+        Source $source,
+        Configuration $config,
+        User $user,
+        $plugin = null
+    ) {
         $this->source = $source;
         $this->config = $config;
+        $this->user   = $user;
         $this->plugin = $plugin;
     }
 
@@ -49,6 +56,11 @@ class CswType extends AbstractType
      */
     public function buildForm(FormBuilderInterface $builder, array $options)
     {
+        $users = array();
+        foreach ($this->user->findAll() as $user) {
+            $users[$user->getUsername()] = $user->getUsername();
+        }
+
         $profiles = array_combine(
             array_keys($this->plugin->getActiveProfiles()),
             array_keys($this->plugin->getActiveProfiles())
@@ -62,6 +74,11 @@ class CswType extends AbstractType
                 'label' => 'Quelle',
                 'required' => true,
                 'choices' => $this->source->allValues(),
+            ))
+            ->add('username', ChoiceType::class, array(
+                'label' => 'Benutzer',
+                'required' => true,
+                'choices' => $users
             ))
             ->add('abstract', TextareaType::class, array(
                 'label' => 'Beschreibung',
