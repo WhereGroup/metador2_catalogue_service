@@ -7,10 +7,12 @@ use Doctrine\ORM\Query\Expr;
 use Plugins\WhereGroup\CatalogueServiceBundle\Component\Parameter\IParameterHandler;
 use Plugins\WhereGroup\CatalogueServiceBundle\Component\Parameter\TransactionParameterHandler;
 use Plugins\WhereGroup\CatalogueServiceBundle\Entity\Csw as CswEntity;
+use Symfony\Bundle\TwigBundle\TwigEngine;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Routing\RouterInterface;
+use WhereGroup\CoreBundle\Component\Logger;
 use WhereGroup\CoreBundle\Component\Metadata;
 use WhereGroup\PluginBundle\Component\Plugin;
 
@@ -45,6 +47,16 @@ class Csw
     private $kernel;
 
     /**
+     * @var
+     */
+    private $templating;
+
+    /**
+     * @var Logger
+     */
+    private $logger;
+
+    /**
      * @var Plugin
      */
     private $plugin;
@@ -65,6 +77,8 @@ class Csw
         EntityManagerInterface $em,
         RequestStack $requestStack,
         RouterInterface $router,
+        TwigEngine $templating,
+        Logger $logger,
         Plugin $plugin,
         Metadata $metadata
     ) {
@@ -72,6 +86,8 @@ class Csw
         $this->repo = $em->getRepository(self::ENTITY);
         $this->requestStack = $requestStack;
         $this->router = $router;
+        $this->templating = $templating;
+        $this->logger = $logger;
         $this->plugin = $plugin;
         $this->metadata = $metadata;
     }
@@ -82,9 +98,13 @@ class Csw
     public function __destruct()
     {
         unset(
+            $this->kernel,
             $this->repo,
             $this->requestStack,
-            $this->router
+            $this->router,
+            $this->logger,
+            $this->plugin,
+            $this->metadata
         );
     }
 
@@ -143,7 +163,7 @@ class Csw
      * @return mixed|DescribeRecord|GetRecordById|GetRecords
      * @throws CswException
      */
-    public function doBasic(CswEntity $entity, IParameterHandler $handler, $templating)
+    public function doBasic(CswEntity $entity, IParameterHandler $handler)
     {
         $operationName = $handler->getOperationName();
         switch ($operationName) {
@@ -158,9 +178,9 @@ class Csw
                     $this->router->generate('csw_manager', $params, UrlGeneratorInterface::ABSOLUTE_URL)
                 );
 
-                return $this->doGetCapabilities($handler, $getCapabilities, $templating);
+                return $this->doGetCapabilities($handler, $getCapabilities);
             case 'DescribeRecord':
-                return $this->doDescribeRecord($handler, new DescribeRecord($entity), $templating);
+                return $this->doDescribeRecord($handler, new DescribeRecord($entity));
             case 'GetRecordById':
                 return new GetRecordById($entity);
             case 'GetRecords':
@@ -173,15 +193,14 @@ class Csw
     /**
      * @param IParameterHandler $handler
      * @param GetCapabilities $operation
-     * @param $templating
      * @return mixed
      */
-    public function doGetCapabilities(IParameterHandler $handler, GetCapabilities $operation, $templating)
+    public function doGetCapabilities(IParameterHandler $handler, GetCapabilities $operation)
     {
         $handler->initOperation($operation);
         $operation->validateParameter();
 
-        return $templating->render(
+        return $this->templating->render(
             'CatalogueServiceBundle:CSW:getcapabilities_response.xml.twig',
             array(
                 'getcap' => $operation,
@@ -192,15 +211,14 @@ class Csw
     /**
      * @param IParameterHandler $handler
      * @param DescribeRecord $operation
-     * @param $templating
      * @return mixed
      */
-    public function doDescribeRecord(IParameterHandler $handler, DescribeRecord $operation, $templating)
+    public function doDescribeRecord(IParameterHandler $handler, DescribeRecord $operation)
     {
         $handler->initOperation($operation);
         $operation->validateParameter();
 
-        return $templating->render(
+        return $this->templating->render(
             'CatalogueServiceBundle:CSW:describerecord.xml.twig',
             array(
                 'descrec' => $operation,
@@ -211,10 +229,9 @@ class Csw
     /**
      * @param IParameterHandler $handler
      * @param GetRecordById $operation
-     * @param $templating
      * @return mixed
      */
-    public function doGetRecordById(IParameterHandler $handler, GetRecordById $operation, $templating)
+    public function doGetRecordById(IParameterHandler $handler, GetRecordById $operation)
     {
         $handler->initOperation($operation);
         $operation->validateParameter();
@@ -250,10 +267,9 @@ class Csw
     /**
      * @param IParameterHandler $handler
      * @param GetRecords $operation
-     * @param $templating
      * @return mixed
      */
-    public function doGetRecords(IParameterHandler $handler, GetRecords $operation, $templating)
+    public function doGetRecords(IParameterHandler $handler, GetRecords $operation)
     {
         $handler->initOperation($operation);
         $operation->validateParameter();
@@ -324,7 +340,7 @@ class Csw
         return $xml;
     }
 
-    public function doTransaction(CswEntity $entity, TransactionParameterHandler $handler, $templating)
+    public function doTransaction(CswEntity $entity, TransactionParameterHandler $handler)
     {
 //        $handler = new TransactionParameterHandler($xmlString);
         $operationName = $handler->getOperationName();
@@ -336,54 +352,93 @@ class Csw
         while (($action = $handler->nextAction($operation))) {
             switch ($action->getType()) {
                 case Transaction::INSERT:
-                    $this->doInsert($entity, $action, $handler);
+                    $inserted = $this->doInsert($entity, $action, $handler);
+                    $operation->addInserted($inserted);
                     break;
                 case Transaction::UPDATE:
-                    $this->doUpdate($action);
+                    $updated = $this->doUpdate($entity, $action, $handler);
+                    $operation->addUpdated($updated);
                     break;
                 case Transaction::DELETE:
-                    $this->doDelete($action);
+                    $deleted = $this->doDelete($entity, $action, $handler);
+                    $operation->addDeleted($deleted);
                     break;
             }
         }
+        return $this->templating->render(
+            'CatalogueServiceBundle:CSW:transaction_response.xml.twig',
+            array(
+                'ta' => $operation,
+            )
+        );
     }
 
+    /**
+     * @param CswEntity $entity
+     * @param TransactionAction $action
+     * @param TransactionParameterHandler $handler
+     * @return int
+     */
     public function doInsert(CswEntity $entity, TransactionAction $action, TransactionParameterHandler $handler)
     {
+        $inserted = 0;
         foreach ($action->getItems() as $mdElm) {
             $hl = $handler->valueFor('./gmd:hierarchyLevel[1]/gmd:MD_ScopeCode/text()', $mdElm);
             $hls = $entity->getProfileMapping();
             if (isset($hls[$hl])) {
                 $xml = $mdElm->ownerDocument->saveXML($mdElm);
                 $plugin = $this->plugin->getPlugin($hls[$hl]);
-                $file = $this->kernel->locateResource('@'.$plugin['class_name'].'/Resources/import/metadata.xml.json');
-                $parser = new XmlParser($xml, new XmlParserFunctions());
-                $array = $parser
-                    ->loadSchema(file_get_contents($file))
-                    ->parse();
-//                return isset($array['p']) ? $array['p'] : array();
-                $this->metadata->saveObject(isset($array['p']) ? $array['p'] : array());
+//                $file = $this->kernel->locateResource('@'.$plugin['class_name'].'/Resources/import/metadata.xml.json');
+//                $parser = new XmlParser($xml, new XmlParserFunctions());
+//                $array = $parser
+//                    ->loadSchema(file_get_contents($file))
+//                    ->parse();
+////                return isset($array['p']) ? $array['p'] : array();
+//                $this->metadata->saveObject(isset($array['p']) ? $array['p'] : array());
+                $inserted++;
+            } else {
+                $this->log($entity, 'warning', 'insert', '', 'Type: $hl ist nicht unterstützt');
+            }
+        }
+        return $inserted;
+    }
+
+    /**
+     * @param CswEntity $entity
+     * @param TransactionAction $action
+     * @param TransactionParameterHandler $handler
+     * @return int
+     */
+    public function doUpdate(CswEntity $entity, TransactionAction $action, TransactionParameterHandler $handler)
+    {
+        $updated = 0;
+        foreach ($action->getItems() as $mdElm) {
+            $hl = $handler->valueFor('./gmd:hierarchyLevel[1]/gmd:MD_ScopeCode/text()', $mdElm);
+            $ident = $handler->valueFor('./gmd:fileIdentifier/gco:CharacterString/text()', $mdElm);
+            $hls = $entity->getProfileMapping();
+            if (isset($hls[$hl])) {
+
             } else {
                 // TODO log unsupported hierarchyLevel
+//                $this->logger->warning()
             }
-//            $entity->get
-//
-//
         }
+        return $updated;
     }
 
-    public function doUpdate(TransactionAction $action)
+    /**
+     * @param CswEntity $entity
+     * @param TransactionAction $action
+     * @param TransactionParameterHandler $handler
+     * @return int
+     */
+    public function doDelete(CswEntity $entity, TransactionAction $action, TransactionParameterHandler $handler)
     {
-        foreach ($action->getItems() as $item) {
-            // TODO do update
-        }
-    }
-
-    public function doDelete(TransactionAction $action)
-    {
+        $deleted = 0;
         foreach ($action->getItems() as $item) {
             // TODO do delete
         }
+        return $deleted;
     }
 //
 //    private function parseElement()
@@ -400,5 +455,27 @@ class Csw
     protected function getSchemaFile($pluginClassName)
     {
         return $this->kernel->locateResource('@'.$pluginClassName.'/Resources/import/metadata.xml.json');
+    }
+
+    /**
+     * @param CswEntity $entity
+     * @param string $type
+     * @param string $operation
+     * @param string $identifier
+     * @param string $message
+     */
+    private function log(CswEntity $entity, $type, $operation, $identifier, $message)
+    {
+        $log = $this->logger->newLog();
+        $log
+            ->setType($type)//('warning')
+            ->setCategory('application')
+            ->setSubcategory('csw')
+            ->setOperation($operation)//('insert')
+            ->setSource($entity->getSource())//('')
+            ->setIdentifier($identifier)//('')
+            ->setMessage($message)//('test')
+            ->setUser($entity->getUsername());//('');
+        $this->logger->set($log);
     }
 }

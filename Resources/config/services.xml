@@ -27,6 +27,8 @@
             <argument type="service" id="doctrine.orm.default_entity_manager" />
             <argument type="service" id="request_stack" />
             <argument type="service" id="router" />
+            <argument type="service" id="templating" />
+            <argument type="service" id="metador_logger" />
             <argument type="service" id="metador_plugin" />
             <argument type="service" id="metador_metadata" />
         </service>
@@ -40,6 +42,7 @@
         <service id="csw_form_type" class="%csw.form.type.class%">
             <argument type="service" id="metador_source" />
             <argument type="service" id="metador_configuration" />
+            <argument type="service" id="metador_user" />
             <argument type="service" id="metador_plugin" />
             <tag name="form.type" alias="task" />
         </service>

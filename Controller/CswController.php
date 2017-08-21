@@ -62,7 +62,7 @@ class CswController extends Controller
             } else {
                 $handler = new PostDomParameterHandler($request->getContent());
             }
-            $content = $cswService->doBasic($entity, $handler, $this->get('templating'));
+            $content = $cswService->doBasic($entity, $handler);
         } catch (CswException $ex) {
             $content = $this->get('templating')->render(
                 "CatalogueServiceBundle:CSW:exception.xml.twig",
@@ -114,7 +114,7 @@ class CswController extends Controller
         $content = null;
         try {
             $handler = new TransactionParameterHandler($request->getContent());
-            $content = $cswService->doTransaction($entity, $handler, $this->get('templating'));
+            $content = $cswService->doTransaction($entity, $handler);
         } catch (CswException $ex) {
             $content = $this->get('templating')->render(
                 "CatalogueServiceBundle:CSW:exception.xml.twig",

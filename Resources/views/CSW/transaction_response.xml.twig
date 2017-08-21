@@ -5,7 +5,7 @@
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         version="2.0.2"
         xsi:schemaLocation="http://www.opengis.net/cat/csw/2.0.2 http://schemas.opengis.net/csw/2.0.2/CSW-discovery.xsd">
-    <csw:TransactionSummary{%  if ta.requestId is defined %} requestId="{{ ta.requestId }}"{% endif %}>
+    <csw:TransactionSummary{%  if ta.requestId is not null %} requestId="{{ ta.requestId }}"{% endif %}>
         {%  if ta.inserted > 0 %}
         <csw:totalInserted>{{ ta.inserted }}</csw:totalInserted>
         {% endif %}
@@ -16,7 +16,9 @@
         <csw:totalDeleted>{{ ta.deleted }}</csw:totalDeleted>
         {% endif %}
     </csw:TransactionSummary>
-    <!--<csw:InsertResult handleRef="">-->
+{#
+    <csw:InsertResult handleRef="">
         <!-- optional -->
-    <!--</csw:InsertResult>-->
+    </csw:InsertResult>
+#}
 </csw:TransactionResponse>

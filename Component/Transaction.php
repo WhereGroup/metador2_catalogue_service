@@ -63,7 +63,20 @@ class Transaction extends AOperation
      */
     private $verboseResponse;
 
-    private $transactions;
+    /**
+     * @var integer
+     */
+    private $inserted;
+
+    /**
+     * @var integer
+     */
+    private $updated;
+
+    /**
+     * @var integer
+     */
+    private $deleted;
 
     /**
      * {@inheritdoc}
@@ -72,7 +85,10 @@ class Transaction extends AOperation
     {
         parent::__construct($entity);
         $this->verboseResponse = false;
-        $this->transactions = array();
+        $this->requestId = null;
+        $this->inserted = 0;
+        $this->updated = 0;
+        $this->deleted = 0;
     }
 
     /**
@@ -96,7 +112,8 @@ class Transaction extends AOperation
      * @return bool
      * @throws CswException
      */
-    public function isTypeSupported($type){
+    public function isTypeSupported($type)
+    {
         switch ($type) {
             case self::INSERT:
                 return $this->isInsertSupported();
@@ -173,22 +190,64 @@ class Transaction extends AOperation
 
         return $this;
     }
-//
-//    /**
-//     * @param \DOMNodeList $list
-//     */
-//    public function addInsert(\DOMNodeList $list){
-//        $this->isInsertSupported();
-//        $this->transactions[] = array(self::INSERT => $list);
-//    }
-//
-//    /**
-//     * @param \DOMNodeList $list
-//     */
-//    public function addUpdate(\DOMNodeList $list){
-//        $this->isInsertSupported();
-//        $this->transactions[] = array(self::INSERT => $list);
-//    }
+
+    /**
+     * @return int
+     */
+    public function getInserted()
+    {
+        return $this->inserted;
+    }
+
+    /**
+     * @param int $inserted
+     * @return $this
+     */
+    public function addInserted($inserted = 1)
+    {
+        $this->inserted += $inserted;
+
+        return $this;
+    }
+
+    /**
+     * @return int
+     */
+    public function getUpdated()
+    {
+        return $this->updated;
+    }
+
+    /**
+     * @param int $updated
+     * @return Transaction
+     */
+    public function addUpdated($updated = 1)
+    {
+        $this->updated += $updated;
+
+        return $this;
+    }
+
+    /**
+     * @return int
+     */
+    public function getDeleted()
+    {
+        return $this->deleted;
+    }
+
+    /**
+     * @param int $deleted
+     * @return Transaction
+     */
+    public function addDeleted($deleted = 1)
+    {
+        $this->deleted += $deleted;
+
+        return $this;
+    }
+
 
     /**
      * {@inheritdoc}
@@ -214,12 +273,5 @@ class Transaction extends AOperation
             default:
                 parent::setParameter($name, $value);
         }
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    protected function render($templating)
-    {
     }
 }
