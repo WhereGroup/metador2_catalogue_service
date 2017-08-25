@@ -1,10 +1,4 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: paul
- * Date: 16.08.17
- * Time: 17:21
- */
 
 namespace Plugins\WhereGroup\CatalogueServiceBundle\Component;
 

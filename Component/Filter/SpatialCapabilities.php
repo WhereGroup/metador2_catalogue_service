@@ -23,13 +23,13 @@ class SpatialCapabilities extends AOperator
 //        'Beyond',
 //        'Contains',
 //        'Crosses',
-        'Disjoint',
+//        'Disjoint',
 //        'DWithin',
 //        'Equals',
         'Intersects',
 //        'Overlaps',
 //        'Touches',
-//        'Within'
+        'Within' // ST_Within(geometry A, geometry B) -> A is completely inside geometry B
     );
     public static $operands  = array(
         'gml:Envelope',

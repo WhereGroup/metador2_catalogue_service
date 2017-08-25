@@ -7,7 +7,7 @@ namespace Plugins\WhereGroup\CatalogueServiceBundle\Component;
  *
  * @author Paul Schmidt<panadium@gmx.de>
  */
-abstract class AOperation
+abstract class Operation
 {
     public static $ALLOW_GET = true;
 
@@ -71,7 +71,7 @@ abstract class AOperation
     protected $outputFormat;
 
     /**
-     * AOperation constructor.
+     * Operation constructor.
      * @param \Plugins\WhereGroup\CatalogueServiceBundle\Entity\Csw $entity
      */
     public function __construct(\Plugins\WhereGroup\CatalogueServiceBundle\Entity\Csw $entity)
@@ -81,7 +81,7 @@ abstract class AOperation
     }
 
     /**
-     * AOperation destructor.
+     * Operation destructor.
      */
     public function __destruct()
     {

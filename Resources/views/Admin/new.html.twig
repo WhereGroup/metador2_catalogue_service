@@ -45,7 +45,6 @@ and form.vars.value.source is defined and form.vars.value.source is not empty %}
                 <div>{{ form_label(form.slug, null, { 'label_attr': {'class': 'form-label'}}) }}</div>
                 <div class="form-field-wrapper">
                     {% if form.vars.value.slug is defined and form.vars.value.slug is not empty %}
-                        {# slug is a primary key field #}
                         {{ form_widget(form.slug, { 'attr': {'class': 'input', 'readonly': 'readonly'}}) }}
                     {% else %}
                         {{ form_widget(form.slug, { 'attr': {'class': 'input'}}) }}

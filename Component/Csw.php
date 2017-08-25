@@ -4,16 +4,16 @@ namespace Plugins\WhereGroup\CatalogueServiceBundle\Component;
 
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Query\Expr;
-use Plugins\WhereGroup\CatalogueServiceBundle\Component\Parameter\IParameterHandler;
-use Plugins\WhereGroup\CatalogueServiceBundle\Component\Parameter\TransactionParameterHandler;
+use Plugins\WhereGroup\CatalogueServiceBundle\Component\Parameter\GetParameter;
+use Plugins\WhereGroup\CatalogueServiceBundle\Component\Parameter\Parameter;
+use Plugins\WhereGroup\CatalogueServiceBundle\Component\Parameter\PostDomParameter;
+use Plugins\WhereGroup\CatalogueServiceBundle\Component\Parameter\TransactionParameter;
 use Plugins\WhereGroup\CatalogueServiceBundle\Entity\Csw as CswEntity;
 use Symfony\Bundle\TwigBundle\TwigEngine;
-use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpKernel\KernelInterface;
-use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
-use Symfony\Component\Routing\RouterInterface;
 use WhereGroup\CoreBundle\Component\Logger;
-use WhereGroup\CoreBundle\Component\Metadata;
+use WhereGroup\CoreBundle\Component\Search\Expression;
+use WhereGroup\CoreBundle\Component\Search\Search;
 use WhereGroup\PluginBundle\Component\Plugin;
 
 /**
@@ -23,23 +23,11 @@ use WhereGroup\PluginBundle\Component\Plugin;
  */
 class Csw
 {
+    const ENTITY = "CatalogueServiceBundle:Csw";
     /**
      * @var \Doctrine\Common\Persistence\ObjectRepository|null|\Plugins\WhereGroup\CatalogueServiceBundle\Entity\CswRepository
      */
     private $repo = null;
-
-
-    const ENTITY = "CatalogueServiceBundle:Csw";
-
-    /**
-     * @var null|RequestStack
-     */
-    private $requestStack = null;
-
-    /**
-     * @var null|RouterInterface
-     */
-    private $router = null;
 
     /**
      * @var KernelInterface
@@ -61,35 +49,34 @@ class Csw
      */
     private $plugin;
 
-    /**
-     * @var Metadata
-     */
-    private $metadata;
+//    /**
+//     * @var Search
+//     */
+    private $metadataSearch;
 
     /**
      * Csw constructor.
+     * @param KernelInterface $kernel
      * @param EntityManagerInterface $em
-     * @param RequestStack $requestStack
-     * @param RouterInterface $router
+     * @param TwigEngine $templating
+     * @param Logger $logger
+     * @param Plugin $plugin
+     * @param Search $metadataSearch
      */
     public function __construct(
         KernelInterface $kernel,
         EntityManagerInterface $em,
-        RequestStack $requestStack,
-        RouterInterface $router,
         TwigEngine $templating,
         Logger $logger,
         Plugin $plugin,
-        Metadata $metadata
+        Search $metadataSearch
     ) {
         $this->kernel = $kernel;
         $this->repo = $em->getRepository(self::ENTITY);
-        $this->requestStack = $requestStack;
-        $this->router = $router;
         $this->templating = $templating;
         $this->logger = $logger;
         $this->plugin = $plugin;
-        $this->metadata = $metadata;
+        $this->metadataSearch = $metadataSearch;
     }
 
     /**
@@ -100,11 +87,9 @@ class Csw
         unset(
             $this->kernel,
             $this->repo,
-            $this->requestStack,
-            $this->router,
             $this->logger,
             $this->plugin,
-            $this->metadata
+            $this->metadataSearch
         );
     }
 
@@ -157,47 +142,43 @@ class Csw
     }
 
     /**
-     * @param CswEntity $entity
-     * @param IParameterHandler $handler
-     * @param $templating
-     * @return mixed|DescribeRecord|GetRecordById|GetRecords
-     * @throws CswException
+     * @param array $getParameters
+     * @return GetParameter
      */
-    public function doBasic(CswEntity $entity, IParameterHandler $handler)
+    public function readGetParameter(array $getParameters)
     {
-        $operationName = $handler->getOperationName();
-        switch ($operationName) {
-            case 'GetCapabilities':
-                $params = array(
-                    'source' => $entity->getSource(),
-                    'slug' => $entity->getSlug(),
-                );
-                $getCapabilities = new GetCapabilities(
-                    $entity,
-                    $this->router->generate('csw_default', $params, UrlGeneratorInterface::ABSOLUTE_URL),
-                    $this->router->generate('csw_manager', $params, UrlGeneratorInterface::ABSOLUTE_URL)
-                );
-
-                return $this->doGetCapabilities($handler, $getCapabilities);
-            case 'DescribeRecord':
-                return $this->doDescribeRecord($handler, new DescribeRecord($entity));
-            case 'GetRecordById':
-                return new GetRecordById($entity);
-            case 'GetRecords':
-                return new GetRecords($entity);
-            default:
-                throw new CswException('request', CswException::OperationNotSupported);
-        }
+        return new GetParameter($getParameters);
     }
 
     /**
-     * @param IParameterHandler $handler
-     * @param GetCapabilities $operation
-     * @return mixed
+     * @param $content
+     * @return PostParameter
      */
-    public function doGetCapabilities(IParameterHandler $handler, GetCapabilities $operation)
+    public function readPostParameter($content)
     {
-        $handler->initOperation($operation);
+        return new PostDomParameter($content);
+    }
+
+    /**
+     * @param $content
+     * @return TransactionParameter
+     */
+    public function readTransactionParameter($content)
+    {
+        return new TransactionParameter($content);
+    }
+
+    /**
+     * @param Parameter $parameter
+     * @param CswEntity $cswConfig
+     * @param string $url
+     * @param string $urlTransaction
+     * @return string
+     */
+    public function getCapabilities(Parameter $parameter, CswEntity $cswConfig, $url, $urlTransaction)
+    {
+        $operation = new GetCapabilities($cswConfig, $url, $urlTransaction);
+        $parameter->initOperation($operation);
         $operation->validateParameter();
 
         return $this->templating->render(
@@ -209,13 +190,14 @@ class Csw
     }
 
     /**
-     * @param IParameterHandler $handler
-     * @param DescribeRecord $operation
-     * @return mixed
+     * @param Parameter $parameter
+     * @param CswEntity $cswConfig
+     * @return string
      */
-    public function doDescribeRecord(IParameterHandler $handler, DescribeRecord $operation)
+    public function describeRecord(Parameter $parameter, CswEntity $cswConfig)
     {
-        $handler->initOperation($operation);
+        $operation = new DescribeRecord($cswConfig);
+        $parameter->initOperation($operation);
         $operation->validateParameter();
 
         return $this->templating->render(
@@ -227,51 +209,91 @@ class Csw
     }
 
     /**
-     * @param IParameterHandler $handler
-     * @param GetRecordById $operation
-     * @return mixed
+     * @param Parameter $parameter
+     * @param CswEntity $cswConfig
+     * @return string
+     * @throws \Exception
      */
-    public function doGetRecordById(IParameterHandler $handler, GetRecordById $operation)
+    public function getRecordById(Parameter $parameter, CswEntity $cswConfig)
     {
-        $handler->initOperation($operation);
+        $operation = new GetRecordById($cswConfig);
+        $parameter->initOperation($operation);
         $operation->validateParameter();
 
-        $xml = '';
-
-        try {
-            foreach ($this->id as $id) {
-                $record = $this->csw->getMetadata()->getByUUID($id);
-
-                if (!$record->getPublic()) {
-                    // TODO: maby exception
-                    continue;
-                }
-
-                // GET Template
-                $className = $this->csw->container->get('metador_plugin')->getPluginClassName($record->getProfile());
-                $xml .= "\n".$this->csw->getTemplating()->render(
-                        $className.":Export:metadata.xml.twig",
-                        array('p' => $record->getObject())
-                    );
+        /**
+         * @var Expression $expression
+         */
+        $expression = $this->metadataSearch->createExpression();
+        // add ids into expression
+        $uuid = $expression->inx('uuid', $operation->getId());
+        // add supported hierarchyLevels und profiles from given csw configuration into expression
+        $profileMapping = $cswConfig->getProfileMapping();
+        $or = array();
+        $pluginLocation = array();
+        foreach ($profileMapping as $hierarchyLevel => $profile) {
+            $or[] = $expression->andx(
+                array(
+                    $expression->equal('hierarchyLevel', $hierarchyLevel),
+                    $expression->equal('profile', $profile),
+                )
+            );
+            if (!isset($pluginLocation[$profile])) {
+                $plugin = $this->plugin->getPlugin($profile);
+                $pluginLocation[$profile] = array(
+                    'sf' => '@'.$plugin['class_name'].':Csw:',
+                    'full' => $this->kernel->locateResource('@'.$plugin['class_name'].'/Resources/'),
+                );
             }
-        } catch (\Exception $e) {
-            throw new CswException('id', CswException::NoApplicableCode);
         }
+        // add expression into Expression
+        $expression->setExpression(
+            $expression->andx(
+                array(
+                    $uuid,
+                    $expression->orx($or),
+                )
+            )
+        );
+        $this->metadataSearch
+            ->setPage(1)
+            ->setHits(100)// set max count for GetRecordById ???
+            ->setSource($cswConfig->getSource())
+//            ->setProfile('metador_service_profile')
+            ->setExpression($expression)
+            ->find();
+        switch ($operation->getElementSetName()) {
+            case 'full':
+                $templateName = 'record_iso_full.xml.twig';
+                break;
+            case 'summary':
+                $templateName = 'record_iso_summary.xml.twig';
+                break;
+            case 'brief':
+                $templateName = 'record_iso_brief.xml.twig';
+                break;
+        }
+        $test = $this->metadataSearch->getResult();
 
-        return "<?xml version=\"1.0\" encoding=\"UTF-8\"?>
-            <csw:GetRecordByIdResponse xmlns:csw=\"http://www.opengis.net/cat/csw/2.0.2\">
-                $xml
-            </csw:GetRecordByIdResponse>";
+        return $this->templating->render(
+            'CatalogueServiceBundle:CSW:recordbyid_response.xml.twig',
+            array(
+                'getredcordbyid' => $operation,
+                'pluginLocation' => $pluginLocation,
+                'templateName' => $templateName,
+                'records' => $this->metadataSearch->getResult(),
+            )
+        );
     }
 
     /**
-     * @param IParameterHandler $handler
-     * @param GetRecords $operation
-     * @return mixed
+     * @param Parameter $parameter
+     * @param CswEntity $cswConfig
+     * @return string
      */
-    public function doGetRecords(IParameterHandler $handler, GetRecords $operation)
+    public function getRecords(Parameter $parameter, CswEntity $cswConfig)
     {
-        $handler->initOperation($operation);
+        $operation = new DescribeRecord($cswConfig);
+        $parameter->initOperation($operation);
         $operation->validateParameter();
 
         $name = 'm';
@@ -314,7 +336,9 @@ class Csw
         }
 
         $xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>
-<csw:GetRecordsResponse xmlns:ows=\"http://www.opengis.net/ows\"  xmlns:csw=\"http://www.opengis.net/cat/csw/2.0.2\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://www.opengis.net/cat/csw/2.0.2 http://schemas.opengis.net/csw/2.0.2/CSW-discovery.xsd\">";
+<csw:GetRecordsResponse xmlns:ows=\"http://www.opengis.net/ows\"  xmlns:csw=\"http://www.opengis.net/cat/csw/2.0.2\"
+ xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"
+  xsi:schemaLocation=\"http://www.opengis.net/cat/csw/2.0.2 http://schemas.opengis.net/csw/2.0.2/CSW-discovery.xsd\">";
 
         $time = new \DateTime();
         $timestamp = $time->format('Y-m-d\TH:i:s');
@@ -324,7 +348,8 @@ class Csw
         }
 
         $xml .= "\n<csw:SearchStatus timestamp=\"".$timestamp."\" />
-<csw:SearchResults numberOfRecordsMatched=\"".$matched."\" numberOfRecordsReturned=\"".$returned."\" elementSet=\"".$this->elementSetName."\" nextRecord=\"".($this->startPosition - 1)."\">";
+<csw:SearchResults numberOfRecordsMatched=\"".$matched."\" numberOfRecordsReturned=\"".$returned
+            ."\" elementSet=\"".$this->elementSetName."\" nextRecord=\"".($this->startPosition - 1)."\">";
 
         foreach ($results as $record) {
             $className = $this->csw->container->get('metador_plugin')->getPluginClassName($record->getProfile());
@@ -340,31 +365,38 @@ class Csw
         return $xml;
     }
 
-    public function doTransaction(CswEntity $entity, TransactionParameterHandler $handler)
+    /**
+     * @param TransactionParameter $parameter
+     * @param CswEntity $cswConfig
+     * @return string
+     * @throws CswException
+     */
+    public function transaction(TransactionParameter $parameter, CswEntity $cswConfig)
     {
-//        $handler = new TransactionParameterHandler($xmlString);
-        $operationName = $handler->getOperationName();
+        $operation = new DescribeRecord($cswConfig);
+        $operationName = $parameter->getOperationName();
         if ($operationName !== 'Transaction') {
             throw new CswException('request', CswException::OperationNotSupported);
         }
-        $operation = new Transaction($entity);
-        $handler->initOperation($operation);
-        while (($action = $handler->nextAction($operation))) {
+        $operation = new Transaction($cswConfig);
+        $parameter->initOperation($operation);
+        while (($action = $parameter->nextAction($operation))) {
             switch ($action->getType()) {
                 case Transaction::INSERT:
-                    $inserted = $this->doInsert($entity, $action, $handler);
+                    $inserted = $this->doInsert($cswConfig, $action, $parameter);
                     $operation->addInserted($inserted);
                     break;
                 case Transaction::UPDATE:
-                    $updated = $this->doUpdate($entity, $action, $handler);
+                    $updated = $this->doUpdate($cswConfig, $action, $parameter);
                     $operation->addUpdated($updated);
                     break;
                 case Transaction::DELETE:
-                    $deleted = $this->doDelete($entity, $action, $handler);
+                    $deleted = $this->doDelete($cswConfig, $action, $parameter);
                     $operation->addDeleted($deleted);
                     break;
             }
         }
+
         return $this->templating->render(
             'CatalogueServiceBundle:CSW:transaction_response.xml.twig',
             array(
@@ -376,10 +408,10 @@ class Csw
     /**
      * @param CswEntity $entity
      * @param TransactionAction $action
-     * @param TransactionParameterHandler $handler
+     * @param TransactionParameter $handler
      * @return int
      */
-    public function doInsert(CswEntity $entity, TransactionAction $action, TransactionParameterHandler $handler)
+    public function doInsert(CswEntity $entity, TransactionAction $action, TransactionParameter $handler)
     {
         $inserted = 0;
         foreach ($action->getItems() as $mdElm) {
@@ -388,7 +420,7 @@ class Csw
             if (isset($hls[$hl])) {
                 $xml = $mdElm->ownerDocument->saveXML($mdElm);
                 $plugin = $this->plugin->getPlugin($hls[$hl]);
-//                $file = $this->kernel->locateResource('@'.$plugin['class_name'].'/Resources/import/metadata.xml.json');
+//               $file = $this->kernel->locateResource('@'.$plugin['class_name'].'/Resources/import/metadata.xml.json');
 //                $parser = new XmlParser($xml, new XmlParserFunctions());
 //                $array = $parser
 //                    ->loadSchema(file_get_contents($file))
@@ -400,61 +432,8 @@ class Csw
                 $this->log($entity, 'warning', 'insert', '', 'Type: $hl ist nicht unterstützt');
             }
         }
+
         return $inserted;
-    }
-
-    /**
-     * @param CswEntity $entity
-     * @param TransactionAction $action
-     * @param TransactionParameterHandler $handler
-     * @return int
-     */
-    public function doUpdate(CswEntity $entity, TransactionAction $action, TransactionParameterHandler $handler)
-    {
-        $updated = 0;
-        foreach ($action->getItems() as $mdElm) {
-            $hl = $handler->valueFor('./gmd:hierarchyLevel[1]/gmd:MD_ScopeCode/text()', $mdElm);
-            $ident = $handler->valueFor('./gmd:fileIdentifier/gco:CharacterString/text()', $mdElm);
-            $hls = $entity->getProfileMapping();
-            if (isset($hls[$hl])) {
-
-            } else {
-                // TODO log unsupported hierarchyLevel
-//                $this->logger->warning()
-            }
-        }
-        return $updated;
-    }
-
-    /**
-     * @param CswEntity $entity
-     * @param TransactionAction $action
-     * @param TransactionParameterHandler $handler
-     * @return int
-     */
-    public function doDelete(CswEntity $entity, TransactionAction $action, TransactionParameterHandler $handler)
-    {
-        $deleted = 0;
-        foreach ($action->getItems() as $item) {
-            // TODO do delete
-        }
-        return $deleted;
-    }
-//
-//    private function parseElement()
-//    {
-//        $parser = new XmlParser($xml, new XmlParserFunctions());
-//
-//        $array = $parser
-//            ->loadSchema(file_get_contents($this->getSchemaFile($pluginClassName)))
-//            ->parse();
-//
-//
-//        return isset($array['p']) ? $array['p'] : array();
-//    }
-    protected function getSchemaFile($pluginClassName)
-    {
-        return $this->kernel->locateResource('@'.$pluginClassName.'/Resources/import/metadata.xml.json');
     }
 
     /**
@@ -477,5 +456,50 @@ class Csw
             ->setMessage($message)//('test')
             ->setUser($entity->getUsername());//('');
         $this->logger->set($log);
+    }
+
+    /**
+     * @param CswEntity $entity
+     * @param TransactionAction $action
+     * @param TransactionParameter $handler
+     * @return int
+     */
+    public function doUpdate(CswEntity $entity, TransactionAction $action, TransactionParameter $handler)
+    {
+        $updated = 0;
+        foreach ($action->getItems() as $mdElm) {
+            $hl = $handler->valueFor('./gmd:hierarchyLevel[1]/gmd:MD_ScopeCode/text()', $mdElm);
+            $ident = $handler->valueFor('./gmd:fileIdentifier/gco:CharacterString/text()', $mdElm);
+            $hls = $entity->getProfileMapping();
+            if (isset($hls[$hl])) {
+
+            } else {
+                // TODO log unsupported hierarchyLevel
+//                $this->logger->warning()
+            }
+        }
+
+        return $updated;
+    }
+
+    /**
+     * @param CswEntity $entity
+     * @param TransactionAction $action
+     * @param TransactionParameter $handler
+     * @return int
+     */
+    public function doDelete(CswEntity $entity, TransactionAction $action, TransactionParameter $handler)
+    {
+        $deleted = 0;
+        foreach ($action->getItems() as $item) {
+            // TODO do delete
+        }
+
+        return $deleted;
+    }
+
+    protected function getSchemaFile($pluginClassName)
+    {
+        return $this->kernel->locateResource('@'.$pluginClassName.'/Resources/import/metadata.xml.json');
     }
 }

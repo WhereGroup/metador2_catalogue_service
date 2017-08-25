@@ -2,15 +2,15 @@
 
 namespace Plugins\WhereGroup\CatalogueServiceBundle\Component\Parameter;
 
-use Plugins\WhereGroup\CatalogueServiceBundle\Component\AOperation;
+use Plugins\WhereGroup\CatalogueServiceBundle\Component\Operation;
 use Plugins\WhereGroup\CatalogueServiceBundle\Component\CswException;
 
 /**
- * Class PostDomParameterHandler
+ * Class PostDomParameter
  * @package Plugins\WhereGroup\CatalogueServiceBundle\Component\Parameter
  * @author Paul Schmidt <panadium@gmx.de>
  */
-class PostDomParameterHandler implements IParameterHandler
+class PostDomParameter implements Parameter
 {
     const EXTERNAL_PREFIX = 'my_prefix';
 
@@ -37,7 +37,7 @@ class PostDomParameterHandler implements IParameterHandler
     protected $rootUri;
 
     /**
-     * PostDomParameterHandler constructor.
+     * PostDomParameter constructor.
      * @param $content
      * @param string $rootPrefix
      * @param string $rootUri
@@ -78,7 +78,7 @@ class PostDomParameterHandler implements IParameterHandler
     /**
      * {@inheritdoc}
      */
-    public function initOperation(AOperation $operation)
+    public function initOperation(Operation $operation)
     {
         $parameterMap = $operation->getPOSTParameterMap();
         $parameters = array();

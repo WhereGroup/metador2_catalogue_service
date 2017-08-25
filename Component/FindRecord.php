@@ -7,8 +7,13 @@ namespace Plugins\WhereGroup\CatalogueServiceBundle\Component;
  *
  * @author Paul Schmidt<panadium@gmx.de>
  */
-abstract class AFindRecord extends AOperation
+abstract class FindRecord extends Operation
 {
+    const QUERYABLE_MAP = array(
+        'Identifier' => 'uuid',
+        'Title' => 'title',
+        'Abstract' => 'abstract',
+    );
     const RESULTTYPE_HITS = 'hits';
     const RESULTTYPE_RESULTS = 'results';
     const RESULTTYPE_VALIDATE = 'validate';
@@ -17,7 +22,8 @@ abstract class AFindRecord extends AOperation
     const ELEMENTSET_SUMMARY = 'summary';
     const ELEMENTSET_FULL = 'full';
 
-    const ELEMENTSET = array('brief', 'summary', 'full');
+    /* supported element sets */
+    const ELEMENTSET = array('full');//array('brief', 'summary', 'full');
     const RESULTTYPE = array('hits', 'results', 'validate');
 
     /**
@@ -51,7 +57,7 @@ abstract class AFindRecord extends AOperation
 
     /**
      * @param mixed $outputSchema
-     * @return AFindRecord
+     * @return FindRecord
      */
     public function setOutputSchema($outputSchema)
     {
@@ -71,7 +77,7 @@ abstract class AFindRecord extends AOperation
 
     /**
      * @param string $elementSetName
-     * @return AFindRecord
+     * @return FindRecord
      */
     public function setElementSetName($elementSetName)
     {

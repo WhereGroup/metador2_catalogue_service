@@ -14,23 +14,13 @@
     </parameters>
     <services>
         <!-- SERVICE -->
-        <!--<service id="catalogue_service" class="%metador.csw.service.class%">-->
-            <!--<argument type="service" id="service_container" />-->
-            <!--<argument type="service" id="request_stack" />-->
-            <!--<argument type="service" id="metador_metadata" />-->
-            <!--<argument type="service" id="metador_plugin" />-->
-            <!--<argument type="service" id="templating" />-->
-        <!--</service>-->
-
         <service id="metador_catalogue_service" class="%metador.csw.service.class%">
             <argument type="service" id="kernel" />
             <argument type="service" id="doctrine.orm.default_entity_manager" />
-            <argument type="service" id="request_stack" />
-            <argument type="service" id="router" />
             <argument type="service" id="templating" />
             <argument type="service" id="metador_logger" />
             <argument type="service" id="metador_plugin" />
-            <argument type="service" id="metador_metadata" />
+            <argument type="service" id="metador_metadata_search" />
         </service>
 
         <!-- EVENTLISTENER -->

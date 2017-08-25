@@ -2,22 +2,17 @@
 
 namespace Plugins\WhereGroup\CatalogueServiceBundle\Controller;
 
-use Plugins\WhereGroup\CatalogueServiceBundle\Component\Parameter\GetParameterHandler;
-use Plugins\WhereGroup\CatalogueServiceBundle\Component\Parameter\PostDomParameterHandler;
-use Plugins\WhereGroup\CatalogueServiceBundle\Component\Parameter\TransactionParameterHandler;
-use Plugins\WhereGroup\CatalogueServiceBundle\Component\Transaction;
-use Symfony\Bundle\FrameworkBundle\Controller\Controller;
-use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
-use Sensio\Bundle\FrameworkExtraBundle\Configuration\Template;
+use Plugins\WhereGroup\CatalogueServiceBundle\Component\Csw;
+use Plugins\WhereGroup\CatalogueServiceBundle\Component\CswException;
+use Plugins\WhereGroup\CatalogueServiceBundle\Component\Parameter\Parameter;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Method;
+use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
+use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\StreamedResponse;
-use Plugins\WhereGroup\CatalogueServiceBundle\Component\CswException;
-use Plugins\WhereGroup\CatalogueServiceBundle\Component\ContentSet;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
-use WhereGroup\CoreBundle\Component\Source;
 
 /**
  * Class CSWController
@@ -36,33 +31,51 @@ class CswController extends Controller
      */
     public function defaultAction(Request $request, $source, $slug)
     {
-        try {
-            $cswService = $this->get('metador_catalogue_service');
-            $entity = $cswService->findOneBySlugAndSource($slug, $source);
-            if ($entity === null) {
-                throw new \Exception();
-            }
-        } catch (\Exception $e) {
+        /* @var Csw $csw */
+        $csw = $this->get('metador_catalogue_service');
+        $cswConfig = $csw->findOneBySlugAndSource($slug, $source);
+
+        if ($cswConfig === null) {
             throw new NotFoundHttpException('Csw mit slug:"'.$slug.'" und source:"'.$source.'" existiert nicht.');
         }
+
         $content = null;
+
         try {
-//            $operation = $cswService->getOperation($entity);
-//            /* a Transaction isn't accepted */
-//            if ($operation instanceof Transaction) {
-//                throw new CswException('url', CswException::OperationNotSupported);
-//            }
-//            if ($request->getMethod() === 'GET') {
-//                $content = $cswService->doGet($entity, $request->query->all(), $this->get('templating'));
-//            } else {
-//                $content = $cswService->doPost($entity, $request->getContent(), $this->get('templating'));
-//            }
+            /*  @var Parameter $parameter */
+            $parameter = null;
             if ($request->getMethod() === 'GET') {
-                $handler = new GetParameterHandler($request->query->all());
+                $parameter = $csw->readGetParameter($request->query->all());
             } else {
-                $handler = new PostDomParameterHandler($request->getContent());
+                $parameter = $csw->readPostParameter($request->getContent());
             }
-            $content = $cswService->doBasic($entity, $handler);
+
+            switch ($parameter->getOperationName()) {
+                case 'GetCapabilities':
+                    $params = array(
+                        'source' => $cswConfig->getSource(),
+                        'slug' => $cswConfig->getSlug(),
+                    );
+                    $content = $csw->getCapabilities(
+                        $parameter,
+                        $cswConfig,
+                        $this->get('router')->generate('csw_default', $params, UrlGeneratorInterface::ABSOLUTE_URL),
+                        $this->get('router')->generate('csw_transaction', $params, UrlGeneratorInterface::ABSOLUTE_URL)
+                    );
+                    break;
+                case 'DescribeRecord':
+                    $content = $csw->describeRecord($parameter, $cswConfig);
+                    break;
+                case 'GetRecordById':
+                    $content = $csw->getRecordById($parameter, $cswConfig);
+                    break;
+                case 'GetRecords':
+                    $content = $csw->getRecords($parameter, $cswConfig);
+                    break;
+                default:
+                    throw new CswException('request', CswException::OperationNotSupported);
+
+            }
         } catch (CswException $ex) {
             $content = $this->get('templating')->render(
                 "CatalogueServiceBundle:CSW:exception.xml.twig",
@@ -89,32 +102,30 @@ class CswController extends Controller
 
         return new Response($content, Response::HTTP_OK, array('content-type' => 'application/xml'));
     }
-
 
     /**
      * @param Request $request
      * @param $source
      * @param $slug
-     * @Route("manager/{source}/{slug}/", name="csw_manager")
+     * @Route("manager/{source}/{slug}/", name="csw_transaction")
      * @Method({"POST"})
      * @return Response
      */
-    public function managerAction(Request $request, $source, $slug)
+    public function transactionAction(Request $request, $source, $slug)
     {
-        try {
-            $cswService = $this->get('metador_catalogue_service');
-            $entity = $cswService->findOneBySlugAndSource($slug, $source);
-            if ($entity === null) {
-                throw new \Exception();
-            }
-        } catch (\Exception $e) {
-            // no entity found or exception at findOneBySlugAndSource
+        /* @var Csw $csw */
+        $csw = $this->get('metador_catalogue_service');
+        $cswConfig = $csw->findOneBySlugAndSource($slug, $source);
+
+        if ($cswConfig === null) {
             throw new NotFoundHttpException('Csw mit slug:"'.$slug.'" und source:"'.$source.'" existiert nicht.');
         }
+
         $content = null;
         try {
-            $handler = new TransactionParameterHandler($request->getContent());
-            $content = $cswService->doTransaction($entity, $handler);
+            /*  @var Parameter $parameter */
+            $parameter = $csw->readTransactionParameter($request->getContent());
+            $content = $csw->transaction($parameter, $cswConfig);
         } catch (CswException $ex) {
             $content = $this->get('templating')->render(
                 "CatalogueServiceBundle:CSW:exception.xml.twig",
@@ -141,25 +152,7 @@ class CswController extends Controller
 
         return new Response($content, Response::HTTP_OK, array('content-type' => 'application/xml'));
     }
-//
-//    /**
-//     * @param $instance
-//     * @return Response
-//     * @Route("{instance}/", name="csw_get_record_by_id")
-//     * @Method({"GET", "POST"})
-//     */
-//    public function defaultAction($instance)
-//    {
-//        $uuid = $this->get('request_stack')->getCurrentRequest()->get('uuid');
-//
-//        $xml = $this->get('catalogue_service')->getRecordById($uuid);
-//
-//        $response = new Response();
-//        $response->headers->set('Content-Type', 'text/xml');
-//        $response->setContent($xml);
-//
-//        return $response;
-//    }
+
     /**
      * @return StreamedResponse
      * @Route("service", name="csw_entry_point")

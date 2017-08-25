@@ -8,19 +8,19 @@
 
 namespace Plugins\WhereGroup\CatalogueServiceBundle\Component\Parameter;
 
-use Plugins\WhereGroup\CatalogueServiceBundle\Component\AOperation;
+use Plugins\WhereGroup\CatalogueServiceBundle\Component\Operation;
 use Plugins\WhereGroup\CatalogueServiceBundle\Component\CswException;
 use Plugins\WhereGroup\CatalogueServiceBundle\Component\Transaction;
 use Plugins\WhereGroup\CatalogueServiceBundle\Component\TransactionAction;
 
-class TransactionParameterHandler extends PostDomParameterHandler
+class TransactionParameter extends PostDomParameter
 {
     private $typeIdx = -1;
 
     /**
      * {@inheritdoc}
      */
-    public function initOperation(AOperation $operation)
+    public function initOperation(Operation $operation)
     {
         $parameterMap = $operation->getPOSTParameterMap();
         $parameters = array();
