@@ -8,7 +8,7 @@ namespace Plugins\WhereGroup\CatalogueServiceBundle\Component;
  *
  * @author Paul Schmidt<panadium@gmx.de>
  */
-class DescribeRecord extends AOperation
+class DescribeRecord extends Operation
 {
     /**
      * {@inheritdoc}

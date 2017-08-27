@@ -2,16 +2,16 @@
 
 namespace Plugins\WhereGroup\CatalogueServiceBundle\Component\Parameter;
 
-use Plugins\WhereGroup\CatalogueServiceBundle\Component\AOperation;
+use Plugins\WhereGroup\CatalogueServiceBundle\Component\Operation;
 use Plugins\WhereGroup\CatalogueServiceBundle\Component\Csw;
 use Plugins\WhereGroup\CatalogueServiceBundle\Component\CswException;
 
 /**
- * Class GetParameterHandler
+ * Class GetParameter
  * @package Plugins\WhereGroup\CatalogueServiceBundle\Component\Parameter
  * @author Paul Schmidt <panadium@gmx.de>
  */
-class GetParameterHandler implements IParameterHandler
+class GetParameter implements Parameter
 {
     /**
      * @var array
@@ -19,7 +19,7 @@ class GetParameterHandler implements IParameterHandler
     private $requestParameters;
 
     /**
-     * GetParameterHandler constructor.
+     * GetParameter constructor.
      * @param array $requestParameters
      */
     public function __construct(array $requestParameters)
@@ -38,7 +38,7 @@ class GetParameterHandler implements IParameterHandler
     /**
      * {@inheritdoc}
      */
-    public function initOperation(AOperation $operation)
+    public function initOperation(Operation $operation)
     {
         $parameterMap = $operation->getGETParameterMap();
 

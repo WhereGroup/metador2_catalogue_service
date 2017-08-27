@@ -3,7 +3,7 @@
 namespace Plugins\WhereGroup\CatalogueServiceBundle\Component;
 
 
-class Transaction extends AOperation
+class Transaction extends Operation
 {
 
     const INSERT = 'Insert';

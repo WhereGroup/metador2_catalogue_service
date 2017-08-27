@@ -4,6 +4,7 @@ namespace Plugins\WhereGroup\CatalogueServiceBundle\Form;
 
 use Plugins\WhereGroup\CatalogueServiceBundle\Entity\Csw;
 use Symfony\Component\Form\AbstractType;
+use Symfony\Component\Form\CallbackTransformer;
 use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\HiddenType;
@@ -11,7 +12,6 @@ use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\Extension\Core\Type\UrlType;
 use Symfony\Component\Form\FormBuilderInterface;
-use Symfony\Component\Form\CallbackTransformer;
 use Symfony\Component\Form\FormEvent;
 use Symfony\Component\Form\FormEvents;
 use WhereGroup\CoreBundle\Component\Configuration;
@@ -30,8 +30,11 @@ class CswType extends AbstractType
     private $user;
 
     /**
-     * CswController constructor.
+     * CswType constructor.
      * @param Source $source
+     * @param Configuration $config
+     * @param User $user
+     * @param null $plugin
      */
     public function __construct(
         Source $source,
@@ -41,10 +44,13 @@ class CswType extends AbstractType
     ) {
         $this->source = $source;
         $this->config = $config;
-        $this->user   = $user;
+        $this->user = $user;
         $this->plugin = $plugin;
     }
 
+    /**
+     *
+     */
     public function __destruct()
     {
         unset($this->source, $this->config, $this->plugin);
@@ -78,7 +84,7 @@ class CswType extends AbstractType
             ->add('username', ChoiceType::class, array(
                 'label' => 'Benutzer',
                 'required' => true,
-                'choices' => $users
+                'choices' => $users,
             ))
             ->add('abstract', TextareaType::class, array(
                 'label' => 'Beschreibung',
@@ -187,29 +193,29 @@ class CswType extends AbstractType
         $builder->addEventListener(
             FormEvents::PRE_SET_DATA,
             function (FormEvent $event) use ($fields, $profiles) {
-            /**
-             * @var Csw
-             */
-            $data = $event->getData();
-            if (null === $data) {
-                return;
-            }
-            $pm = $data->getProfileMapping();
-            $form = $event->getForm();
-            foreach ($fields as $field) {
-                $_data = '';
-                if ($pm && isset($pm[$field])) {
-                    $_data = $pm[$field];
+                /**
+                 * @var Csw
+                 */
+                $data = $event->getData();
+                if (null === $data) {
+                    return;
                 }
-                $form
-                    ->add($field, ChoiceType::class, array(
-                        'required' => false,
-                        'choices' => $profiles,
-                        'mapped' => false,
-                        'data' => $_data,
-                    ));
-            }
-        });
+                $pm = $data->getProfileMapping();
+                $form = $event->getForm();
+                foreach ($fields as $field) {
+                    $_data = '';
+                    if ($pm && isset($pm[$field])) {
+                        $_data = $pm[$field];
+                    }
+                    $form
+                        ->add($field, ChoiceType::class, array(
+                            'required' => false,
+                            'choices' => $profiles,
+                            'mapped' => false,
+                            'data' => $_data,
+                        ));
+                }
+            });
 
         $builder->addEventListener(
             FormEvents::PRE_SUBMIT,

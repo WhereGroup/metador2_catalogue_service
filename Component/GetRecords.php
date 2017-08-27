@@ -7,7 +7,7 @@ namespace Plugins\WhereGroup\CatalogueServiceBundle\Component;
  * @package Plugins\WhereGroup\CatalogueServiceBundle\Component
  * @author Paul Schmidt <panadium@gmx.de>
  */
-class GetRecords extends AFindRecord
+class GetRecords extends FindRecord
 {
     /**
      * {@inheritdoc}

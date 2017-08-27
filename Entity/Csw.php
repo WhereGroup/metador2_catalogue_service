@@ -51,7 +51,7 @@ class Csw
 
     /**
      * @var string $keywords ServiceIdentification keywords
-     * @ORM\Column(type="array", nullable=false)
+     * @ORM\Column(type="json_array", nullable=false)
      */
     protected $keywords;
 
@@ -63,7 +63,7 @@ class Csw
 
     /**
      * @var string $accessConstraints ServiceIdentification accessConstraints
-     * @ORM\Column(type="array", nullable=false)
+     * @ORM\Column(type="json_array", nullable=true)
      */
     protected $accessConstraints;
 
@@ -166,7 +166,7 @@ class Csw
 
     /**
      * @var string $profileMapping profile mapping
-     * @ORM\Column(type="array", nullable=true)
+     * @ORM\Column(type="json_array", nullable=true)
      */
     protected $profileMapping;
 

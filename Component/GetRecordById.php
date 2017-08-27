@@ -7,7 +7,7 @@ namespace Plugins\WhereGroup\CatalogueServiceBundle\Component;
  *
  * @author Paul Schmidt<panadium@gmx.de>
  */
-class GetRecordById extends AFindRecord
+class GetRecordById extends FindRecord
 {
     /**
      * {@inheritdoc}
@@ -20,6 +20,7 @@ class GetRecordById extends AFindRecord
         'elementSetName' => '/csw:GetRecordById/csw:ElementSetName/text()',
         'id' => '/csw:GetRecordById/csw:Id/text()',
     );
+
     protected $outputSchema;
     protected $id;
 

@@ -8,14 +8,14 @@
 
 namespace Plugins\WhereGroup\CatalogueServiceBundle\Component\Parameter;
 
-use Plugins\WhereGroup\CatalogueServiceBundle\Component\AOperation;
+use Plugins\WhereGroup\CatalogueServiceBundle\Component\Operation;
 
 /**
- * Interface IParameterHandler
+ * Interface Parameter
  * @package Plugins\WhereGroup\CatalogueServiceBundle\Component\Parameter
  * @author Paul Schmidt <panadium@gmx.de>
  */
-interface IParameterHandler
+interface Parameter
 {
 
     /**
@@ -24,7 +24,7 @@ interface IParameterHandler
     public function getOperationName();
 
     /**
-     * @param AOperation $operation
+     * @param Operation $operation
      */
-    public function initOperation(AOperation $operation);
+    public function initOperation(Operation $operation);
 }

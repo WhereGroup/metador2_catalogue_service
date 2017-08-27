@@ -9,7 +9,7 @@ use Symfony\Bundle\TwigBundle\TwigEngine;
  *
  * @author Paul Schmidt<panadium@gmx.de>
  */
-final class GetCapabilities extends AOperation
+final class GetCapabilities extends Operation
 {
     const SECTIONS = array('ServiceIdentification', 'ServiceProvider', 'OperationsMetadata', 'Filter_Capabilities');
     /**
