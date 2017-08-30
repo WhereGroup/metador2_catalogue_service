@@ -253,10 +253,13 @@ class GmlFilterReader implements FilterReader
                     $coord = self::getSpatialContent($child);
                     $operands['geom'] = self::createGeoJson('Point', $coord[0], $child->getAttribute('srsName'));
                     break;
+                case 'pos':
+                    $operands[] = self::splitStringOrdinates($child->textContent);
+                    break;
                 case 'Polygon':
                     $help = self::getSpatialContent($child);
                     $coords = array();
-                    foreach ($help as $ring){
+                    foreach ($help as $ring) {
                         $coords[] = self::toJsonCoordinates($ring);
                     }
                     $operands['geom'] = self::createGeoJson(
@@ -278,9 +281,6 @@ class GmlFilterReader implements FilterReader
                     $operands[] = $help[0];
                     break;
                 case 'posList':
-                    $operands[] = self::splitStringOrdinates($child->textContent);
-                    break;
-                case 'pos':
                     $operands[] = self::splitStringOrdinates($child->textContent);
                     break;
                 default:
