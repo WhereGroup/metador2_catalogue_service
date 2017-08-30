@@ -171,19 +171,23 @@ class CswType extends AbstractType
             ->add('profileMapping', HiddenType::class);
 
         $stringArrayTransformer = new CallbackTransformer(
-            function ($textAsArray) { // transform the array to a string
+            function ($textAsArray) {
+                // transform the array to a string
                 return isset($textAsArray) ? implode(', ', $textAsArray) : '';
             },
-            function ($textAsString) { // transform the string back to an array
+            function ($textAsString) {
+                // transform the string back to an array
                 return isset($textAsString) ? preg_split('/\s?,\s?/', trim($textAsString)) : array();
             }
         );
         $stringAssocArrayTransformer = new CallbackTransformer(
             function ($textAsArray) {
-                return ''; // ignore value after FormEvents::PRE_SET_DATA and FormEvents::PRE_SUBMIT
+                // ignore value after FormEvents::PRE_SET_DATA and FormEvents::PRE_SUBMIT
+                return '';
             },
             function ($textAsString) {
-                return isset($textAsString) ? $textAsString : array(); // use value before data store
+                // use value before data store
+                return isset($textAsString) ? $textAsString : array();
             }
         );
         $builder->get('profileMapping')->addModelTransformer($stringAssocArrayTransformer);
@@ -193,9 +197,7 @@ class CswType extends AbstractType
         $builder->addEventListener(
             FormEvents::PRE_SET_DATA,
             function (FormEvent $event) use ($fields, $profiles) {
-                /**
-                 * @var Csw
-                 */
+                /* @var Csw $data */
                 $data = $event->getData();
                 if (null === $data) {
                     return;
@@ -215,7 +217,8 @@ class CswType extends AbstractType
                             'data' => $_data,
                         ));
                 }
-            });
+            }
+        );
 
         $builder->addEventListener(
             FormEvents::PRE_SUBMIT,
