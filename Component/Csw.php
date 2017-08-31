@@ -215,21 +215,20 @@ class Csw
      */
     public function getRecordById(Parameter $parameter, CswEntity $cswConfig)
     {
+        /* @var Expression $expression */
+        $expression = $this->metadataSearch->createExpression();
         $operation = new GetRecordById($cswConfig);
         $parameter->initOperation($operation);
         $operation->validateParameter();
-        /* @var Expression $expression */
-        $expression = $this->metadataSearch->createExpression();
-        // add ids into expression
+        // add ids to expression
         $uuidExpression = $expression->in('uuid', $operation->getId());
-        // add expression into Expression
+        // set all expressions
         if (($profileExpression = $this->getProfileExpression($cswConfig->getProfileMapping(), $expression))) {
             $expression->setResultExpression($expression->andx(array($uuidExpression, $profileExpression)));
         } else {
             $expression->setResultExpression($uuidExpression);
         }
 
-//        $test = $this->metadataSearch->getResult();
         $pluginLocation = $this->getProfileLocations($cswConfig->getProfileMapping());
         $templateName = self::getTemplateForElementSetName($operation->getElementSetName());
         $this->metadataSearch
@@ -257,46 +256,41 @@ class Csw
      */
     public function getRecords(Parameter $parameter, CswEntity $cswConfig)
     {
-        /**
-         * @var Expression $expression
-         */
-        $expression = $this->metadataSearch->createExpression();
-        $operation = new GetRecords($cswConfig, $expression);
-        $parameter->initOperation($operation);
-        $operation->validateParameter();
-
-        if (($profileExpression = $this->getProfileExpression($cswConfig->getProfileMapping(), $expression))) {
-            $expression->setResultExpression(
-                $expression->andx(
+        $getrecords = new GetRecords($cswConfig, $this->metadataSearch->createExpression());
+        $parameter->initOperation($getrecords);
+        $getrecords->validateParameter();
+        $profileExpr = $this->getProfileExpression($cswConfig->getProfileMapping(), $getrecords->getConstraint());
+        if ($profileExpr) {
+            $getrecords->getConstraint()->setResultExpression(
+                $getrecords->getConstraint()->andx(
                     array(
-                        $operation->getConstraint()->getResultExpression(),
-                        $profileExpression,
+                        $getrecords->getConstraint()->getResultExpression(),
+                        $profileExpr,
                     )
                 )
             );
-        } else {
-            $expression->setResultExpression($operation->getConstraint());
         }
 
         $pluginLocation = $this->getProfileLocations($cswConfig->getProfileMapping());
-        $templateName = self::getTemplateForElementSetName($operation->getElementSetName());
-        $offset = $operation->getStartPosition() - 1;
+        $templateName = self::getTemplateForElementSetName($getrecords->getElementSetName());
+        $offset = $getrecords->getStartPosition() - 1;
         $this->metadataSearch
             ->setPage(0)// use no page
-            ->setHits($operation->getMaxRecords())
+            ->setHits($getrecords->getMaxRecords())
             ->setOffset($offset)
             ->setSource($cswConfig->getSource())
-            ->setExpression($expression)
+            ->setExpression($getrecords->getConstraint())
             ->find();
 
         $time = new \DateTime();
         $matched = $this->metadataSearch->getResultCount();
         $records = $this->metadataSearch->getResult();
         $next = $offset + count($records) + 1;
+
         return $this->templating->render(
             'CatalogueServiceBundle:CSW:records_response.xml.twig',
             array(
-                'getrecords' => $operation,
+                'getrecords' => $getrecords,
                 'pluginLocation' => $pluginLocation,
                 'templateName' => $templateName,
                 'timestamp' => $time->format('Y-m-d\TH:i:s'),
@@ -315,14 +309,14 @@ class Csw
      */
     public function transaction(TransactionParameter $parameter, CswEntity $cswConfig)
     {
-        $operation = new DescribeRecord($cswConfig);
         $operationName = $parameter->getOperationName();
         if ($operationName !== 'Transaction') {
             throw new CswException('request', CswException::OperationNotSupported);
         }
         $operation = new Transaction($cswConfig);
         $parameter->initOperation($operation);
-        while (($action = $parameter->nextAction($operation))) {
+
+        while (($action = $parameter->nextAction($operation, $this->metadataSearch->createExpression()))) {
             switch ($action->getType()) {
                 case Transaction::INSERT:
                     $inserted = $this->doInsert($cswConfig, $action, $parameter);
@@ -348,30 +342,26 @@ class Csw
     }
 
     /**
-     * @param CswEntity $entity
-     * @param TransactionAction $action
+     * @param CswEntity $cswConfig
+     * @param TransactionOperation $action
      * @param TransactionParameter $handler
      * @return int
      */
-    public function doInsert(CswEntity $entity, TransactionAction $action, TransactionParameter $handler)
+    public function doInsert(CswEntity $cswConfig, TransactionOperation $action, TransactionParameter $handler)
     {
         $inserted = 0;
-        foreach ($action->getItems() as $mdElm) {
-            $hl = $handler->valueFor('./gmd:hierarchyLevel[1]/gmd:MD_ScopeCode/text()', $mdElm);
-            $hls = $entity->getProfileMapping();
-            if (isset($hls[$hl])) {
-                $xml = $mdElm->ownerDocument->saveXML($mdElm);
-                $plugin = $this->plugin->getPlugin($hls[$hl]);
-//               $file = $this->kernel->locateResource('@'.$plugin['class_name'].'/Resources/import/metadata.xml.json');
-//                $parser = new XmlParser($xml, new XmlParserFunctions());
-//                $array = $parser
-//                    ->loadSchema(file_get_contents($file))
-//                    ->parse();
-////                return isset($array['p']) ? $array['p'] : array();
-//                $this->metadata->saveObject(isset($array['p']) ? $array['p'] : array());
+        foreach ($action->getItems() as $mdMetadata) {
+            $hierarchyLevel = $handler->valueFor('./gmd:hierarchyLevel[1]/gmd:MD_ScopeCode/text()', $mdMetadata);
+            if (($importConfig = self::getImportConfig($cswConfig->getProfileMapping(), $hierarchyLevel))) {
+                $parser = new XmlParser($mdMetadata->ownerDocument->saveXML($mdMetadata), new XmlParserFunctions());
+                $array = $parser
+                    ->loadSchema(file_get_contents($importConfig))
+                    ->parse();
+//                return isset($array['p']) ? $array['p'] : array();
+                $this->metadata->saveObject(isset($array['p']) ? $array['p'] : array());
                 $inserted++;
             } else {
-                $this->log($entity, 'warning', 'insert', '', 'Type: $hl ist nicht unterstützt');
+                $this->log($cswConfig, 'warning', 'insert', '', 'Type: $hl ist nicht unterstützt');
             }
         }
 
@@ -379,45 +369,43 @@ class Csw
     }
 
     /**
-     * @param CswEntity $entity
-     * @param string $type
-     * @param string $operation
-     * @param string $identifier
-     * @param string $message
-     */
-    private function log(CswEntity $entity, $type, $operation, $identifier, $message)
-    {
-        $log = $this->logger->newLog();
-        $log
-            ->setType($type)//('warning')
-            ->setCategory('application')
-            ->setSubcategory('csw')
-            ->setOperation($operation)//('insert')
-            ->setSource($entity->getSource())//('')
-            ->setIdentifier($identifier)//('')
-            ->setMessage($message)//('test')
-            ->setUser($entity->getUsername());//('');
-        $this->logger->set($log);
-    }
-
-    /**
-     * @param CswEntity $entity
-     * @param TransactionAction $action
+     * @param CswEntity $cswConfig
+     * @param TransactionOperation $operation
      * @param TransactionParameter $handler
      * @return int
      */
-    public function doUpdate(CswEntity $entity, TransactionAction $action, TransactionParameter $handler)
+    public function doUpdate(CswEntity $cswConfig, TransactionOperation $operation, TransactionParameter $handler)
     {
         $updated = 0;
-        foreach ($action->getItems() as $mdElm) {
-            $hl = $handler->valueFor('./gmd:hierarchyLevel[1]/gmd:MD_ScopeCode/text()', $mdElm);
-            $ident = $handler->valueFor('./gmd:fileIdentifier/gco:CharacterString/text()', $mdElm);
-            $hls = $entity->getProfileMapping();
-            if (isset($hls[$hl])) {
+        $profileExpr = $this->getProfileExpression($cswConfig->getProfileMapping(), $operation->getFilter());
+        if ($profileExpr) {
+            $operation->getFilter()->setResultExpression(
+                $operation->getFilter()->andx(
+                    array(
+                        $operation->getFilter()->getResultExpression(),
+                        $profileExpr,
+                    )
+                )
+            );
+        }
+        $this->metadataSearch
+            ->setPage(0)// use no page
+            ->setHits(100)
+            ->setOffset(0)
+            ->setSource($cswConfig->getSource())
+            ->setExpression($operation->getFilter())
+            ->find();
+        $records = $this->metadataSearch->getResult();
 
+        foreach ($operation->getItems() as $mdMetadata) {
+            $hl = $handler->valueFor('./gmd:hierarchyLevel[1]/gmd:MD_ScopeCode/text()', $mdMetadata);
+            $ident = $handler->valueFor('./gmd:fileIdentifier/gco:CharacterString/text()', $mdMetadata);
+            $hls = $cswConfig->getProfileMapping();
+            if (isset($hls[$hl])) {
+// 8ddbc1e0-ef70-4f1b-9721-bc00081eb9c5
+// 8ddbc1e0-ef70-4f1b-9721-bc00081eb9c5
             } else {
-                // TODO log unsupported hierarchyLevel
-//                $this->logger->warning()
+                $this->log($cswConfig, 'warning', 'update', '', 'Type: $hl ist nicht unterstützt');
             }
         }
 
@@ -426,11 +414,11 @@ class Csw
 
     /**
      * @param CswEntity $entity
-     * @param TransactionAction $action
+     * @param TransactionOperation $action
      * @param TransactionParameter $handler
      * @return int
      */
-    public function doDelete(CswEntity $entity, TransactionAction $action, TransactionParameter $handler)
+    public function doDelete(CswEntity $entity, TransactionOperation $action, TransactionParameter $handler)
     {
         $deleted = 0;
         foreach ($action->getItems() as $item) {
@@ -440,30 +428,21 @@ class Csw
         return $deleted;
     }
 
-    protected function getSchemaFile($pluginClassName)
+    /**
+     * @param array $profileMapping
+     * @return array
+     */
+    private function getImportConfig(array $profileMapping, $hierarchyLevel)
     {
-        return $this->kernel->locateResource('@'.$pluginClassName.'/Resources/import/metadata.xml.json');
-    }
-
-    private function getProfileMapping(CswEntity $cswConfig, Expression $expression)
-    {
-        $profileMapping = $cswConfig->getProfileMapping();
-        $or = array();
-        $pluginLocation = array();
-        foreach ($profileMapping as $hierarchyLevel => $profile) {
-            $or[] = $expression->andx(
-                array(
-                    $expression->eq('hierarchyLevel', $hierarchyLevel),
-                    $expression->eq('profile', $profile),
-                )
+        if (isset($profileMapping[$hierarchyLevel])) {
+            $plugin = $this->plugin->getPlugin($profileMapping[$hierarchyLevel]);
+            $file = $this->kernel->locateResource(
+                '@'.$plugin['class_name'].'/Resources/views/Import/metadata.xml.json'
             );
-            if (!isset($pluginLocation[$profile])) {
-                $plugin = $this->plugin->getPlugin($profile);
-                $pluginLocation[$profile] = array(
-                    'sf' => '@'.$plugin['class_name'].':Csw:',
-                    'full' => $this->kernel->locateResource('@'.$plugin['class_name'].'/Resources/'),
-                );
-            }
+
+            return $file;
+        } else {
+            return null;
         }
     }
 
@@ -510,6 +489,28 @@ class Csw
         }
 
         return $pluginLocation;
+    }
+
+    /**
+     * @param CswEntity $entity
+     * @param string $type
+     * @param string $operation
+     * @param string $identifier
+     * @param string $message
+     */
+    private function log(CswEntity $entity, $type, $operation, $identifier, $message)
+    {
+        $log = $this->logger->newLog();
+        $log
+            ->setType($type)//('warning')
+            ->setCategory('application')
+            ->setSubcategory('csw')
+            ->setOperation($operation)//('insert')
+            ->setSource($entity->getSource())//('')
+            ->setIdentifier($identifier)//('')
+            ->setMessage($message)//('test')
+            ->setUser($entity->getUsername());//('');
+        $this->logger->set($log);
     }
 
     /**

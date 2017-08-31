@@ -27,7 +27,7 @@ class GetRecords extends FindRecord
         '/csw:GetRecords/csw:Query/@typeNames' => 'typeNames',
         '/csw:GetRecords/csw:Query/csw:ElementSetName/text()' => 'elementSetName',
         '/csw:GetRecords/csw:Query/csw:ElementName/text()' => 'elementName', # multiple?
-//        '/csw:GetRecords/csw:Query/csw:Constraint/csw:CqlText/text()' => 'constraint', # @TODO ???? check xpath
+//        '/csw:GetRecords/csw:Query/csw:Constraint/csw:CqlText/text()' => 'constraint', // constraintLanguage CQL
         '/csw:GetRecords/csw:Query/csw:Constraint/ogc:Filter' => 'Constraint',
         '/csw:GetRecords/csw:Query/ogc:SortBy' => 'sortBy',
 ////        'namespace',
@@ -194,6 +194,7 @@ class GetRecords extends FindRecord
     public function setConstraint($constraint)
     {
         // only xml Filter is supported
+        // TODO mapping PropertyName <-> Database column
         if (is_string($this->constraint)) {
             $xml = '<?xml version="1.0" >\n<csw:Filter>'.$this->constraint.'</csw:Filter>';
             $dom = new \DOMDocument();
@@ -207,7 +208,6 @@ class GetRecords extends FindRecord
 
         return $this;
     }
-
 
     /**
      * @return string

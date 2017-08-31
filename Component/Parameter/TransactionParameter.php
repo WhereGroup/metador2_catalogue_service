@@ -11,7 +11,8 @@ namespace Plugins\WhereGroup\CatalogueServiceBundle\Component\Parameter;
 use Plugins\WhereGroup\CatalogueServiceBundle\Component\Operation;
 use Plugins\WhereGroup\CatalogueServiceBundle\Component\CswException;
 use Plugins\WhereGroup\CatalogueServiceBundle\Component\Transaction;
-use Plugins\WhereGroup\CatalogueServiceBundle\Component\TransactionAction;
+use Plugins\WhereGroup\CatalogueServiceBundle\Component\TransactionOperation;
+use WhereGroup\CoreBundle\Component\Search\Expression;
 
 class TransactionParameter extends PostDomParameter
 {
@@ -68,9 +69,9 @@ class TransactionParameter extends PostDomParameter
 
     /**
      * @param Transaction $operation
-     * @return null|TransactionAction
+     * @return null|TransactionOperation
      */
-    public function nextAction(Transaction $operation)
+    public function nextAction(Transaction $operation, Expression $expression)
     {
         $conf = $this->getTypeConfiguration($operation);
         $xpathStr = $conf['key'];
@@ -78,13 +79,11 @@ class TransactionParameter extends PostDomParameter
         $list = $this->getValue($xpathStr, $this->dom->documentElement, false);
         $this->typeIdx++;
         if ($this->typeIdx < count($list)) {
-            /**
-             * @var \DOMElement
-             */
+            /* @var \DOMElement $actionNode */
             $actionNode = $list[$this->typeIdx];
             $config = $typesConf[$actionNode->localName];
 
-            return $this->initAction($operation, $actionNode, $config);
+            return $this->initAction($operation, $expression, $actionNode, $config);
         } else {
             return null;
         }
@@ -94,23 +93,23 @@ class TransactionParameter extends PostDomParameter
      * @param Transaction $operation
      * @param \DOMElement $actionElm
      * @param array $config
-     * @return TransactionAction
+     * @return TransactionOperation
      * @throws CswException
      */
-    private function initAction(Transaction $operation, \DOMElement $actionElm, array $config)
+    private function initAction(Transaction $operation, Expression $expression, \DOMElement $actionElm, array $config)
     {
         if (!$operation->isTypeSupported($config[Transaction::ACTION])) {
             throw new CswException($config[Transaction::ACTION], CswException::OperationNotSupported);
         }
-        $action = new TransactionAction(
-            $config[Transaction::ACTION],
-            isset($config[Transaction::FILTER]) ? $config[Transaction::FILTER] : null
-        );
+        $operation = new TransactionOperation($config[Transaction::ACTION], $expression);
         foreach ($config[Transaction::PARAMS] as $key => $value) {
-            $action->setParameter($value, $this->getParameter($key, $actionElm));
+            $operation->setParameter($value, $this->getParameter($key, $actionElm));
         }
-        $action->setItems($this->getValue($config[Transaction::ITEMS], $actionElm, false));
+        if (isset($config[Transaction::FILTER])) {
+            $operation->setFilter($this->getValue($config[Transaction::FILTER], $actionElm, true));
+        }
+        $operation->setItems($this->getValue($config[Transaction::ITEMS], $actionElm, false));
 
-        return $action;
+        return $operation;
     }
 }

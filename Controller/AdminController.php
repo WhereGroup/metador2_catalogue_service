@@ -2,16 +2,13 @@
 
 namespace Plugins\WhereGroup\CatalogueServiceBundle\Controller;
 
+use Plugins\WhereGroup\CatalogueServiceBundle\Component\ContentSet;
 use Plugins\WhereGroup\CatalogueServiceBundle\Entity\Csw;
 use Plugins\WhereGroup\CatalogueServiceBundle\Form\CswType;
-use Symfony\Bundle\FrameworkBundle\Controller\Controller;
+use Sensio\Bundle\FrameworkExtraBundle\Configuration\Method;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Template;
-use Sensio\Bundle\FrameworkExtraBundle\Configuration\Method;
-use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpFoundation\StreamedResponse;
-use Plugins\WhereGroup\CatalogueServiceBundle\Component\CswException;
-use Plugins\WhereGroup\CatalogueServiceBundle\Component\ContentSet;
+use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 
 /**
  * Class CSWController
@@ -30,7 +27,7 @@ class AdminController extends Controller
         $this->get('metador_core')->denyAccessUnlessGranted('ROLE_SYSTEM_SUPERUSER');
 
         return array(
-            'services' => $this->get('metador_catalogue_service')->all()
+            'services' => $this->get('metador_catalogue_service')->all(),
         );
     }
 
@@ -57,7 +54,8 @@ class AdminController extends Controller
              */
             $entity = $form->getData();
 
-            if ($this->get('metador_catalogue_service')->findOneBySlugAndSource($entity->getSlug(), $entity->getSource())) {
+            if ($this->get('metador_catalogue_service')->findOneBySlugAndSource($entity->getSlug(),
+                $entity->getSource())) {
                 $this->setFlashWarning(
                     'new',
                     '',
@@ -81,7 +79,7 @@ class AdminController extends Controller
         }
 
         return array(
-            'form' => $form->createView()
+            'form' => $form->createView(),
         );
     }
 
@@ -97,7 +95,8 @@ class AdminController extends Controller
         $this->get('metador_core')->denyAccessUnlessGranted('ROLE_SYSTEM_SUPERUSER');
 
         $form = $this
-            ->createForm(CswType::class, $this->get('metador_catalogue_service')->findOneBySlugAndSource($slug, $source))
+            ->createForm(CswType::class,
+                $this->get('metador_catalogue_service')->findOneBySlugAndSource($slug, $source))
             ->handleRequest($this->get('request_stack')->getCurrentRequest());
 
         if ($form->isSubmitted() && $form->isValid()) {
@@ -119,22 +118,22 @@ class AdminController extends Controller
         }
 
         return array(
-            'form' => $form->createView()
+            'form' => $form->createView(),
         );
     }
 
     /**
-     * @Route("/confirm/{slug}", name="metador_admin_csw_confirm")
+     * @Route("/confirm/{source}/{slug}", name="metador_admin_csw_confirm")
      * @Method({"GET", "POST"})
      * @Template()
      */
-    public function confirmAction($slug)
+    public function confirmAction($source, $slug)
     {
         $this->get('metador_core')->denyAccessUnlessGranted('ROLE_SYSTEM_SUPERUSER');
 
-        $form = $this->createFormBuilder($this->get('metador_catalogue_service')->findBySlug($slug))
+        $form = $this->createFormBuilder($this->get('metador_catalogue_service')->findOneBySlugAndSource($slug, $source))
             ->add('delete', 'submit', array(
-                'label' => 'löschen'
+                'label' => 'löschen',
             ))
             ->getForm()
             ->handleRequest($this->get('request_stack')->getCurrentRequest());
@@ -144,8 +143,8 @@ class AdminController extends Controller
              * @var $entity Csw
              */
             $entity = $form->getData();
-            $name   = $entity->getTitle();
-            $id     = $entity->getSlug();
+            $name = $entity->getTitle();
+            $id = $entity->getSlug();
 
             $this->get('metador_source')->remove($entity);
 
@@ -160,7 +159,7 @@ class AdminController extends Controller
         }
 
         return array(
-            'form' => $form->createView()
+            'form' => $form->createView(),
         );
     }
 
