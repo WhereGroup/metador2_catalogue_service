@@ -73,7 +73,7 @@ class CswType extends AbstractType
         );
         $builder
             ->add('slug', TextType::class, array(
-                'label' => 'Slug',
+                'label' => 'URL Titel',
                 'required' => true,
             ))
             ->add('source', ChoiceType::class, array(
