@@ -3,7 +3,6 @@
 namespace Plugins\WhereGroup\CatalogueServiceBundle\Component;
 
 use Doctrine\ORM\EntityManagerInterface;
-use Doctrine\ORM\Query\Expr;
 use Plugins\WhereGroup\CatalogueServiceBundle\Component\Parameter\GetParameter;
 use Plugins\WhereGroup\CatalogueServiceBundle\Component\Parameter\Parameter;
 use Plugins\WhereGroup\CatalogueServiceBundle\Component\Parameter\PostDomParameter;
@@ -219,60 +218,26 @@ class Csw
         $operation = new GetRecordById($cswConfig);
         $parameter->initOperation($operation);
         $operation->validateParameter();
-
-        /**
-         * @var Expression $expression
-         */
+        /* @var Expression $expression */
         $expression = $this->metadataSearch->createExpression();
         // add ids into expression
-        $uuid = $expression->inx('uuid', $operation->getId());
-        // add supported hierarchyLevels und profiles from given csw configuration into expression
-        $profileMapping = $cswConfig->getProfileMapping();
-        $or = array();
-        $pluginLocation = array();
-        foreach ($profileMapping as $hierarchyLevel => $profile) {
-            $or[] = $expression->andx(
-                array(
-                    $expression->equal('hierarchyLevel', $hierarchyLevel),
-                    $expression->equal('profile', $profile),
-                )
-            );
-            if (!isset($pluginLocation[$profile])) {
-                $plugin = $this->plugin->getPlugin($profile);
-                $pluginLocation[$profile] = array(
-                    'sf' => '@'.$plugin['class_name'].':Csw:',
-                    'full' => $this->kernel->locateResource('@'.$plugin['class_name'].'/Resources/'),
-                );
-            }
-        }
+        $uuidExpression = $expression->in('uuid', $operation->getId());
         // add expression into Expression
-        $expression->setExpression(
-            $expression->andx(
-                array(
-                    $uuid,
-                    $expression->orx($or),
-                )
-            )
-        );
+        if (($profileExpression = $this->getProfileExpression($cswConfig->getProfileMapping(), $expression))) {
+            $expression->setResultExpression($expression->andx(array($uuidExpression, $profileExpression)));
+        } else {
+            $expression->setResultExpression($uuidExpression);
+        }
+
+//        $test = $this->metadataSearch->getResult();
+        $pluginLocation = $this->getProfileLocations($cswConfig->getProfileMapping());
+        $templateName = self::getTemplateForElementSetName($operation->getElementSetName());
         $this->metadataSearch
             ->setPage(1)
             ->setHits(100)// set max count for GetRecordById ???
             ->setSource($cswConfig->getSource())
-//            ->setProfile('metador_service_profile')
             ->setExpression($expression)
             ->find();
-        switch ($operation->getElementSetName()) {
-            case 'full':
-                $templateName = 'record_iso_full.xml.twig';
-                break;
-            case 'summary':
-                $templateName = 'record_iso_summary.xml.twig';
-                break;
-            case 'brief':
-                $templateName = 'record_iso_brief.xml.twig';
-                break;
-        }
-        $test = $this->metadataSearch->getResult();
 
         return $this->templating->render(
             'CatalogueServiceBundle:CSW:recordbyid_response.xml.twig',
@@ -292,77 +257,54 @@ class Csw
      */
     public function getRecords(Parameter $parameter, CswEntity $cswConfig)
     {
-        $operation = new DescribeRecord($cswConfig);
+        /**
+         * @var Expression $expression
+         */
+        $expression = $this->metadataSearch->createExpression();
+        $operation = new GetRecords($cswConfig, $expression);
         $parameter->initOperation($operation);
         $operation->validateParameter();
 
-        $name = 'm';
-        /** @var QueryBuilder $qb */
-        $qb = $this->csw->getMetadata()->getQueryBuilder($name);
-        $filter = new FilterCapabilities();
-        $parameters = array();
-        $constarintsMap = array();
-        foreach ($this->constraintList as $key => $value) {
-            $constarintsMap = array_merge_recursive($constarintsMap, $value);
-        }
-        $constarintsMap = array_merge_recursive(
-            isset($this->geometryQueryables) ? $this->geometryQueryables : array(), $constarintsMap);
-
-        $num = count($parameters);
-        $finalExpr = new Expr\Comparison($name.'.public', '=', ':public'.$num);
-        $parameters['public'.$num] = true;
-        $filterExpr = null;
-        if ($this->constraint) {
-            $filterExpr = $filter->generateFilter($qb, $name, $constarintsMap, $parameters, $this->constraint);
-        }
-        $qb->select('count('.$name.'.id)');
-        if ($filterExpr) {
-            $finalExpr = new Expr\Andx(array($filterExpr, $finalExpr));
-        }
-        $qb->add('where', $finalExpr)->setParameters($parameters);
-        $query = $qb->getQuery();
-        $matched = $qb->getQuery()->getSingleScalarResult();
-        $returned = $matched;
-        $results = array();
-        if ($this->resultType === self::RESULTTYPE_RESULTS) {# || $this->resultType === self::RESULTTYPE_VALIDATE) {
-            $qb->select($name);
-            $qb->add('where', $finalExpr)->setParameters($parameters);
-            $qb->setFirstResult($this->startPosition - 1)
-                ->setMaxResults($this->maxRecords);
-            FilterCapabilities::generateSortBy($qb, $name, $constarintsMap, $this->sortBy);
-
-            $results = $qb->getQuery()->getResult();
-            $returned = count($results);
+        if (($profileExpression = $this->getProfileExpression($cswConfig->getProfileMapping(), $expression))) {
+            $expression->setResultExpression(
+                $expression->andx(
+                    array(
+                        $operation->getConstraint()->getResultExpression(),
+                        $profileExpression,
+                    )
+                )
+            );
+        } else {
+            $expression->setResultExpression($operation->getConstraint());
         }
 
-        $xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>
-<csw:GetRecordsResponse xmlns:ows=\"http://www.opengis.net/ows\"  xmlns:csw=\"http://www.opengis.net/cat/csw/2.0.2\"
- xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"
-  xsi:schemaLocation=\"http://www.opengis.net/cat/csw/2.0.2 http://schemas.opengis.net/csw/2.0.2/CSW-discovery.xsd\">";
+        $pluginLocation = $this->getProfileLocations($cswConfig->getProfileMapping());
+        $templateName = self::getTemplateForElementSetName($operation->getElementSetName());
+        $offset = $operation->getStartPosition() - 1;
+        $this->metadataSearch
+            ->setPage(0)// use no page
+            ->setHits($operation->getMaxRecords())
+            ->setOffset($offset)
+            ->setSource($cswConfig->getSource())
+            ->setExpression($expression)
+            ->find();
 
         $time = new \DateTime();
-        $timestamp = $time->format('Y-m-d\TH:i:s');
-
-        if (isset($this->requestId)) {
-            $xml .= "\n<csw:RequestId>".$timestamp."</csw:RequestId>";
-        }
-
-        $xml .= "\n<csw:SearchStatus timestamp=\"".$timestamp."\" />
-<csw:SearchResults numberOfRecordsMatched=\"".$matched."\" numberOfRecordsReturned=\"".$returned
-            ."\" elementSet=\"".$this->elementSetName."\" nextRecord=\"".($this->startPosition - 1)."\">";
-
-        foreach ($results as $record) {
-            $className = $this->csw->container->get('metador_plugin')->getPluginClassName($record->getProfile());
-            $xml .= "\n".$this->csw->getTemplating()->render(
-                    $className.":Export:metadata.xml.twig",
-                    array('p' => $record->getObject())
-                );
-        }
-
-        $xml .= "\n</csw:SearchResults>
-</csw:GetRecordsResponse>";
-
-        return $xml;
+        $matched = $this->metadataSearch->getResultCount();
+        $records = $this->metadataSearch->getResult();
+        $next = $offset + count($records) + 1;
+        return $this->templating->render(
+            'CatalogueServiceBundle:CSW:records_response.xml.twig',
+            array(
+                'getrecords' => $operation,
+                'pluginLocation' => $pluginLocation,
+                'templateName' => $templateName,
+                'timestamp' => $time->format('Y-m-d\TH:i:s'),
+                'matched' => $matched,
+                'records' => $records,
+                'nextrecord' => $next > $matched ? 0 : $next,
+            )
+        );
     }
 
     /**
@@ -501,5 +443,91 @@ class Csw
     protected function getSchemaFile($pluginClassName)
     {
         return $this->kernel->locateResource('@'.$pluginClassName.'/Resources/import/metadata.xml.json');
+    }
+
+    private function getProfileMapping(CswEntity $cswConfig, Expression $expression)
+    {
+        $profileMapping = $cswConfig->getProfileMapping();
+        $or = array();
+        $pluginLocation = array();
+        foreach ($profileMapping as $hierarchyLevel => $profile) {
+            $or[] = $expression->andx(
+                array(
+                    $expression->eq('hierarchyLevel', $hierarchyLevel),
+                    $expression->eq('profile', $profile),
+                )
+            );
+            if (!isset($pluginLocation[$profile])) {
+                $plugin = $this->plugin->getPlugin($profile);
+                $pluginLocation[$profile] = array(
+                    'sf' => '@'.$plugin['class_name'].':Csw:',
+                    'full' => $this->kernel->locateResource('@'.$plugin['class_name'].'/Resources/'),
+                );
+            }
+        }
+    }
+
+    /**
+     * @param array $profileMapping
+     * @param Expression $expression
+     * @return mixed|null
+     */
+    private function getProfileExpression(array $profileMapping, Expression $expression)
+    {
+        $or = array();
+        foreach ($profileMapping as $hierarchyLevel => $profile) {
+            $or[] = $expression->andx(
+                array(
+                    $expression->eq('hierarchyLevel', $hierarchyLevel),
+                    $expression->eq('profile', $profile),
+                )
+            );
+        }
+        if (count($or) > 1) {
+            return $expression->orx($or);
+        } elseif (count($or) === 1) {
+            return $or[0];
+        } else {
+            return null;
+        }
+    }
+
+    /**
+     * @param array $profileMapping
+     * @return array
+     */
+    private function getProfileLocations(array $profileMapping)
+    {
+        $pluginLocation = array();
+        foreach ($profileMapping as $hierarchyLevel => $profile) {
+            if (!isset($pluginLocation[$profile])) {
+                $plugin = $this->plugin->getPlugin($profile);
+                $pluginLocation[$profile] = array(
+                    'sf' => '@'.$plugin['class_name'].':Export:',
+                    'full' => $this->kernel->locateResource('@'.$plugin['class_name'].'/Resources/views/Export/'),
+                );
+            }
+        }
+
+        return $pluginLocation;
+    }
+
+    /**
+     * @param $elementSetName
+     * @return string
+     * @throws CswException
+     */
+    private static function getTemplateForElementSetName($elementSetName)
+    {
+        switch ($elementSetName) {
+            case 'full':
+                return 'metadata.xml.twig';
+            case 'summary':
+                return 'metadata.xml.twig';
+            case 'brief':
+                return 'metadata.xml.twig';
+            default:
+                throw new CswException('elementSetName', CswException::NoApplicableCode);
+        }
     }
 }

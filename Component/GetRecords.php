@@ -2,6 +2,9 @@
 
 namespace Plugins\WhereGroup\CatalogueServiceBundle\Component;
 
+use Plugins\WhereGroup\CatalogueServiceBundle\Component\Search\GmlFilterReader;
+use WhereGroup\CoreBundle\Component\Search\Expression;
+
 /**
  * Class GetRecords
  * @package Plugins\WhereGroup\CatalogueServiceBundle\Component
@@ -25,7 +28,7 @@ class GetRecords extends FindRecord
         '/csw:GetRecords/csw:Query/csw:ElementSetName/text()' => 'elementSetName',
         '/csw:GetRecords/csw:Query/csw:ElementName/text()' => 'elementName', # multiple?
 //        '/csw:GetRecords/csw:Query/csw:Constraint/csw:CqlText/text()' => 'constraint', # @TODO ???? check xpath
-        '/csw:GetRecords/csw:Query/csw:Constraint' => 'Constraint',
+        '/csw:GetRecords/csw:Query/csw:Constraint/ogc:Filter' => 'Constraint',
         '/csw:GetRecords/csw:Query/ogc:SortBy' => 'sortBy',
 ////        'namespace',
         '/csw:GetRecords/csw:RequestId/text()' => 'requestId',
@@ -33,17 +36,15 @@ class GetRecords extends FindRecord
 ////        'deistributedSearch' for GET
 //        '/csw:GetRecords/csw:DistributedSearch/@hopCount' => 'hopCount',
     );
-//    protected $constraintLanguageList;
-//    protected $typeNameList;
-//    protected $constraintList;
-//    protected $geometryQueryables;
-//    protected $resultTypeList;
 
     /* Request parameters */
     protected $typeNames;
     protected $startPosition;
     protected $maxRecords;
     protected $sortBy;
+    /**
+     * @var Expression $constraint
+     */
     protected $constraint;
     protected $constraintLanguage;
     protected $resultType;
@@ -58,16 +59,19 @@ class GetRecords extends FindRecord
     /**
      * {@inheritdoc}
      */
-    public function __construct(\Plugins\WhereGroup\CatalogueServiceBundle\Entity\Csw $entity = null)
-    {
+    public function __construct(
+        \Plugins\WhereGroup\CatalogueServiceBundle\Entity\Csw $entity = null,
+        Expression $expression
+    ) {
         parent::__construct($entity);
-        $this->resultType             = self::RESULTTYPE_HITS;
-        $this->typeNames               = array('gmd:MD_Metadata');
+        $this->constraint = $expression;
+        $this->resultType = self::RESULTTYPE_HITS;
+        $this->typeNames = array('gmd:MD_Metadata');
         $this->constraintLanguage = 'FILTER';
 
         $this->startPosition = 1; # default value s. xsd
-        $this->maxRecords    = 10; # default value s. xsd
-        $this->sortBy        = array();
+        $this->maxRecords = 10; # default value s. xsd
+        $this->sortBy = array();
 //        $this->deistributedSearch = false;
 //        $this->hopCount = 2; # default value s. xsd
     }
@@ -104,6 +108,7 @@ class GetRecords extends FindRecord
     {
         $typeNameArr = preg_split('/[\s,]/', $typeNames);
         $this->isListAtList('typeNames', $typeNameArr, $this->typeNames, false); # only check
+
         return $this;
     }
 
@@ -122,9 +127,13 @@ class GetRecords extends FindRecord
     public function setStartPosition($startPosition)
     {
         if ($startPosition !== null) {
-            $this->startPosition = self::getGreaterThan('startPosition',
-                self::getPositiveInteger(startPosition, $startPosition), 0);
+            $this->startPosition = self::getGreaterThan(
+                'startPosition',
+                self::getPositiveInteger('startPosition', $startPosition),
+                0
+            );
         }
+
         return $this;
     }
 
@@ -143,9 +152,13 @@ class GetRecords extends FindRecord
     public function setMaxRecords($maxRecords)
     {
         if ($maxRecords !== null) {
-            $this->maxRecords = self::getGreaterThan('maxRecords',
-                self::getPositiveInteger('maxRecords', $maxRecords), 0);
+            $this->maxRecords = self::getGreaterThan(
+                'maxRecords',
+                self::getPositiveInteger('maxRecords', $maxRecords),
+                0
+            );
         }
+
         return $this;
     }
 
@@ -174,12 +187,24 @@ class GetRecords extends FindRecord
     }
 
     /**
-     * @param $constraint
+     * @param \DOMElement|string $constraint
      * @return $this
+     * @throws CswException
      */
     public function setConstraint($constraint)
     {
-        $this->constraint = $constraint;
+        // only xml Filter is supported
+        if (is_string($this->constraint)) {
+            $xml = '<?xml version="1.0" >\n<csw:Filter>'.$this->constraint.'</csw:Filter>';
+            $dom = new \DOMDocument();
+            if (!@$dom->loadXML($xml, LIBXML_DTDLOAD | LIBXML_DTDATTR | LIBXML_NOENT | LIBXML_XINCLUDE)) {
+                throw new CswException('filter', CswException::ParsingError);
+            }
+            GmlFilterReader::read($dom->documentElement, $this->constraint);
+        } else {
+            GmlFilterReader::read($constraint, $this->constraint);
+        }
+
         return $this;
     }
 
@@ -199,6 +224,7 @@ class GetRecords extends FindRecord
     public function setConstraintLanguage($constraintLanguage)
     {
         self::isStringAtList('constraintLanguage', $constraintLanguage, array($this->constraintLanguage), false);
+
         return $this;
     }
 
@@ -220,6 +246,7 @@ class GetRecords extends FindRecord
         if (self::isStringAtList('resultType', $resultType, self::RESULTTYPE, false)) {
             $this->resultType = $resultType;
         }
+
         return $this;
     }
 
@@ -241,7 +268,6 @@ class GetRecords extends FindRecord
 
         return $this;
     }
-
 
 
     /**
@@ -304,44 +330,6 @@ class GetRecords extends FindRecord
      */
     public function validateParameter()
     {
-        // check contstarint and constraintLanguage
-        if ($this->constraint) {
-            if (is_array($this->constraint)) {
-                if (isset($this->constraint[0]['Filter'])) { #
-                    if (self::isStringAtList('Constraint', 'FILTER', $this->constraintLanguageList, false)) {
-                        $this->constraintLanguage = 'FILTER';
-                        $this->constraint         = $this->constraint[0]['Filter']['children']; # @TODO check filter
-                    }
-                } elseif (isset($this->constraint[0]['CqlText'])) { #
-                    if (self::isStringAtList('Constraint', 'CQL', $this->constraintLanguageList, false)) {
-                        $this->constraintLanguage = 'CQL';
-                        $cqlStr                   = $this->constraint[0]['CqlText']['VALUE'];
-                        // @TODO parse $cqlStr to "filter" array
-                        $this->constraint         = $this->constraint[0]['CqlText']['VALUE']; # @TODO check filter
-                    }
-                } else {
-                    $this->addCswException('constraint', CswException::InvalidParameterValue);
-                }
-            } elseif (is_string($this->constraint)) {
-                if ($this->constraintLanguage) {
-                    if ($this->constraintLanguage === 'FILTER') {
-                        $constraint       = Parameter\SimpleSaxHandler::toArray(
-                                '<csw:Filter>' . $this->constraint . '</csw:Filter>',
-                                array('/csw:Filter' => 'Constraint'));
-                        $this->constraint = $constraint['Constraint'];
-                    } elseif ($this->constraintLanguage === 'CSL') {
-                        $this->addCswException('CSL not yet implemented', CswException::NoApplicableCode);
-                    } else {
-                        $this->addCswException($this->constraintLanguage . ' not yet implemented',
-                            CswException::NoApplicableCode);
-                    }
-                } else {
-                    $this->addCswException('constraintLanguage', CswException::MissingParameterValue);
-                }
-            } else {
-                $this->addCswException('constraint', CswException::InvalidParameterValue);
-            }
-        }
         return parent::validateParameter();
     }
 }

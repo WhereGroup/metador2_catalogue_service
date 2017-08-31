@@ -9,30 +9,24 @@ namespace Plugins\WhereGroup\CatalogueServiceBundle\Component;
  */
 abstract class Operation
 {
-    public static $ALLOW_GET = true;
-
-    public static $ALLOW_POST = true;
-
     /**
      * The element prefix for csw namespace
      */
     const PREFIX = 'csw';
-
     /**
      * The uri for csw namespace
      */
     const NSPACE = 'http://www.opengis.net/cat/csw/2.0.2';
-
     /**
      * The service name
      */
     const SERVICE = 'CSW';
-
     /**
      * The version
      */
     const VERSION = '2.0.2';
-
+    public static $ALLOW_GET = true;
+    public static $ALLOW_POST = true;
     /**
      * The list of key values pair to find parameters at request.
      * @var array $parameterMap
@@ -43,7 +37,7 @@ abstract class Operation
      * List with exceptions
      * @var array $exceptions
      */
-    protected $exceptions;
+    protected $exceptions = array();
 
     /**
      * @var CswEntity entity
@@ -78,6 +72,48 @@ abstract class Operation
     {
         $this->entity = $entity;
         $this->version = self::VERSION;
+        $this->outputFormat = 'application/xml';
+    }
+
+    /**
+     * Parses a comma separated list.
+     * @param string $string a string to parse
+     * @param boolean $trim if true: trim by parsing otherwise parse wothout trimming.
+     * @return array with the list items
+     */
+    protected static function parseCsl($string, $trim = true)
+    {
+        return $trim ? preg_split('/\s?,\s?/', trim($string)) : preg_split('/,/', $string);
+    }
+
+    /**
+     * Checks if at least one item is in both arrays.
+     * @param array $array1
+     * @param array $array2
+     * @return boolean true
+     */
+    protected static function hasJointField(array $array1, array $array2)
+    {
+        foreach ($array1 as $item) {
+            if (in_array($item, $array2)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * @param string $string
+     * @return null|string
+     */
+    protected static function normalizeString($string)
+    {
+        if ($string === null || $string === '' || trim($string) === '') {
+            return null;
+        } else {
+            return trim($string);
+        }
     }
 
     /**
@@ -157,20 +193,48 @@ abstract class Operation
     }
 
     /**
-     * @param mixed $outputFormat
+     * Checks if all parameters are valid.
+     * @return boolean true if all request parameter are valid otherwise false.
+     * @throws \Plugins\WhereGroup\CatalogueServiceBundle\Component\CswException if a parameter isn't valid.
      */
-    public function setOutputFormat($outputFormat)
+    public function validateParameter()
     {
-        if ($outputFormat && is_string($outputFormat)) { # GET request
-            $outputFormat = self::parseCsl($outputFormat);
-            if ($this->outputFormat !== $outputFormat) {
-                $this->addCswException('outputFormat', CswException::InvalidParameterValue);
-            } else {
-                $this->outputFormat = $outputFormat;
-            }
-        } elseif ($outputFormat && !in_array($this->outputFormat, $outputFormat)) {
-            $this->addCswException('outputFormat', CswException::InvalidParameterValue);
+        if ($this->version !== self::VERSION) {
+            $this->addCswException('version', CswException::InvalidParameterValue);
         }
+        //  brake by first exception
+        foreach ($this->exceptions as $exc) {
+            throw $exc;
+        }
+
+        return true;
+    }
+
+    /**
+     * Adds an CswException into the exception's list.
+     * @param string $locator an exception locator
+     * @param integer $code a CswException code
+     */
+    public function addCswException($locator, $code)
+    {
+        $found = false;
+        foreach ($this->exceptions as $exception) {
+            if ($exception->getMessage() === $locator && $exception->getCode() === $code) {
+                $found = true;
+                break;
+            }
+        }
+        if (!$found) {
+            $this->exceptions[] = new CswException($locator, $code);
+        }
+    }
+
+    public function setParameters(array $parameters)
+    {
+        foreach ($parameters as $key => $value) {
+            $this->setParameter($key, $value);
+        }
+//        $this->validateParameter(); // call manually
     }
 
     /**
@@ -199,88 +263,25 @@ abstract class Operation
     }
 
     /**
-     * Adds an CswException into the exception's list.
-     * @param string $locator an exception locator
-     * @param integer $code a CswException code
+     * @param mixed $outputFormat
      */
-    public function addCswException($locator, $code)
+    public function setOutputFormat($outputFormat)
     {
-        $found = false;
-        foreach ($this->exceptions as $exception) {
-            if ($exception->getMessage() === $locator && $exception->getCode() === $code) {
-                $found = true;
-                break;
+        if ($outputFormat && is_string($outputFormat)) { # GET request
+//            $outputFormat = self::parseCsl($outputFormat);
+            if ($this->outputFormat !== $outputFormat) {
+                $this->addCswException('outputFormat', CswException::InvalidParameterValue);
+            } else {
+                $this->outputFormat = $outputFormat;
             }
+        } elseif ($outputFormat && !in_array($this->outputFormat, $outputFormat)) {
+            $this->addCswException('outputFormat', CswException::InvalidParameterValue);
         }
-        if (!$found) {
-            $this->exceptions[] = new CswException($locator, $code);
-        }
-    }
-
-    /**
-     * Checks if all parameters are valid.
-     * @return boolean true if all request parameter are valid otherwise false.
-     * @throws \Plugins\WhereGroup\CatalogueServiceBundle\Component\CswException if a parameter isn't valid.
-     */
-    public function validateParameter()
-    {
-        if ($this->version !== self::VERSION) {
-            $this->addCswException('version', CswException::InvalidParameterValue);
-        }
-        if (count($this->exceptions) === 0) {
-            return true;
-        } else {
-            $exception = null;
-            foreach ($this->exceptions as $exc) {
-                if ($exception) {
-                    $exception = new CswException($exc->getMessage(), $exc->getCode(), $exception->getPrevious());
-                } else {
-                    $exception = new CswException($exc->getMessage(), $exc->getCode(), $exc->getPrevious());
-                }
-            }
-            throw $exception;
-        }
-    }
-
-    public function setParameters(array $parameters)
-    {
-        foreach ($parameters as $key => $value) {
-            $this->setParameter($key, $value);
-        }
-//        $this->validateParameter(); // call manually
     }
 
     public function getContentSet()
     {
         return new ContentSet($this);
-    }
-
-    /**
-     * Parses a comma separated list.
-     * @param string $string a string to parse
-     * @param boolean $trim if true: trim by parsing otherwise parse wothout trimming.
-     * @return array with the list items
-     */
-    protected static function parseCsl($string, $trim = true)
-    {
-        return $trim ? preg_split('/\s?,\s?/', trim($string)) : preg_split('/,/', $string);
-    }
-
-    /**
-     * Checks if at least one item is in both arrays.
-     * @param array $array1
-     * @param array $array2
-     * @return boolean true
-     */
-    protected static function hasJointField(array $array1, array $array2)
-    {
-        foreach ($array1 as $item) {
-            if (in_array($item, $array2)) {
-                return true;
-            }
-        }
-
-        return false;
     }
 
     protected function isListAtList($name, $list, array $values, $mandatory = false)
@@ -324,15 +325,23 @@ abstract class Operation
     }
 
     /**
-     * @param string $string
-     * @return null|string
+     * @param string $name parameter name
+     * @param mixed $intToTest
+     * @return int|null
+     * @throws CswException if $intToTest is not positive
      */
-    protected static function normalizeString($string)
+    protected function getPositiveInteger($name, $intToTest)
     {
-        if ($string === null || $string === '' || trim($string) === '') {
-            return null;
+        if (($int = self::getInteger($name, $intToTest)) !== null) {
+            if ($int >= 0) {
+                return $int;
+            } else {
+                $this->addCswException($name, CswException::InvalidParameterValue);
+
+                return null;
+            }
         } else {
-            return trim($string);
+            return null;
         }
     }
 
@@ -351,27 +360,6 @@ abstract class Operation
         } else {
             $this->addCswException($name, CswException::InvalidParameterValue);
 
-            return null;
-        }
-    }
-
-    /**
-     * @param string $name parameter name
-     * @param mixed $intToTest
-     * @return int|null
-     * @throws CswException if $intToTest is not positive
-     */
-    protected function getPositiveInteger($name, $intToTest)
-    {
-        if (($int = self::getInteger($name, $intToTest)) !== null) {
-            if ($int >= 0) {
-                return $int;
-            } else {
-                $this->addCswException($name, CswException::InvalidParameterValue);
-
-                return null;
-            }
-        } else {
             return null;
         }
     }

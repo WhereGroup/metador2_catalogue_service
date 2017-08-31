@@ -1,0 +1,375 @@
+<?php
+
+namespace Plugins\WhereGroup\CatalogueServiceBundle\Component\Search;
+
+use WhereGroup\CoreBundle\Component\Search\Expression;
+use WhereGroup\CoreBundle\Component\Search\FilterReader;
+
+/**
+ * Class GmlFilterReader
+ * @package Plugins\WhereGroup\CatalogueServiceBundle\Component\Search
+ * @author Paul Schmidt <panadium@gmx.de>
+ */
+class GmlFilterReader implements FilterReader
+{
+
+    /**
+     * @param mixed $filter
+     * @param Expression $expression
+     */
+    public static function read($filter, Expression &$expression)
+    {
+        $expression->setResultExpression(self::getExpression($filter, $expression));
+    }
+
+    /**
+     * @param \DOMElement $filter
+     * @param Expression $expression
+     * @return array|mixed|null
+     */
+    private static function getExpression(\DOMElement $filter, Expression &$expression)
+    {
+        $items = array();
+        /* @var \DOMElement $child */
+        $child = null;
+        foreach ($filter->childNodes as $child) {
+            if ($child->nodeType !== XML_ELEMENT_NODE) {
+                continue;
+            }
+
+            switch ($child->localName) {
+                case 'And':
+                    $list = self::getExpression($child, $expression);
+
+                    if (count($list) > 1) {
+                        return $expression->andx($list);
+                    } elseif (count($list) === 1) {
+                        return $list[0];
+                    }
+
+                    return null;
+                case 'Or':
+                    $list = self::getExpression($child, $expression);
+
+                    if (count($list) > 1) {
+                        return $expression->orx($list);
+                    } elseif (count($list) === 1) {
+                        return $list[0];
+                    }
+
+                    return null;
+                case 'Not':
+                    $item = self::getExpression($child, $expression);
+
+                    return $expression->not($item);
+                case 'PropertyIsEqualTo':
+                    $operands = self::getComparisonContent($child);
+
+                    return $expression->eq($operands['name'], $operands['literal']);
+                case 'PropertyIsNotEqualTo':
+                    $operands = self::getComparisonContent($child);
+
+                    return $expression->neq($operands['name'], $operands['literal']);
+                case 'PropertyIsLike':
+                    $operands = self::getComparisonContent($child);
+
+                    return $expression->like(
+                        $operands['name'],
+                        $operands['literal'],
+                        $child->getAttribute('escapeChar'),
+                        $child->getAttribute('singleChar'),
+                        $child->getAttribute('wildCard')
+                    );
+                case 'PropertyIsBetween':
+                    $operands = self::getBetweenContent($child);
+
+                    return $expression->between($operands['name'], $operands['lower'], $operands['upper']);
+                case 'PropertyIsGreaterThan':
+                    $operands = self::getGtLtContent($child);
+
+                    return $expression->gt($operands['name'], $operands['literal']);
+                case 'PropertyIsGreaterThanOrEqualTo':
+                    $operands = self::getGtLtContent($child);
+
+                    return $expression->gte($operands['name'], $operands['literal']);
+                case 'PropertyIsLessThan':
+                    $operands = self::getGtLtContent($child);
+
+                    return $expression->lt($operands['name'], $operands['literal']);
+                case 'PropertyIsLessThanOrEqualTo':
+                    $operands = self::getGtLtContent($child);
+
+                    return $expression->lt($operands['name'], $operands['literal']);
+                case 'PropertyIsNull':
+                    $operands = self::getComparisonContent($child);
+
+                    return $expression->isNull($operands['name']);
+                case 'BBOX':
+                case 'Intersects':
+                    $operands = self::getSpatialContent($child);
+
+                    return $expression->bbox($operands['name'], $operands['geom']);
+                case 'Contains':
+                    $operands = self::getSpatialContent($child);
+
+                    return $expression->contains($operands['name'], $operands['geom']);
+                case 'Within':
+                    $operands = self::getSpatialContent($child);
+
+                    return $expression->within($operands['name'], $operands['geom']);
+                default:
+                    return null;
+            }
+        }
+
+        return $items;
+    }
+
+    /**
+     * @param \DOMElement $operator
+     * @return array
+     */
+    private static function getComparisonContent(\DOMElement $operator)
+    {
+        $operands = array();
+        /* @var \DOMNode $child */
+        $child = null;
+        foreach ($operator->childNodes as $child) {
+            if ($child->nodeType !== XML_ELEMENT_NODE) {
+                continue;
+            }
+            switch ($child->localName) {
+                case 'PropertyName':
+                    $operands['name'] = $child->textContent;
+                    break;
+                case 'Literal':
+                    $operands['literal'] = $child->textContent;
+                    break;
+                default:
+                    null;
+            }
+        }
+
+        return $operands;
+    }
+
+    /**
+     * @param \DOMElement $operator
+     * @return array
+     */
+    private static function getBetweenContent(\DOMElement $operator)
+    {
+        $operands = array();
+        /* @var \DOMNode $child */
+        $child = null;
+        foreach ($operator->childNodes as $child) {
+            if ($child->nodeType !== XML_ELEMENT_NODE) {
+                continue;
+            }
+            switch ($child->localName) {
+                case 'ValueReference':
+                    $operands['name'] = $child->textContent;
+                    break;
+                case 'LowerBoundary':
+                    $operands['lower'] = self::getBetweenContent($child);
+                    break;
+                case 'UpperBoundary':
+                    $operands['upper'] = self::getBetweenContent($child);
+                    break;
+                case 'Literal':
+                    return $child->textContent;
+                default:
+                    null;
+            }
+        }
+
+        return $operands;
+    }
+
+    /**
+     * @param \DOMElement $operator
+     * @return array
+     */
+    private static function getGtLtContent(\DOMElement $operator)
+    {
+        $operands = array();
+        /* @var \DOMNode $child */
+        $child = null;
+        foreach ($operator->childNodes as $child) {
+            if ($child->nodeType !== XML_ELEMENT_NODE) {
+                continue;
+            }
+            switch ($child->localName) {
+                case 'ValueReference':
+                    $operands['name'] = $child->textContent;
+                    break;
+                case 'Literal':
+                    $operands['literal'] = $child->textContent;
+                    break;
+                default:
+                    null;
+            }
+        }
+
+        return $operands;
+    }
+
+    /**
+     * @param \DOMElement $operator
+     * @return array
+     */
+    private static function getSpatialContent(\DOMElement $operator)
+    {
+        $operands = array();
+        /* @var \DOMNode $child */
+        $child = null;
+        foreach ($operator->childNodes as $child) {
+            if ($child->nodeType !== XML_ELEMENT_NODE) {
+                continue;
+            }
+            switch ($child->localName) {
+                case 'PropertyName':
+                    $operands['name'] = $child->textContent;
+                    break;
+                case 'Envelope':
+                    $help = self::getSpatialContent($child);
+                    $bbox = array_merge($help[0], $help[1]);
+                    $ords = self::toPolygonOrdinates($bbox);
+                    $jsonCoords = self::toJsonCoordinates($ords);
+                    $operands['geom'] = self::createGeoJson(
+                        'Polygon',
+                        array($jsonCoords),
+                        $child->getAttribute('srsName'),
+                        $bbox
+                    );
+                    break;
+                case 'lowerCorner':
+                    $operands[0] = self::splitStringOrdinates($child->textContent);
+                    break;
+                case 'upperCorner':
+                    $operands[1] = self::splitStringOrdinates($child->textContent);
+                    break;
+                case 'Point':
+                    $coord = self::getSpatialContent($child);
+                    $operands['geom'] = self::createGeoJson('Point', $coord[0], $child->getAttribute('srsName'));
+                    break;
+                case 'pos':
+                    $operands[] = self::splitStringOrdinates($child->textContent);
+                    break;
+                case 'Polygon':
+                    $help = self::getSpatialContent($child);
+                    $coords = array();
+                    foreach ($help as $ring) {
+                        $coords[] = self::toJsonCoordinates($ring);
+                    }
+                    $operands['geom'] = self::createGeoJson(
+                        'Polygon',
+                        $coords,
+                        $child->getAttribute('srsName')
+                    );
+                    break;
+                case 'exterior':
+                    $help = self::getSpatialContent($child);
+                    $operands[] = $help[0];
+                    break;
+                case 'interior':
+                    $help = self::getSpatialContent($child);
+                    $operands[] = $help[0];
+                    break;
+                case 'LinearRing':
+                    $help = self::getSpatialContent($child);
+                    $operands[] = $help[0];
+                    break;
+                case 'posList':
+                    $operands[] = self::splitStringOrdinates($child->textContent);
+                    break;
+                default:
+                    null;
+            }
+        }
+
+        return $operands;
+    }
+
+    /**
+     * @param string $ordinatesString
+     * @return array
+     */
+    private static function splitStringOrdinates($ordinatesString)
+    {
+        $stringOrdinates = preg_split('/[\s,]/', $ordinatesString);
+
+        return array_map(
+            function ($cont) {
+                return floatval($cont);
+            },
+            $stringOrdinates
+        );
+    }
+
+    /**
+     * @param $type
+     * @param array $coordinates
+     * @param array|null $bbox
+     * @return array
+     */
+    private static function createGeoJson($type, array $coordinates, $crs = null, array $bbox = null)
+    {
+        $geom = array(
+            "type" => $type,
+            "coordinates" => $coordinates,
+        );
+
+        if ($crs !== null) {
+            $geom['crs'] = array(
+                "type" => "name",
+                "properties" => array(
+                    "name" => $crs,
+                ),
+            );
+        }
+        if ($bbox !== null) {
+            return array(
+                "type" => 'Feature',
+                'bbox' => $bbox,
+                'geometry' => $geom,
+            );
+        } else {
+            return $geom;
+        }
+    }
+
+    /**
+     * @param array $bbox
+     * @return array
+     */
+    private static function toPolygonOrdinates(array $bbox)
+    {
+        return array(
+            $bbox[0],
+            $bbox[1],
+            $bbox[2],
+            $bbox[1],
+            $bbox[2],
+            $bbox[3],
+            $bbox[0],
+            $bbox[3],
+            $bbox[0],
+            $bbox[1],
+        );
+    }
+
+    /**
+     * @param array $ordinates
+     * @return array
+     */
+    private static function toJsonCoordinates(array $ordinates)
+    {
+        $coords = array();
+        for ($i = 1; $i < count($ordinates); $i += 2) {
+            $coords[] = array($ordinates[$i - 1], $ordinates[$i]);
+        }
+
+        return $coords;
+    }
+}

@@ -2,9 +2,7 @@
 <csw:GetRecordByIdResponse xmlns:csw="http://www.opengis.net/cat/csw/2.0.2">
 {% for record in records %}
     {%  set r = record.object | json_decode(true) %}
-    include '{{ pluginLocation[r._profile].sf ~ templateName }}' with {'p': r }
-    include '{{ pluginLocation[r._profile].full ~ templateName }}' with {'p': r }
-
-   {#{% include {{ pluginLocation[r._profile].sf ~ templateName }} with {'p': record.getObject } %}#}
+    {%  set vars = {'p': record.object | json_decode(true) } %}
+    {% include pluginLocation[r._profile].full ~ templateName with vars %}
 {% endfor %}
 </csw:GetRecordByIdResponse>

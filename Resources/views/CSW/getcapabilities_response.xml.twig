@@ -220,54 +220,43 @@
             </ows:Operation>
         </ows:OperationsMetadata>
     {% endif %}
-    {% if getcap.section|length == 0 or 'Filter_Capabilities' in getcap.section %}
-
-        {#{% if getcap.sections.Filter_Capabilities is defined %}#}
-        {#<ogc:Filter_Capabilities>#}
-        {#{% set filter =  getcap.sections.Filter_Capabilities.data %}#}
-        {#{% if filter.spatial_Capabilities is defined %}#}
-        {#<ogc:Spatial_Capabilities>#}
-        {#{% if filter.spatial_Capabilities.geometryOperands|length > 0 %}#}
-        {#<ogc:GeometryOperands>#}
-        {#{% for operand in filter.spatial_Capabilities.geometryOperands %}#}
-        {#<ogc:GeometryOperand>{{ operand }}</ogc:GeometryOperand>#}
-        {#{% endfor %}#}
-        {#</ogc:GeometryOperands>#}
-        {#{% else %}#}
-        {#<ogc:GeometryOperands/>#}
-        {#{% endif %}#}
-        {#{% if filter.spatial_Capabilities.spatialOperators|length > 0 %}#}
-        {#<ogc:SpatialOperators>#}
-        {#{% for operand in filter.spatial_Capabilities.spatialOperators %}#}
-        {#<ogc:SpatialOperator name="{{ operand }}"/>#}
-        {#{% endfor %}#}
-        {#</ogc:SpatialOperators>#}
-        {#{% else %}#}
-        {#<ogc:SpatialOperators/>#}
-        {#{% endif %}#}
-        {#</ogc:Spatial_Capabilities>#}
-        {#{% endif %}#}
-        {#{% if filter.scalar_Capabilities is defined %}#}
-        {#<ogc:Scalar_Capabilities>#}
-        {#{% if filter.scalar_Capabilities.logicalOperators %}#}
-        {#<ogc:LogicalOperators/>#}
-        {#{% endif %}#}
-        {#{% if filter.scalar_Capabilities.comparisonOperators|length > 0 %}#}
-        {#<ogc:ComparisonOperators>#}
-        {#{% for operand in filter.scalar_Capabilities.comparisonOperators %}#}
-        {#<ogc:ComparisonOperator>{{ operand }}</ogc:ComparisonOperator>#}
-        {#{% endfor %}#}
-        {#</ogc:ComparisonOperators>#}
-        {#{% endif %}#}
-        {#</ogc:Scalar_Capabilities>#}
-        {#{% endif %}#}
-        {#{% if filter.id_Capabilities is defined %}#}
-        {#<ogc:Id_Capabilities>#}
-        {#<ogc:FID/>#}
-        {#</ogc:Id_Capabilities>#}
-        {#{% endif %}#}
-        {#</ogc:Filter_Capabilities>#}
-    {% endif %}
-
-
+    <ogc:Filter_Capabilities>
+        <ogc:Spatial_Capabilities>
+            <ogc:GeometryOperands>
+                <ogc:GeometryOperand>gml:Envelope</ogc:GeometryOperand>
+                <ogc:GeometryOperand>gml:Point</ogc:GeometryOperand>
+                {#<ogc:GeometryOperand>gml:LineString</ogc:GeometryOperand>#}
+                {#<ogc:GeometryOperand>gml:Polygon</ogc:GeometryOperand>#}
+            </ogc:GeometryOperands>
+            <ogc:SpatialOperators>
+                <ogc:SpatialOperator name="BBOX" />
+                {#<ogc:SpatialOperator name="Equals" />#}
+                {#<ogc:SpatialOperator name="Overlaps" />#}
+                {#<ogc:SpatialOperator name="Disjoint" />#}
+                <ogc:SpatialOperator name="Intersects" />
+                {#<ogc:SpatialOperator name="Touches" />#}
+                {#<ogc:SpatialOperator name="Crosses" />#}
+                <ogc:SpatialOperator name="Within" />
+                <ogc:SpatialOperator name="Contains" />
+            </ogc:SpatialOperators>
+        </ogc:Spatial_Capabilities>
+        <ogc:Scalar_Capabilities>
+            <ogc:LogicalOperators />
+            <ogc:ComparisonOperators>
+                <ogc:ComparisonOperator>EqualTo</ogc:ComparisonOperator>
+                <ogc:ComparisonOperator>Like</ogc:ComparisonOperator>
+                <ogc:ComparisonOperator>LessThan</ogc:ComparisonOperator>
+                <ogc:ComparisonOperator>GreaterThan</ogc:ComparisonOperator>
+                <ogc:ComparisonOperator>LessThanEqualTo</ogc:ComparisonOperator>
+                <ogc:ComparisonOperator>GreaterThanEqualTo</ogc:ComparisonOperator>
+                <ogc:ComparisonOperator>NotEqualTo</ogc:ComparisonOperator>
+                <ogc:ComparisonOperator>Between</ogc:ComparisonOperator>
+                <ogc:ComparisonOperator>NullCheck</ogc:ComparisonOperator>
+            </ogc:ComparisonOperators>
+        </ogc:Scalar_Capabilities>
+        <ogc:Id_Capabilities>
+            <ogc:EID />
+            <ogc:FID />
+        </ogc:Id_Capabilities>
+    </ogc:Filter_Capabilities>
 </csw:Capabilities>

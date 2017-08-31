@@ -51,7 +51,7 @@ class Csw
 
     /**
      * @var string $keywords ServiceIdentification keywords
-     * @ORM\Column(type="json_array", nullable=false)
+     * @ORM\Column(type="json_array", nullable=true)
      */
     protected $keywords;
 
