@@ -3,6 +3,7 @@
 namespace Plugins\WhereGroup\CatalogueServiceBundle\Entity;
 
 use Doctrine\ORM\EntityRepository;
+use Doctrine\ORM\NoResultException;
 
 /**
  * Class CswRepository
@@ -31,13 +32,17 @@ class CswRepository extends EntityRepository
      */
     public function findOneBySlugAndSource($slug, $source)
     {
-        return $this
-            ->createQueryBuilder('c')
-            ->select('c')
-            ->where('c.slug = :slug AND c.source = :source')
-            ->setParameters(array('slug' => $slug, 'source' => $source))
-            ->getQuery()
-            ->getSingleResult();
+        try {
+            return $this
+                ->createQueryBuilder('c')
+                ->select('c')
+                ->where('c.slug = :slug AND c.source = :source')
+                ->setParameters(array('slug' => $slug, 'source' => $source))
+                ->getQuery()
+                ->getSingleResult();
+        } catch(NoResultException $e) {
+            return null;
+        }
     }
 
     /**
