@@ -194,6 +194,7 @@ class CswType extends AbstractType
         $builder->get('keywords')->addModelTransformer($stringArrayTransformer);
         $builder->get('accessConstraints')->addModelTransformer($stringArrayTransformer);
         $fields = $this->config->get('hierarchy_levels', 'plugin', 'metador_core');
+        $fields = $fields ? $fields : array();
         $builder->addEventListener(
             FormEvents::PRE_SET_DATA,
             function (FormEvent $event) use ($fields, $profiles) {

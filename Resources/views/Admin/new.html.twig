@@ -1,7 +1,8 @@
 {% extends 'MetadorThemeBundle:Admin:template.html.twig' %}
 
-{% if form.vars.value.slug is defined and form.vars.value.slug is not empty
-and form.vars.value.source is defined and form.vars.value.source is not empty %}
+{#{% if form.vars.value.slug is defined and form.vars.value.slug is not empty#}
+{#and form.vars.value.source is defined and form.vars.value.source is not empty %}#}
+{% if action == 'edit' %}
     {% set title  = 'Catalogue Service bearbeiten'|trans %}
     {% set path   = 'metador_admin_csw_edit' %}
     {% set params = {slug: form.vars.value.slug, source: form.vars.value.source} %}
@@ -36,6 +37,7 @@ and form.vars.value.source is defined and form.vars.value.source is not empty %}
             {{ form_errors(form) }}
             {{ form_errors(form.slug) }}
             {{ form_errors(form.source) }}
+            {{ form_errors(form.username) }}
         </div>
     {% endif %}
 

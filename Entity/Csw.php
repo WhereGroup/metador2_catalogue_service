@@ -33,7 +33,8 @@ class Csw
 
     /**
      * @var string $username user name
-     * @ORM\Column(type="string", nullable=true)
+     * @ORM\Column(type="string", nullable=false)
+     * @Assert\NotBlank(message="User darf nicht leer sein.")
      */
     protected $username;
 
@@ -68,9 +69,8 @@ class Csw
     protected $accessConstraints;
 
     /**
-     * @var string $providerName ServiceProvider providerName
-     * @ORM\Column(type="string", nullable=false)
-     * @Assert\NotBlank(message="Betreiber darf nicht leer sein.")
+     * @var string $providerName
+     * @ORM\Column(type="string", nullable=true)
      */
     protected $providerName;
 
@@ -170,6 +170,13 @@ class Csw
      */
     protected $profileMapping;
 
+    public function __construct()
+    {
+        $this->keywords = array();
+        $this->accessConstraints = array();
+        $this->profileMapping = array();
+    }
+
     /**
      * Creates a Csw instance from properties.
      * @param array $kv csw properties
@@ -199,14 +206,6 @@ class Csw
         $this->onlineResourse = isset($kv['onlineResourse']) ? $kv['onlineResourse'] : null;
 
         return $this;
-    }
-
-
-    public function __construct()
-    {
-        $this->keywords = array();
-        $this->accessConstraints = array();
-        $this->profileMapping = array();
     }
 
     /**

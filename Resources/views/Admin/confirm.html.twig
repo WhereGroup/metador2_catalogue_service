@@ -16,10 +16,9 @@
 
     <hr class="line-separator"/>
 
-    {{ form_start(form, { 'action': path('metador_admin_csw_confirm', {slug: form.vars.value.slug, source: form.vars.value.source}), 'method': 'POST', 'attr': {
-        novalidate: 'novalidate', autocomplete: 'off'
-    }}) }}
-
+    {{ form_start(form, {
+        'action': path('metador_admin_csw_confirm', {source: form.vars.value.source, slug: form.vars.value.slug }),
+        'method': 'POST', 'attr': {novalidate: 'novalidate', autocomplete: 'off'}}) }}
 
     <div class="grid space row-space responsive notify error remove-last-space">
         <div class="row r-1">

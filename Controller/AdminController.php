@@ -21,6 +21,7 @@ class AdminController extends Controller
      * @Route("/", name="metador_admin_csw")
      * @Method("GET")
      * @Template()
+     * @return array
      */
     public function indexAction()
     {
@@ -36,6 +37,7 @@ class AdminController extends Controller
      * @Route("/new/", name="metador_admin_csw_new")
      * @Method({"GET", "POST"})
      * @Template()
+     * @return array|\Symfony\Component\HttpFoundation\RedirectResponse
      */
     public function newAction()
     {
@@ -49,14 +51,11 @@ class AdminController extends Controller
             ->handleRequest($this->get('request_stack')->getCurrentRequest());
 
         if ($form->isSubmitted() && $form->isValid()) {
-            /**
-             * @var $entity Csw
-             */
-            $entity = $form->getData();
-
-            if ($this->get('metador_catalogue_service')->findOneBySlugAndSource($entity->getSlug(),
-                $entity->getSource())) {
-                $this->setFlashWarning(
+            /* @var Csw $csw */
+            $csw = $form->getData();
+            if ($this->get('metador_catalogue_service')->findOneBySlugAndSource($csw->getSlug(), $csw->getSource())) {
+                $this->setFlash(
+                    'warning',
                     'new',
                     '',
                     'Catalogue Service existiert bereits.',
@@ -66,19 +65,21 @@ class AdminController extends Controller
                 return $this->redirectToRoute('metador_admin_csw');
             }
 
-            $this->get('metador_catalogue_service')->save($entity);
-
-            $this->setFlashSuccess(
+            $this->get('metador_catalogue_service')->save($csw);
+            
+            $this->setFlash(
+                'success',
                 'new',
-                $entity->getSlug(),
+                $csw->getSlug(),
                 'Catalogue Service %service% erfolgreich erstellt.',
-                array('%service%' => $entity->getTitle())
+                array('%service%' => $csw->getTitle())
             );
 
             return $this->redirectToRoute('metador_admin_csw');
         }
 
         return array(
+            'action' => 'new',
             'form' => $form->createView(),
         );
     }
@@ -87,27 +88,26 @@ class AdminController extends Controller
      * @Route("/edit/{source}/{slug}", name="metador_admin_csw_edit")
      * @Method({"GET", "POST"})
      * @Template("CatalogueServiceBundle:Admin:new.html.twig")
-     * @param $slug
+     * @param string $source
+     * @param string $slug
      * @return array
      */
     public function editAction($source, $slug)
     {
         $this->get('metador_core')->denyAccessUnlessGranted('ROLE_SYSTEM_SUPERUSER');
+        $cswInstance = $this->get('metador_catalogue_service')->findOneBySlugAndSource($slug, $source);
 
         $form = $this
-            ->createForm(CswType::class,
-                $this->get('metador_catalogue_service')->findOneBySlugAndSource($slug, $source))
+            ->createForm(CswType::class, $cswInstance)
             ->handleRequest($this->get('request_stack')->getCurrentRequest());
 
         if ($form->isSubmitted() && $form->isValid()) {
-            /**
-             * @var $entity Csw
-             */
+            /* @var Csw $entity */
             $entity = $form->getData();
-
             $this->get('metador_catalogue_service')->save($entity);
 
-            $this->setFlashSuccess(
+            $this->setFlash(
+                'success',
                 'edit',
                 $entity->getSlug(),
                 'Catalogue Service %service% erfolgreich editiert.',
@@ -118,6 +118,7 @@ class AdminController extends Controller
         }
 
         return array(
+            'action' => 'edit',
             'form' => $form->createView(),
         );
     }
@@ -126,29 +127,30 @@ class AdminController extends Controller
      * @Route("/confirm/{source}/{slug}", name="metador_admin_csw_confirm")
      * @Method({"GET", "POST"})
      * @Template()
+     * @param string $source
+     * @param string $slug
+     * @return array|\Symfony\Component\HttpFoundation\RedirectResponse
      */
     public function confirmAction($source, $slug)
     {
         $this->get('metador_core')->denyAccessUnlessGranted('ROLE_SYSTEM_SUPERUSER');
-
-        $form = $this->createFormBuilder($this->get('metador_catalogue_service')->findOneBySlugAndSource($slug, $source))
-            ->add('delete', 'submit', array(
-                'label' => 'löschen',
-            ))
+        $cswInstance = $this->get('metador_catalogue_service')->findOneBySlugAndSource($slug, $source);
+        $form = $this
+            ->createFormBuilder($cswInstance)
+            ->add('delete', 'submit', array('label' => 'löschen'))
             ->getForm()
             ->handleRequest($this->get('request_stack')->getCurrentRequest());
 
         if ($form->isSubmitted() && $form->isValid()) {
-            /**
-             * @var $entity Csw
-             */
+            /* @var Csw $entity */
             $entity = $form->getData();
             $name = $entity->getTitle();
             $id = $entity->getSlug();
 
             $this->get('metador_source')->remove($entity);
 
-            $this->setFlashSuccess(
+            $this->setFlash(
+                'success',
                 'edit',
                 $id,
                 'Csw %csw% erfolgreich gelöscht.',
@@ -164,41 +166,17 @@ class AdminController extends Controller
     }
 
     /**
+     * @param $type
      * @param $operation
      * @param $id
      * @param $message
      * @param array $parameter
      */
-    private function setFlashWarning($operation, $id, $message, $parameter = array())
+    private function setFlash($type, $operation, $id, $message, $parameter = array())
     {
         $log = $this->get('metador_logger')->newLog();
 
-        $log->setType('warning')
-            ->setFlashMessage()
-            ->setCategory('application')
-            ->setSubcategory('csw')
-            ->setOperation($operation)
-            ->setIdentifier($id)
-            ->setMessage($message)
-            ->setMessageParameter($parameter)
-            ->setUsername($this->get('metador_user')->getUsernameFromSession());
-
-        $this->get('metador_logger')->set($log);
-
-        unset($log);
-    }
-
-    /**
-     * @param $operation
-     * @param $id
-     * @param $message
-     * @param array $parameter
-     */
-    private function setFlashSuccess($operation, $id, $message, $parameter = array())
-    {
-        $log = $this->get('metador_logger')->newLog();
-
-        $log->setType('success')
+        $log->setType($type)
             ->setFlashMessage()
             ->setCategory('application')
             ->setSubcategory('csw')

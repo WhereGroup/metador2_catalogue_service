@@ -7,10 +7,10 @@
                   xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
     {% if getcap.section|length == 0 or 'ServiceIdentification' in getcap.section %}
         <ows:ServiceIdentification>
-            {% if getcap.entity.abstract is defined %}
+            {% if getcap.entity.title != '' %}
                 <ows:Title>{{ getcap.entity.title }}</ows:Title>
             {% endif %}
-            {% if getcap.entity.abstract is defined %}
+            {% if getcap.entity.abstract != '' %}
                 <ows:Abstract>{{ getcap.entity.abstract }}</ows:Abstract>
             {% endif %}
             {% if getcap.entity.keywords | length > 0 %}
@@ -22,7 +22,7 @@
             {% endif %}
             <ows:ServiceType>CSW</ows:ServiceType>
             <ows:ServiceTypeVersion>2.0.2</ows:ServiceTypeVersion>
-            {% if getcap.entity.fees is defined %}
+            {% if getcap.entity.fees != '' %}
                 <ows:Fees>{{ getcap.entity.fees }}</ows:Fees>
             {% endif %}
             {% if getcap.entity.accessConstraints | length > 0 %}
@@ -35,19 +35,19 @@
     {% if getcap.section|length == 0 or 'ServiceProvider' in getcap.section %}
         <ows:ServiceProvider>
             <ows:ProviderName>{{ getcap.entity.providerName }}</ows:ProviderName>
-            {% if getcap.entity.providerSite is defined %}
+            {% if getcap.entity.providerSite != '' %}
                 <ows:ProviderSite xlink:type="simple" xlink:href="{{ getcap.entity.providerSite }}"/>
             {% endif %}
             <ows:ServiceContact>
                 <ows:IndividualName>{{ getcap.entity.individualName }}</ows:IndividualName>
                 <ows:PositionName>{{ getcap.entity.positionName }}</ows:PositionName>
                 <ows:ContactInfo>
-                    {% if getcap.entity.phoneVoice is defined or getcap.entity.phoneFacsimile is defined %}
+                    {% if getcap.entity.phoneVoice != '' or getcap.entity.phoneFacsimile != '' %}
                         <ows:Phone>
-                            {% if getcap.entity.phoneVoice is defined %}
+                            {% if getcap.entity.phoneVoice != '' %}
                                 <ows:Voice>{{ getcap.entity.phoneVoice }}</ows:Voice>
                             {% endif %}
-                            {% if getcap.entity.phoneFacsimile is defined %}
+                            {% if getcap.entity.phoneFacsimile != '' %}
                                 <ows:Facsimile>{{ getcap.entity.phoneFacsimile }}</ows:Facsimile>
                             {% endif %}
                         </ows:Phone>
@@ -166,57 +166,57 @@
                     <ows:Value>XML</ows:Value>
                 </ows:Constraint>
                 <ows:Constraint name="SupportedISOQueryables">
-                    <!--ows:Value>Operation</ows:Value>
-                    <ows:Value>Format</ows:Value>
-                    <ows:Value>OrganisationName</ows:Value>
-                    <ows:Value>Type</ows:Value>
-                    <ows:Value>ServiceType</ows:Value>
-                    <ows:Value>DistanceValue</ows:Value>
-                    <ows:Value>ResourceLanguage</ows:Value>
-                    <ows:Value>RevisionDate</ows:Value>
-                    <ows:Value>OperatesOn</ows:Value>
-                    <ows:Value>GeographicDescriptionCode</ows:Value>
-                    <ows:Value>AnyText</ows:Value>
-                    <ows:Value>Modified</ows:Value>
-                    <ows:Value>PublicationDate</ows:Value>
-                    <ows:Value>ResourceIdentifier</ows:Value>
-                    <ows:Value>ParentIdentifier</ows:Value>
                     <ows:Value>Identifier</ows:Value>
-                    <ows:Value>CouplingType</ows:Value>
-                    <ows:Value>TopicCategory</ows:Value>
-                    <ows:Value>OperatesOnIdentifier</ows:Value>
-                    <ows:Value>ServiceTypeVersion</ows:Value>
-                    <ows:Value>TempExtent_end</ows:Value>
-                    <ows:Value>Subject</ows:Value>
-                    <ows:Value>CreationDate</ows:Value>
-                    <ows:Value>OperatesOnName</ows:Value>
                     <ows:Value>Title</ows:Value>
-                    <ows:Value>DistanceUOM</ows:Value>
-                    <ows:Value>Denominator</ows:Value>
-                    <ows:Value>AlternateTitle</ows:Value>
                     <ows:Value>Language</ows:Value>
-                    <ows:Value>TempExtent_begin</ows:Value>
-                    <ows:Value>HasSecurityConstraints</ows:Value>
-                    <ows:Value>KeywordType</ows:Value>
-                    <ows:Value>Abstract</ows:Value-->
+                    <ows:Value>AnyText</ows:Value>
+                    {#<ows:Value>Operation</ows:Value>#}
+                    {#<ows:Value>Format</ows:Value>#}
+                    {#<ows:Value>OrganisationName</ows:Value>#}
+                    {#<ows:Value>Type</ows:Value>#}
+                    {#<ows:Value>ServiceType</ows:Value>#}
+                    {#<ows:Value>DistanceValue</ows:Value>#}
+                    {#<ows:Value>ResourceLanguage</ows:Value>#}
+                    {#<ows:Value>RevisionDate</ows:Value>#}
+                    {#<ows:Value>OperatesOn</ows:Value>#}
+                    {#<ows:Value>GeographicDescriptionCode</ows:Value>#}
+                    {#<ows:Value>Modified</ows:Value>#}
+                    {#<ows:Value>PublicationDate</ows:Value>#}
+                    {#<ows:Value>ResourceIdentifier</ows:Value>#}
+                    {#<ows:Value>ParentIdentifier</ows:Value>#}
+                    {#<ows:Value>CouplingType</ows:Value>#}
+                    {#<ows:Value>TopicCategory</ows:Value>#}
+                    {#<ows:Value>OperatesOnIdentifier</ows:Value>#}
+                    {#<ows:Value>ServiceTypeVersion</ows:Value>#}
+                    {#<ows:Value>TempExtent_end</ows:Value>#}
+                    {#<ows:Value>Subject</ows:Value>#}
+                    {#<ows:Value>CreationDate</ows:Value>#}
+                    {#<ows:Value>OperatesOnName</ows:Value>#}
+                    {#<ows:Value>DistanceUOM</ows:Value>#}
+                    {#<ows:Value>Denominator</ows:Value>#}
+                    {#<ows:Value>AlternateTitle</ows:Value>#}
+                    {#<ows:Value>TempExtent_begin</ows:Value>#}
+                    {#<ows:Value>HasSecurityConstraints</ows:Value>#}
+                    {#<ows:Value>KeywordType</ows:Value>#}
+                    {#<ows:Value>Abstract</ows:Value>#}
                 </ows:Constraint>
-                <ows:Constraint name="AdditionalQueryables">
-                    <!--ows:Value>Relation</ows:Value>
-                    <ows:Value>AccessConstraints</ows:Value>
-                    <ows:Value>ResponsiblePartyRole</ows:Value>
-                    <ows:Value>OnlineResourceMimeType</ows:Value>
-                    <ows:Value>OnlineResourceType</ows:Value>
-                    <ows:Value>Lineage</ows:Value>
-                    <ows:Value>SpecificationDate</ows:Value>
-                    <ows:Value>ConditionApplyingToAccessAndUse</ows:Value>
-                    <ows:Value>SpecificationDateType</ows:Value>
-                    <ows:Value>MetadataPointOfContact</ows:Value>
-                    <ows:Value>Classification</ows:Value>
-                    <ows:Value>Date</ows:Value>
-                    <ows:Value>OtherConstraints</ows:Value>
-                    <ows:Value>Degree</ows:Value>
-                    <ows:Value>SpecificationTitle</ows:Value-->
-                </ows:Constraint>
+                {#<ows:Constraint name="AdditionalQueryables">#}
+                {#<ows:Value>Relation</ows:Value>#}
+                {#<ows:Value>AccessConstraints</ows:Value>#}
+                {#<ows:Value>ResponsiblePartyRole</ows:Value>#}
+                {#<ows:Value>OnlineResourceMimeType</ows:Value>#}
+                {#<ows:Value>OnlineResourceType</ows:Value>#}
+                {#<ows:Value>Lineage</ows:Value>#}
+                {#<ows:Value>SpecificationDate</ows:Value>#}
+                {#<ows:Value>ConditionApplyingToAccessAndUse</ows:Value>#}
+                {#<ows:Value>SpecificationDateType</ows:Value>#}
+                {#<ows:Value>MetadataPointOfContact</ows:Value>#}
+                {#<ows:Value>Classification</ows:Value>#}
+                {#<ows:Value>Date</ows:Value>#}
+                {#<ows:Value>OtherConstraints</ows:Value>#}
+                {#<ows:Value>Degree</ows:Value>#}
+                {#<ows:Value>SpecificationTitle</ows:Value>#}
+                {#</ows:Constraint>#}
             </ows:Operation>
         </ows:OperationsMetadata>
     {% endif %}
@@ -229,19 +229,19 @@
                 {#<ogc:GeometryOperand>gml:Polygon</ogc:GeometryOperand>#}
             </ogc:GeometryOperands>
             <ogc:SpatialOperators>
-                <ogc:SpatialOperator name="BBOX" />
+                <ogc:SpatialOperator name="BBOX"/>
+                <ogc:SpatialOperator name="Intersects"/>
+                <ogc:SpatialOperator name="Within"/>
+                <ogc:SpatialOperator name="Contains"/>
                 {#<ogc:SpatialOperator name="Equals" />#}
                 {#<ogc:SpatialOperator name="Overlaps" />#}
                 {#<ogc:SpatialOperator name="Disjoint" />#}
-                <ogc:SpatialOperator name="Intersects" />
                 {#<ogc:SpatialOperator name="Touches" />#}
                 {#<ogc:SpatialOperator name="Crosses" />#}
-                <ogc:SpatialOperator name="Within" />
-                <ogc:SpatialOperator name="Contains" />
             </ogc:SpatialOperators>
         </ogc:Spatial_Capabilities>
         <ogc:Scalar_Capabilities>
-            <ogc:LogicalOperators />
+            <ogc:LogicalOperators/>
             <ogc:ComparisonOperators>
                 <ogc:ComparisonOperator>EqualTo</ogc:ComparisonOperator>
                 <ogc:ComparisonOperator>Like</ogc:ComparisonOperator>
@@ -255,8 +255,8 @@
             </ogc:ComparisonOperators>
         </ogc:Scalar_Capabilities>
         <ogc:Id_Capabilities>
-            <ogc:EID />
-            <ogc:FID />
+            <ogc:EID/>
+            <ogc:FID/>
         </ogc:Id_Capabilities>
     </ogc:Filter_Capabilities>
 </csw:Capabilities>

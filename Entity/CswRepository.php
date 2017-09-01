@@ -40,7 +40,7 @@ class CswRepository extends EntityRepository
                 ->setParameters(array('slug' => $slug, 'source' => $source))
                 ->getQuery()
                 ->getSingleResult();
-        } catch(NoResultException $e) {
+        } catch (NoResultException $e) {
             return null;
         }
     }
@@ -68,5 +68,4 @@ class CswRepository extends EntityRepository
 
         return $this;
     }
-
 }
