@@ -170,11 +170,21 @@ class Csw
      */
     protected $profileMapping;
 
+    /**
+     * @var array
+     * @ORM\Column(type="json_array", nullable=true)
+     */
+    protected $filter;
+
+    /**
+     * Csw constructor.
+     */
     public function __construct()
     {
         $this->keywords = array();
         $this->accessConstraints = array();
         $this->profileMapping = array();
+        $this->filter = array();
     }
 
     /**
@@ -204,6 +214,11 @@ class Csw
         $this->country = isset($kv['country']) ? $kv['country'] : null;
         $this->electronicMailAddress = isset($kv['electronicMailAddress']) ? $kv['electronicMailAddress'] : null;
         $this->onlineResourse = isset($kv['onlineResourse']) ? $kv['onlineResourse'] : null;
+        $this->insert = isset($kv['insert']) ? $kv['insert'] : false;
+        $this->update = isset($kv['update']) ? $kv['update'] : false;
+        $this->delete = isset($kv['delete']) ? $kv['delete'] : false;
+        $this->profileMapping = isset($kv['profileMapping']) ? $kv['profileMapping'] : array();
+        $this->filter = isset($kv['filter']) ? $kv['filter'] : array();
 
         return $this;
     }
@@ -806,5 +821,29 @@ class Csw
     public function getProfileMapping()
     {
         return $this->profileMapping;
+    }
+
+    /**
+     * Set filter
+     *
+     * @param array $filter
+     *
+     * @return Csw
+     */
+    public function setFilter($filter)
+    {
+        $this->filter = $filter;
+
+        return $this;
+    }
+
+    /**
+     * Get filter
+     *
+     * @return array
+     */
+    public function getFilter()
+    {
+        return $this->filter;
     }
 }

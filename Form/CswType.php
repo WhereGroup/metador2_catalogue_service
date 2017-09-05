@@ -168,9 +168,13 @@ class CswType extends AbstractType
                 'label' => 'Entfernen',
                 'required' => false,
             ))
-            ->add('profileMapping', HiddenType::class);
+            ->add('profileMapping', HiddenType::class)
+            ->add('filter', TextareaType::class, array(
+                'label' => 'Filter',
+                'required' => false,
+            ));
 
-        $stringArrayTransformer = new CallbackTransformer(
+        $csvArrayTransformer = new CallbackTransformer(
             function ($textAsArray) {
                 // transform the array to a string
                 return isset($textAsArray) ? implode(', ', $textAsArray) : '';
@@ -190,9 +194,19 @@ class CswType extends AbstractType
                 return isset($textAsString) ? $textAsString : array();
             }
         );
+
+        $textJsonTransformer = new CallbackTransformer(
+            function ($array) {
+                return is_array($array) ? json_encode($array, JSON_PRETTY_PRINT) : '';
+            },
+            function ($text) {
+                return is_string($text) ? json_decode($text, true, 512, JSON_FORCE_OBJECT) : array();
+            }
+        );
         $builder->get('profileMapping')->addModelTransformer($stringAssocArrayTransformer);
-        $builder->get('keywords')->addModelTransformer($stringArrayTransformer);
-        $builder->get('accessConstraints')->addModelTransformer($stringArrayTransformer);
+        $builder->get('keywords')->addModelTransformer($csvArrayTransformer);
+        $builder->get('accessConstraints')->addModelTransformer($csvArrayTransformer);
+        $builder->get('filter')->addModelTransformer($textJsonTransformer);
         $fields = $this->config->get('hierarchy_levels', 'plugin', 'metador_core');
         $fields = $fields ? $fields : array();
         $builder->addEventListener(
