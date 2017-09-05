@@ -11,7 +11,9 @@ use Plugins\WhereGroup\CatalogueServiceBundle\Entity\Csw as CswEntity;
 use Symfony\Bundle\TwigBundle\TwigEngine;
 use Symfony\Component\HttpKernel\KernelInterface;
 use WhereGroup\CoreBundle\Component\Logger;
+use WhereGroup\CoreBundle\Component\Search\Expression;
 use WhereGroup\CoreBundle\Component\Search\ExprHandler;
+use WhereGroup\CoreBundle\Component\Search\JsonFilterReader;
 use WhereGroup\CoreBundle\Component\Search\Search;
 use WhereGroup\PluginBundle\Component\Plugin;
 
@@ -220,17 +222,32 @@ class Csw
         $operation = new GetRecordById($cswConfig);
         $parameter->initOperation($operation);
         $operation->validateParameter();
-        $params = array();
-        // add ids to expression
-        $expression = $exprHandler->in('uuid', $operation->getId(), $params);
-
+        $searchParameters = array();
+        /* @var Expression $expr */
+        $expr = null;
+        if (($defExpr = JsonFilterReader::read($cswConfig->getFilter(), $exprHandler))) {
+            $searchParameters = $defExpr->getParameters();
+            $expr = new Expression(
+                $exprHandler->andx(
+                    array(
+                        $defExpr->getExpression(),
+                        // add ids to expression
+                        $exprHandler->in('uuid', $operation->getId(), $searchParameters),
+                    )
+                ),
+                $searchParameters
+            );
+        } else {
+            // add ids to expression
+            $expr = new Expression($exprHandler->in('uuid', $operation->getId(), $searchParameters), $searchParameters);
+        }
         $pluginLocation = $this->getProfileLocations($cswConfig->getProfileMapping());
         $templateName = self::getTemplateForElementSetName($operation->getElementSetName());
         $this->metadataSearch
             ->setPage(1)
             ->setHits(100)// set max count for GetRecordById ???
             ->setSource($cswConfig->getSource())
-            ->setExpression($expression, $params)
+            ->setExpression($expr)
             ->find();
 
         return $this->templating->render(
@@ -251,6 +268,8 @@ class Csw
      */
     public function getRecords(Parameter $parameter, CswEntity $cswConfig)
     {
+        /* @var ExprHandler $exprHandler */
+        $exprHandler = $this->metadataSearch->createExpression();
         $getrecords = new GetRecords($cswConfig, $this->metadataSearch->createExpression());
         $parameter->initOperation($getrecords);
         $getrecords->validateParameter();
@@ -258,12 +277,35 @@ class Csw
         $pluginLocation = $this->getProfileLocations($cswConfig->getProfileMapping());
         $templateName = self::getTemplateForElementSetName($getrecords->getElementSetName());
         $offset = $getrecords->getStartPosition() - 1;
+
+        /* @var Expression $expr */
+        $expr = null;
+        if (($defExpr = JsonFilterReader::read($cswConfig->getFilter(), $exprHandler))) {
+            if ($getrecords->getConstraint()) {
+                $expr = new Expression(
+                    $exprHandler->andx(
+                        array(
+                            $defExpr->getExpression(),
+                            // add ids to expression
+                            $getrecords->getConstraint()->getExpression(),
+                        )
+                    ),
+                    array_merge($getrecords->getConstraint()->getParameters(), $defExpr->getParameters())
+                );
+            }
+        } else {
+            $expr = $getrecords->getConstraint();
+        }
         $this->metadataSearch
             ->setPage(0)// use no page
             ->setHits($getrecords->getMaxRecords())
             ->setOffset($offset)
-            ->setSource($cswConfig->getSource())
-            ->setExpression($getrecords->getConstraint())
+            ->setSource($cswConfig->getSource());
+        if ($expr) {
+            $this->metadataSearch
+                ->setExpression($expr);
+        }
+        $this->metadataSearch
             ->find();
 
         $time = new \DateTime();
