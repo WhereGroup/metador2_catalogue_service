@@ -12,7 +12,7 @@ use Plugins\WhereGroup\CatalogueServiceBundle\Component\Operation;
 use Plugins\WhereGroup\CatalogueServiceBundle\Component\CswException;
 use Plugins\WhereGroup\CatalogueServiceBundle\Component\Transaction;
 use Plugins\WhereGroup\CatalogueServiceBundle\Component\TransactionOperation;
-use WhereGroup\CoreBundle\Component\Search\Expression;
+use WhereGroup\CoreBundle\Component\Search\ExprHandler;
 
 class TransactionParameter extends PostDomParameter
 {
@@ -71,7 +71,7 @@ class TransactionParameter extends PostDomParameter
      * @param Transaction $operation
      * @return null|TransactionOperation
      */
-    public function nextAction(Transaction $operation, Expression $expression)
+    public function nextAction(Transaction $operation, ExprHandler $expression)
     {
         $conf = $this->getTypeConfiguration($operation);
         $xpathStr = $conf['key'];
@@ -96,7 +96,7 @@ class TransactionParameter extends PostDomParameter
      * @return TransactionOperation
      * @throws CswException
      */
-    private function initAction(Transaction $operation, Expression $expression, \DOMElement $actionElm, array $config)
+    private function initAction(Transaction $operation, ExprHandler $expression, \DOMElement $actionElm, array $config)
     {
         if (!$operation->isTypeSupported($config[Transaction::ACTION])) {
             throw new CswException($config[Transaction::ACTION], CswException::OperationNotSupported);

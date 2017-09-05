@@ -3,6 +3,7 @@
 namespace Plugins\WhereGroup\CatalogueServiceBundle\Component\Search;
 
 use WhereGroup\CoreBundle\Component\Search\Expression;
+use WhereGroup\CoreBundle\Component\Search\ExprHandler;
 use WhereGroup\CoreBundle\Component\Search\FilterReader;
 
 /**
@@ -14,20 +15,24 @@ class GmlFilterReader implements FilterReader
 {
 
     /**
-     * @param mixed $filter
-     * @param Expression $expression
+     * @param $filter
+     * @param ExprHandler $expression
+     * @return Expression
      */
-    public static function read($filter, Expression &$expression)
+    public static function read($filter, ExprHandler $expression)
     {
-        $expression->setResultExpression(self::getExpression($filter, $expression));
+        $parameters = array();
+
+        return new Expression(self::getExpression($filter, $expression, $parameters), $parameters);
     }
 
     /**
      * @param \DOMElement $filter
-     * @param Expression $expression
+     * @param ExprHandler $expression
+     * @param $parameters
      * @return array|mixed|null
      */
-    private static function getExpression(\DOMElement $filter, Expression &$expression)
+    private static function getExpression(\DOMElement $filter, ExprHandler $expression, &$parameters)
     {
         $items = array();
         /* @var \DOMElement $child */
@@ -39,7 +44,7 @@ class GmlFilterReader implements FilterReader
 
             switch ($child->localName) {
                 case 'And':
-                    $list = self::getExpression($child, $expression);
+                    $list = self::getExpression($child, $expression, $parameters);
 
                     if (count($list) > 1) {
                         return $expression->andx($list);
@@ -49,7 +54,7 @@ class GmlFilterReader implements FilterReader
 
                     return null;
                 case 'Or':
-                    $list = self::getExpression($child, $expression);
+                    $list = self::getExpression($child, $expression, $parameters);
 
                     if (count($list) > 1) {
                         return $expression->orx($list);
@@ -59,23 +64,24 @@ class GmlFilterReader implements FilterReader
 
                     return null;
                 case 'Not':
-                    $item = self::getExpression($child, $expression);
+                    $item = self::getExpression($child, $expression, $parameters);
 
                     return $expression->not($item);
                 case 'PropertyIsEqualTo':
                     $operands = self::getComparisonContent($child);
 
-                    return $expression->eq($operands['name'], $operands['literal']);
+                    return $expression->eq($operands['name'], $operands['literal'], $parameters);
                 case 'PropertyIsNotEqualTo':
                     $operands = self::getComparisonContent($child);
 
-                    return $expression->neq($operands['name'], $operands['literal']);
+                    return $expression->neq($operands['name'], $operands['literal'], $parameters);
                 case 'PropertyIsLike':
                     $operands = self::getComparisonContent($child);
 
                     return $expression->like(
                         $operands['name'],
                         $operands['literal'],
+                        $parameters,
                         $child->getAttribute('escapeChar'),
                         $child->getAttribute('singleChar'),
                         $child->getAttribute('wildCard')
@@ -83,23 +89,23 @@ class GmlFilterReader implements FilterReader
                 case 'PropertyIsBetween':
                     $operands = self::getBetweenContent($child);
 
-                    return $expression->between($operands['name'], $operands['lower'], $operands['upper']);
+                    return $expression->between($operands['name'], $operands['lower'], $operands['upper'], $parameters);
                 case 'PropertyIsGreaterThan':
                     $operands = self::getGtLtContent($child);
 
-                    return $expression->gt($operands['name'], $operands['literal']);
+                    return $expression->gt($operands['name'], $operands['literal'], $parameters);
                 case 'PropertyIsGreaterThanOrEqualTo':
                     $operands = self::getGtLtContent($child);
 
-                    return $expression->gte($operands['name'], $operands['literal']);
+                    return $expression->gte($operands['name'], $operands['literal'], $parameters);
                 case 'PropertyIsLessThan':
                     $operands = self::getGtLtContent($child);
 
-                    return $expression->lt($operands['name'], $operands['literal']);
+                    return $expression->lt($operands['name'], $operands['literal'], $parameters);
                 case 'PropertyIsLessThanOrEqualTo':
                     $operands = self::getGtLtContent($child);
 
-                    return $expression->lt($operands['name'], $operands['literal']);
+                    return $expression->lt($operands['name'], $operands['literal'], $parameters);
                 case 'PropertyIsNull':
                     $operands = self::getComparisonContent($child);
 
@@ -108,15 +114,15 @@ class GmlFilterReader implements FilterReader
                 case 'Intersects':
                     $operands = self::getSpatialContent($child);
 
-                    return $expression->bbox($operands['name'], $operands['geom']);
+                    return $expression->bbox($operands['name'], $operands['geom'], $parameters);
                 case 'Contains':
                     $operands = self::getSpatialContent($child);
 
-                    return $expression->contains($operands['name'], $operands['geom']);
+                    return $expression->contains($operands['name'], $operands['geom'], $parameters);
                 case 'Within':
                     $operands = self::getSpatialContent($child);
 
-                    return $expression->within($operands['name'], $operands['geom']);
+                    return $expression->within($operands['name'], $operands['geom'], $parameters);
                 default:
                     return null;
             }
@@ -155,7 +161,7 @@ class GmlFilterReader implements FilterReader
 
     /**
      * @param \DOMElement $operator
-     * @return array
+     * @return array|string
      */
     private static function getBetweenContent(\DOMElement $operator)
     {

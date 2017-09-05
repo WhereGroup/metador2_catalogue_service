@@ -4,7 +4,7 @@ namespace Plugins\WhereGroup\CatalogueServiceBundle\Component;
 
 
 use Plugins\WhereGroup\CatalogueServiceBundle\Component\Search\GmlFilterReader;
-use WhereGroup\CoreBundle\Component\Search\Expression;
+use WhereGroup\CoreBundle\Component\Search\ExprHandler;
 
 class TransactionOperation
 {
@@ -29,16 +29,16 @@ class TransactionOperation
     private $items;
 
     /**
-     * @var Expression
+     * @var ExprHandler
      */
     private $filter;
 
     /**
      * TransactionOperation constructor.
      * @param $type
-     * @param Expression $expression
+     * @param ExprHandler $expression
      */
-    public function __construct($type, Expression $expression)
+    public function __construct($type, ExprHandler $expression)
     {
         $this->type = $type;
         $this->items = array();
@@ -111,7 +111,7 @@ class TransactionOperation
     }
 
     /**
-     * @return Expression
+     * @return ExprHandler
      */
     public function getFilter()
     {

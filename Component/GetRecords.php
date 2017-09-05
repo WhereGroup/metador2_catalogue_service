@@ -4,6 +4,7 @@ namespace Plugins\WhereGroup\CatalogueServiceBundle\Component;
 
 use Plugins\WhereGroup\CatalogueServiceBundle\Component\Search\GmlFilterReader;
 use WhereGroup\CoreBundle\Component\Search\Expression;
+use WhereGroup\CoreBundle\Component\Search\ExprHandler;
 
 /**
  * Class GetRecords
@@ -43,8 +44,10 @@ class GetRecords extends FindRecord
     protected $maxRecords;
     protected $sortBy;
     /**
-     * @var Expression $constraint
+     * @var ExprHandler $constraint
      */
+    protected $exprHandler;
+    /* @var Expression $constraint */
     protected $constraint;
     protected $constraintLanguage;
     protected $resultType;
@@ -61,10 +64,10 @@ class GetRecords extends FindRecord
      */
     public function __construct(
         \Plugins\WhereGroup\CatalogueServiceBundle\Entity\Csw $entity = null,
-        Expression $expression
+        ExprHandler $exprHandler
     ) {
         parent::__construct($entity);
-        $this->constraint = $expression;
+        $this->exprHandler = $exprHandler;
         $this->resultType = self::RESULTTYPE_HITS;
         $this->typeNames = array('gmd:MD_Metadata');
         $this->constraintLanguage = 'FILTER';
@@ -179,7 +182,7 @@ class GetRecords extends FindRecord
     }
 
     /**
-     * @return mixed
+     * @return Expression
      */
     public function getConstraint()
     {
@@ -187,23 +190,23 @@ class GetRecords extends FindRecord
     }
 
     /**
-     * @param \DOMElement|string $constraint
+     * @param \DOMElement|string $constraintContent
      * @return $this
      * @throws CswException
      */
-    public function setConstraint($constraint)
+    public function setConstraint($constraintContent)
     {
         // only xml Filter is supported
         // TODO mapping PropertyName <-> Database column
-        if (is_string($this->constraint)) {
-            $xml = '<?xml version="1.0" >\n<csw:Filter>'.$this->constraint.'</csw:Filter>';
+        if (is_string($constraintContent)) {
+            $xml = '<?xml version="1.0" >\n<csw:Filter>'.$constraintContent.'</csw:Filter>';
             $dom = new \DOMDocument();
             if (!@$dom->loadXML($xml, LIBXML_DTDLOAD | LIBXML_DTDATTR | LIBXML_NOENT | LIBXML_XINCLUDE)) {
                 throw new CswException('filter', CswException::ParsingError);
             }
-            GmlFilterReader::read($dom->documentElement, $this->constraint);
+            $this->constraint = GmlFilterReader::read($dom->documentElement, $this->exprHandler);
         } else {
-            GmlFilterReader::read($constraint, $this->constraint);
+            $this->constraint = GmlFilterReader::read($constraintContent, $this->exprHandler);
         }
 
         return $this;

@@ -11,7 +11,7 @@ use Plugins\WhereGroup\CatalogueServiceBundle\Entity\Csw as CswEntity;
 use Symfony\Bundle\TwigBundle\TwigEngine;
 use Symfony\Component\HttpKernel\KernelInterface;
 use WhereGroup\CoreBundle\Component\Logger;
-use WhereGroup\CoreBundle\Component\Search\Expression;
+use WhereGroup\CoreBundle\Component\Search\ExprHandler;
 use WhereGroup\CoreBundle\Component\Search\Search;
 use WhereGroup\PluginBundle\Component\Plugin;
 
@@ -151,7 +151,7 @@ class Csw
 
     /**
      * @param $content
-     * @return PostParameter
+     * @return PostDomParameter
      */
     public function readPostParameter($content)
     {
@@ -215,19 +215,14 @@ class Csw
      */
     public function getRecordById(Parameter $parameter, CswEntity $cswConfig)
     {
-        /* @var Expression $expression */
-        $expression = $this->metadataSearch->createExpression();
+        /* @var ExprHandler $exprHandler */
+        $exprHandler = $this->metadataSearch->createExpression();
         $operation = new GetRecordById($cswConfig);
         $parameter->initOperation($operation);
         $operation->validateParameter();
+        $params = array();
         // add ids to expression
-        $uuidExpression = $expression->in('uuid', $operation->getId());
-        // set all expressions
-        if (($profileExpression = $this->getProfileExpression($cswConfig->getProfileMapping(), $expression))) {
-            $expression->setResultExpression($expression->andx(array($uuidExpression, $profileExpression)));
-        } else {
-            $expression->setResultExpression($uuidExpression);
-        }
+        $expression = $exprHandler->in('uuid', $operation->getId(), $params);
 
         $pluginLocation = $this->getProfileLocations($cswConfig->getProfileMapping());
         $templateName = self::getTemplateForElementSetName($operation->getElementSetName());
@@ -235,7 +230,7 @@ class Csw
             ->setPage(1)
             ->setHits(100)// set max count for GetRecordById ???
             ->setSource($cswConfig->getSource())
-            ->setExpression($expression)
+            ->setExpression($expression, $params)
             ->find();
 
         return $this->templating->render(
@@ -259,17 +254,6 @@ class Csw
         $getrecords = new GetRecords($cswConfig, $this->metadataSearch->createExpression());
         $parameter->initOperation($getrecords);
         $getrecords->validateParameter();
-        $profileExpr = $this->getProfileExpression($cswConfig->getProfileMapping(), $getrecords->getConstraint());
-        if ($profileExpr) {
-            $getrecords->getConstraint()->setResultExpression(
-                $getrecords->getConstraint()->andx(
-                    array(
-                        $getrecords->getConstraint()->getResultExpression(),
-                        $profileExpr,
-                    )
-                )
-            );
-        }
 
         $pluginLocation = $this->getProfileLocations($cswConfig->getProfileMapping());
         $templateName = self::getTemplateForElementSetName($getrecords->getElementSetName());
@@ -448,10 +432,10 @@ class Csw
 
     /**
      * @param array $profileMapping
-     * @param Expression $expression
+     * @param ExprHandler $expression
      * @return mixed|null
      */
-    private function getProfileExpression(array $profileMapping, Expression $expression)
+    private function getProfileExpression(array $profileMapping, ExprHandler $expression)
     {
         $or = array();
         foreach ($profileMapping as $hierarchyLevel => $profile) {
