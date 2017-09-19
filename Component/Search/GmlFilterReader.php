@@ -109,7 +109,7 @@ class GmlFilterReader implements FilterReader
                 case 'PropertyIsLessThanOrEqualTo':
                     $operands = self::getGtLtContent($child);
 
-                    return $expression->lt($operands['name'], $operands['literal'], $parameters);
+                    return $expression->lte($operands['name'], $operands['literal'], $parameters);
                 case 'PropertyIsNull':
                     $operands = self::getComparisonContent($child);
 
