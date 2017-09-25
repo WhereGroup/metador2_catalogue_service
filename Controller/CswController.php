@@ -10,7 +10,6 @@ use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpFoundation\StreamedResponse;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
@@ -76,28 +75,8 @@ class CswController extends Controller
                     throw new CswException('request', CswException::OperationNotSupported);
 
             }
-        } catch (CswException $ex) {
-            $content = $this->get('templating')->render(
-                "CatalogueServiceBundle:CSW:exception.xml.twig",
-                array(
-                    'exception' => array(
-                        'code' => $ex->getCswCode(),
-                        'locator' => $ex->getLocator(),
-                        'text' => $ex->getText(),
-                    ),
-                )
-            );
         } catch (\Exception $ex) {
-            $content = $this->get('templating')->render(
-                "CatalogueServiceBundle:CSW:exception.xml.twig",
-                array(
-                    'exception' => array(
-                        'code' => $ex->getCode(),
-                        'locator' => null,
-                        'text' => array($ex->getMessage()),
-                    ),
-                )
-            );
+            $content = $this->renderException($ex);
         }
 
         return new Response($content, Response::HTTP_OK, array('content-type' => 'application/xml'));
@@ -126,52 +105,21 @@ class CswController extends Controller
             /*  @var Parameter $parameter */
             $parameter = $csw->readTransactionParameter($request->getContent());
             $content = $csw->transaction($parameter, $cswConfig);
-        } catch (CswException $ex) {
-            $content = $this->get('templating')->render(
-                "CatalogueServiceBundle:CSW:exception.xml.twig",
-                array(
-                    'exception' => array(
-                        'code' => $ex->getCswCode(),
-                        'locator' => $ex->getLocator(),
-                        'text' => $ex->getText(),
-                    ),
-                )
-            );
         } catch (\Exception $ex) {
-            $content = $this->get('templating')->render(
-                "CatalogueServiceBundle:CSW:exception.xml.twig",
-                array(
-                    'exception' => array(
-                        'code' => $ex->getCode(),
-                        'locator' => null,
-                        'text' => array($ex->getMessage()),
-                    ),
-                )
-            );
+            $content = $this->renderException($ex);
         }
 
         return new Response($content, Response::HTTP_OK, array('content-type' => 'application/xml'));
     }
 
     /**
-     * @return StreamedResponse
-     * @Route("service", name="csw_entry_point")
-     * @Method({"GET", "POST"})
+     * @param \Exception $ex
+     * @return string
      */
-    public function serviceAction()
+    private function renderException(\Exception $ex)
     {
-        try {
-            $csw = $this->get('catalogue_service');
-            $operation = $csw->createOperation();
-
-            $xml = $operation->createResult();
-            $response = new Response();
-            $response->headers->set('Content-Type', 'text/xml');
-            $response->setContent($xml);
-
-            return $response;
-        } catch (CswException $ex) {
-            $content = $this->get('templating')->render(
+        if ($ex instanceof CswException) {
+            return $this->get('templating')->render(
                 "CatalogueServiceBundle:CSW:exception.xml.twig",
                 array(
                     'exception' => array(
@@ -181,10 +129,9 @@ class CswController extends Controller
                     ),
                 )
             );
-
-            return new Response($content, Response::HTTP_OK, array('content-type' => 'application/xml'));
-        } catch (\Exception $ex) {
-            $content = $this->get('templating')->render(
+        } else {
+            /* $ex instanceof \Exception */
+            return $this->get('templating')->render(
                 "CatalogueServiceBundle:CSW:exception.xml.twig",
                 array(
                     'exception' => array(
@@ -194,62 +141,6 @@ class CswController extends Controller
                     ),
                 )
             );
-
-            return new Response($content, Response::HTTP_OK, array('content-type' => 'application/xml'));
         }
-
-        return $response;
-    }
-
-    /**
-     * @return StreamedResponse
-     * @Route("streamed", name="csw_entry_point_streamed")
-     * @Method({"GET", "POST"})
-     */
-    public function streamedAction()
-    {
-        try {
-            $csw = $this->get('catalogue_service');
-            $operation = $csw->createOperation();
-
-            $response = new StreamedResponse(null, Response::HTTP_OK, array('content-type' => 'application/xml'));
-            $contentset = $operation->getContentSet();
-            $response->setCallback(function () use ($contentset) {
-                while ($contentset->next()) {
-                    echo $contentset->getContent();
-                    flush();
-                }
-            });
-
-            return $response;
-        } catch (CswException $ex) {
-            $content = $this->get('templating')->render(
-                "CatalogueServiceBundle:CSW:exception.xml.twig",
-                array(
-                    'exception' => array(
-                        'code' => $ex->getCswCode(),
-                        'locator' => $ex->getLocator(),
-                        'text' => $ex->getText(),
-                    ),
-                )
-            );
-
-            return new Response($content, Response::HTTP_OK, array('content-type' => 'application/xml'));
-        } catch (\Exception $ex) {
-            $content = $this->get('templating')->render(
-                "CatalogueServiceBundle:CSW:exception.xml.twig",
-                array(
-                    'exception' => array(
-                        'code' => $ex->getCode(),
-                        'locator' => null,
-                        'text' => array($ex->getMessage()),
-                    ),
-                )
-            );
-
-            return new Response($content, Response::HTTP_OK, array('content-type' => 'application/xml'));
-        }
-
-        return $response;
     }
 }

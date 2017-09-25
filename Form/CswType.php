@@ -170,7 +170,7 @@ class CswType extends AbstractType
             ))
             ->add('profileMapping', HiddenType::class)
             ->add('filter', TextareaType::class, array(
-                'label' => 'Filter',
+                'label' => 'Filter (JSON)',
                 'required' => false,
             ));
 
