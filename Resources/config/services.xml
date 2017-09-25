@@ -21,6 +21,7 @@
             <argument type="service" id="metador_logger" />
             <argument type="service" id="metador_plugin" />
             <argument type="service" id="metador_metadata_search" />
+            <argument type="service" id="metador_metadata" />
         </service>
 
         <!-- EVENTLISTENER -->

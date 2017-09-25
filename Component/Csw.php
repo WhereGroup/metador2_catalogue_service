@@ -11,10 +11,13 @@ use Plugins\WhereGroup\CatalogueServiceBundle\Entity\Csw as CswEntity;
 use Symfony\Bundle\TwigBundle\TwigEngine;
 use Symfony\Component\HttpKernel\KernelInterface;
 use WhereGroup\CoreBundle\Component\Logger;
+use WhereGroup\CoreBundle\Component\MetadataInterface;
 use WhereGroup\CoreBundle\Component\Search\Expression;
 use WhereGroup\CoreBundle\Component\Search\ExprHandler;
 use WhereGroup\CoreBundle\Component\Search\JsonFilterReader;
 use WhereGroup\CoreBundle\Component\Search\Search;
+use WhereGroup\CoreBundle\Component\XmlParser;
+use WhereGroup\CoreBundle\Component\XmlParserFunctions;
 use WhereGroup\PluginBundle\Component\Plugin;
 
 /**
@@ -56,6 +59,11 @@ class Csw
     private $metadataSearch;
 
     /**
+     * @var
+     */
+    private $metadata;
+
+    /**
      * Csw constructor.
      * @param KernelInterface $kernel
      * @param EntityManagerInterface $em
@@ -70,7 +78,8 @@ class Csw
         TwigEngine $templating,
         Logger $logger,
         Plugin $plugin,
-        Search $metadataSearch
+        Search $metadataSearch,
+        MetadataInterface $metadata
     ) {
         $this->kernel = $kernel;
         $this->repo = $em->getRepository(self::ENTITY);
@@ -78,6 +87,7 @@ class Csw
         $this->logger = $logger;
         $this->plugin = $plugin;
         $this->metadataSearch = $metadataSearch;
+        $this->metadata = $metadata;
     }
 
     /**
@@ -255,8 +265,8 @@ class Csw
             array(
                 'getredcordbyid' => $operation,
                 'pluginLocation' => $pluginLocation,
-                'templateName' => $templateName,
-                'records' => $this->metadataSearch->getResult(),
+                'templateName'   => $templateName,
+                'records'        => $this->metadataSearch->getResult(),
             )
         );
     }
@@ -302,11 +312,9 @@ class Csw
             ->setOffset($offset)
             ->setSource($cswConfig->getSource());
         if ($expr) {
-            $this->metadataSearch
-                ->setExpression($expr);
+            $this->metadataSearch->setExpression($expr);
         }
-        $this->metadataSearch
-            ->find();
+        $this->metadataSearch->find();
 
         $time = new \DateTime();
         $matched = $this->metadataSearch->getResultCount();
@@ -316,13 +324,13 @@ class Csw
         return $this->templating->render(
             'CatalogueServiceBundle:CSW:records_response.xml.twig',
             array(
-                'getrecords' => $getrecords,
+                'getrecords'     => $getrecords,
                 'pluginLocation' => $pluginLocation,
-                'templateName' => $templateName,
-                'timestamp' => $time->format('Y-m-d\TH:i:s'),
-                'matched' => $matched,
-                'records' => $records,
-                'nextrecord' => $next > $matched ? 0 : $next,
+                'templateName'   => $templateName,
+                'timestamp'      => $time->format('Y-m-d\TH:i:s'),
+                'matched'        => $matched,
+                'records'        => $records,
+                'nextrecord'     => $next > $matched ? 0 : $next,
             )
         );
     }
@@ -378,13 +386,17 @@ class Csw
         $inserted = 0;
         foreach ($action->getItems() as $mdMetadata) {
             $hierarchyLevel = $handler->valueFor('./gmd:hierarchyLevel[1]/gmd:MD_ScopeCode/text()', $mdMetadata);
-            if (($importConfig = self::getImportConfig($cswConfig->getProfileMapping(), $hierarchyLevel))) {
-                $parser = new XmlParser($mdMetadata->ownerDocument->saveXML($mdMetadata), new XmlParserFunctions());
-                $array = $parser
-                    ->loadSchema(file_get_contents($importConfig))
-                    ->parse();
-//                return isset($array['p']) ? $array['p'] : array();
-                $this->metadata->saveObject(isset($array['p']) ? $array['p'] : array());
+            $profiles = $cswConfig->getProfileMapping();
+            if (isset($profiles[$hierarchyLevel])) {
+                $profile = $profiles[$hierarchyLevel];
+                $source = $cswConfig->getSource();
+                $username = $cswConfig->getUsername();
+                $public = true;
+                $xml = $mdMetadata->ownerDocument->saveXML($mdMetadata);
+                $p = $this->metadata->xmlToObject($xml, $profile);
+                $this->metadata
+                    ->updateObject($p, $source, $profile, $username, $public)
+                    ->saveObject($p);
                 $inserted++;
             } else {
                 $this->log($cswConfig, 'warning', 'insert', '', 'Type: $hl ist nicht unterstützt');
@@ -428,8 +440,7 @@ class Csw
             $ident = $handler->valueFor('./gmd:fileIdentifier/gco:CharacterString/text()', $mdMetadata);
             $hls = $cswConfig->getProfileMapping();
             if (isset($hls[$hl])) {
-// 8ddbc1e0-ef70-4f1b-9721-bc00081eb9c5
-// 8ddbc1e0-ef70-4f1b-9721-bc00081eb9c5
+//            8ddbc1e0-ef70-4f1b-9721-bc00081eb9c5
             } else {
                 $this->log($cswConfig, 'warning', 'update', '', 'Type: $hl ist nicht unterstützt');
             }
@@ -453,24 +464,27 @@ class Csw
 
         return $deleted;
     }
-
-    /**
-     * @param array $profileMapping
-     * @return array
-     */
-    private function getImportConfig(array $profileMapping, $hierarchyLevel)
-    {
-        if (isset($profileMapping[$hierarchyLevel])) {
-            $plugin = $this->plugin->getPlugin($profileMapping[$hierarchyLevel]);
-            $file = $this->kernel->locateResource(
-                '@'.$plugin['class_name'].'/Resources/views/Import/metadata.xml.json'
-            );
-
-            return $file;
-        } else {
-            return null;
-        }
-    }
+//
+//    /**
+//     * @param array $profileMapping
+//     * @return array
+//     */
+//    private function getImportConfig(array $profileMapping, $hierarchyLevel)
+//    {
+//        if (isset($profileMapping[$hierarchyLevel])) {
+//            $plugin = $this->plugin->getPlugin($profileMapping[$hierarchyLevel]);
+////            $file = $this->kernel->locateResource(
+////                '@'.$plugin['class_name'].'/Resources/views/Import/metadata.xml.json'
+////            );
+//            $file = $this->kernel->locateResource(
+//                '@'.$plugin['class_name'].'/Resources/config/import.json'
+//            );
+//
+//            return $file;
+//        } else {
+//            return null;
+//        }
+//    }
 
     /**
      * @param array $profileMapping
@@ -508,7 +522,7 @@ class Csw
             if (!isset($pluginLocation[$profile])) {
                 $plugin = $this->plugin->getPlugin($profile);
                 $pluginLocation[$profile] = array(
-                    'sf' => '@'.$plugin['class_name'].':Export:',
+                    'sf'   => '@'.$plugin['class_name'].':Export:',
                     'full' => $this->kernel->locateResource('@'.$plugin['class_name'].'/Resources/views/Export/'),
                 );
             }
