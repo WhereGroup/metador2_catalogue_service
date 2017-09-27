@@ -15,9 +15,10 @@ class GmlFilterReader implements FilterReader
 {
 
     /**
-     * @param mixed $filter
+     * @param mixed       $filter
      * @param ExprHandler $expression
      * @return null|Expression
+     * @throws \WhereGroup\CoreBundle\Component\Search\PropertyNameNotFoundException
      */
     public static function read($filter, ExprHandler $expression)
     {
@@ -33,8 +34,9 @@ class GmlFilterReader implements FilterReader
     /**
      * @param \DOMElement $filter
      * @param ExprHandler $expression
-     * @param $parameters
+     * @param             $parameters
      * @return array|mixed|null
+     * @throws \WhereGroup\CoreBundle\Component\Search\PropertyNameNotFoundException
      */
     private static function getExpression(\DOMElement $filter, ExprHandler $expression, &$parameters)
     {

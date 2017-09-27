@@ -10,13 +10,6 @@ namespace Plugins\WhereGroup\CatalogueServiceBundle\Component;
 abstract class Operation
 {
 
-    const QUERYABLES = array(
-        'Identifier' => 'uuid',
-        'Title' => 'title',
-        'Language' => 'language',
-        'AnyText' => 'searchfield',
-    );
-
     /**
      * The element prefix for csw namespace
      */

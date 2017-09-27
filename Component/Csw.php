@@ -16,14 +16,12 @@ use WhereGroup\CoreBundle\Component\Search\Expression;
 use WhereGroup\CoreBundle\Component\Search\ExprHandler;
 use WhereGroup\CoreBundle\Component\Search\JsonFilterReader;
 use WhereGroup\CoreBundle\Component\Search\Search;
-use WhereGroup\CoreBundle\Component\XmlParser;
-use WhereGroup\CoreBundle\Component\XmlParserFunctions;
 use WhereGroup\PluginBundle\Component\Plugin;
 
 /**
  * Class Csw
  * @package Plugins\WhereGroup\CatalogueServiceBundle\Component
- * @author Paul Schmidt <panadium@gmx.de>
+ * @author  Paul Schmidt <panadium@gmx.de>
  */
 class Csw
 {
@@ -265,8 +263,8 @@ class Csw
             array(
                 'getredcordbyid' => $operation,
                 'pluginLocation' => $pluginLocation,
-                'templateName'   => $templateName,
-                'records'        => $this->metadataSearch->getResult(),
+                'templateName' => $templateName,
+                'records' => $this->metadataSearch->getResult(),
             )
         );
     }
@@ -324,13 +322,13 @@ class Csw
         return $this->templating->render(
             'CatalogueServiceBundle:CSW:records_response.xml.twig',
             array(
-                'getrecords'     => $getrecords,
+                'getrecords' => $getrecords,
                 'pluginLocation' => $pluginLocation,
-                'templateName'   => $templateName,
-                'timestamp'      => $time->format('Y-m-d\TH:i:s'),
-                'matched'        => $matched,
-                'records'        => $records,
-                'nextrecord'     => $next > $matched ? 0 : $next,
+                'templateName' => $templateName,
+                'timestamp' => $time->format('Y-m-d\TH:i:s'),
+                'matched' => $matched,
+                'records' => $records,
+                'nextrecord' => $next > $matched ? 0 : $next,
             )
         );
     }
@@ -380,6 +378,7 @@ class Csw
      * @param TransactionOperation $action
      * @param TransactionParameter $handler
      * @return int
+     * @throws CswException
      */
     public function doInsert(CswEntity $cswConfig, TransactionOperation $action, TransactionParameter $handler)
     {
@@ -393,10 +392,16 @@ class Csw
                 $username = $cswConfig->getUsername();
                 $public = true;
                 $xml = $mdMetadata->ownerDocument->saveXML($mdMetadata);
+
                 $p = $this->metadata->xmlToObject($xml, $profile);
                 $this->metadata
-                    ->updateObject($p, $source, $profile, $username, $public)
-                    ->saveObject($p);
+                    ->updateObject($p, $source, $profile, $username, $public);
+
+                if ($this->metadata->exists($p['_uuid'])) {
+                    throw new CswException('fileIdentifier', CswException::InvalidParameterValue);
+                }
+
+                $this->metadata->saveObject($p, null, $p['_uuid']);
                 $inserted++;
             } else {
                 $this->log($cswConfig, 'warning', 'insert', '', 'Type: $hl ist nicht unterstützt');
@@ -411,6 +416,7 @@ class Csw
      * @param TransactionOperation $operation
      * @param TransactionParameter $handler
      * @return int
+     * @throws \WhereGroup\CoreBundle\Component\Search\PropertyNameNotFoundException
      */
     public function doUpdate(CswEntity $cswConfig, TransactionOperation $operation, TransactionParameter $handler)
     {
@@ -490,6 +496,7 @@ class Csw
      * @param array $profileMapping
      * @param ExprHandler $expression
      * @return mixed|null
+     * @throws \WhereGroup\CoreBundle\Component\Search\PropertyNameNotFoundException
      */
     private function getProfileExpression(array $profileMapping, ExprHandler $expression)
     {
@@ -522,7 +529,7 @@ class Csw
             if (!isset($pluginLocation[$profile])) {
                 $plugin = $this->plugin->getPlugin($profile);
                 $pluginLocation[$profile] = array(
-                    'sf'   => '@'.$plugin['class_name'].':Export:',
+                    'sf' => '@'.$plugin['class_name'].':Export:',
                     'full' => $this->kernel->locateResource('@'.$plugin['class_name'].'/Resources/views/Export/'),
                 );
             }
