@@ -12,6 +12,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
+use WhereGroup\CoreBundle\Component\Search\PropertyNameNotFoundException;
 
 /**
  * Class CSWController
@@ -27,6 +28,7 @@ class CswController extends Controller
      * @Route("{source}/{slug}/", name="csw_default")
      * @Method({"GET", "POST"})
      * @return Response
+     * @throws \Twig\Error\Error
      */
     public function defaultAction(Request $request, $source, $slug)
     {
@@ -76,7 +78,7 @@ class CswController extends Controller
 
             }
         } catch (\Exception $ex) {
-            $content = $this->renderException($ex);
+            return $this->renderException($ex);
         }
 
         return new Response($content, Response::HTTP_OK, array('content-type' => 'application/xml'));
@@ -89,6 +91,7 @@ class CswController extends Controller
      * @Route("manager/{source}/{slug}/", name="csw_transaction")
      * @Method({"POST"})
      * @return Response
+     * @throws \Twig\Error\Error
      */
     public function transactionAction(Request $request, $source, $slug)
     {
@@ -106,7 +109,7 @@ class CswController extends Controller
             $parameter = $csw->readTransactionParameter($request->getContent());
             $content = $csw->transaction($parameter, $cswConfig);
         } catch (\Exception $ex) {
-            $content = $this->renderException($ex);
+            return $this->renderException($ex);
         }
 
         return new Response($content, Response::HTTP_OK, array('content-type' => 'application/xml'));
@@ -114,12 +117,13 @@ class CswController extends Controller
 
     /**
      * @param \Exception $ex
-     * @return string
+     * @return Response
+     * @throws \Twig\Error\Error
      */
     private function renderException(\Exception $ex)
     {
         if ($ex instanceof CswException) {
-            return $this->get('templating')->render(
+            $content = $this->get('templating')->render(
                 "CatalogueServiceBundle:CSW:exception.xml.twig",
                 array(
                     'exception' => array(
@@ -129,16 +133,19 @@ class CswController extends Controller
                     ),
                 )
             );
+            return new Response($content, $ex->getHttpStatusCode(), array('content-type' => 'application/xml'));
+        } elseif ($ex instanceof PropertyNameNotFoundException) {
+            return $this->renderException(
+                new CswException(
+                    $ex->getMessage(),
+                    CswException::DuplicateStoredQueryParameterName
+                )
+            );
         } else {
-            /* $ex instanceof \Exception */
-            return $this->get('templating')->render(
-                "CatalogueServiceBundle:CSW:exception.xml.twig",
-                array(
-                    'exception' => array(
-                        'code' => $ex->getCode(),
-                        'locator' => null,
-                        'text' => array($ex->getMessage()),
-                    ),
+            return $this->renderException(
+                new CswException(
+                    $ex->getMessage(),
+                    CswException::NoApplicableCode
                 )
             );
         }

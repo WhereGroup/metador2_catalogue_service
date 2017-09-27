@@ -401,7 +401,7 @@ class Csw
                     throw new CswException('fileIdentifier', CswException::InvalidParameterValue);
                 }
 
-                $this->metadata->saveObject($p, null, $p['_uuid']);
+                $this->metadata->saveObject($p);
                 $inserted++;
             } else {
                 $this->log($cswConfig, 'warning', 'insert', '', 'Type: $hl ist nicht unterstützt');

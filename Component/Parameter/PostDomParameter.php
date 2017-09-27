@@ -50,7 +50,7 @@ class PostDomParameter implements Parameter
 
         $dom = new \DOMDocument();
         if (!@$dom->loadXML($content, LIBXML_DTDLOAD | LIBXML_DTDATTR | LIBXML_NOENT | LIBXML_XINCLUDE)) {
-            throw new CswException('Can\'t parse a string to xml', CswException::ParsingError);
+            throw new CswException('Can\'t parse a string to xml', CswException::OperationParsingFailed);
         }
         $this->dom = $dom;
         $this->xpath = new \DOMXPath($this->dom);
