@@ -418,35 +418,27 @@ class Csw
      * @return int
      * @throws \WhereGroup\CoreBundle\Component\Search\PropertyNameNotFoundException
      */
-    public function doUpdate(CswEntity $cswConfig, TransactionOperation $operation, TransactionParameter $handler)
+    public function doUpdate(CswEntity $cswConfig, TransactionOperation $action, TransactionParameter $handler)
     {
         $updated = 0;
-        $profileExpr = $this->getProfileExpression($cswConfig->getProfileMapping(), $operation->getFilter());
-        if ($profileExpr) {
-            $operation->getFilter()->setResultExpression(
-                $operation->getFilter()->andx(
-                    array(
-                        $operation->getFilter()->getResultExpression(),
-                        $profileExpr,
-                    )
-                )
-            );
-        }
-        $this->metadataSearch
-            ->setPage(0)// use no page
-            ->setHits(100)
-            ->setOffset(0)
-            ->setSource($cswConfig->getSource())
-            ->setExpression($operation->getFilter())
-            ->find();
-        $records = $this->metadataSearch->getResult();
-
-        foreach ($operation->getItems() as $mdMetadata) {
+        foreach ($action->getItems() as $mdMetadata) {
             $hl = $handler->valueFor('./gmd:hierarchyLevel[1]/gmd:MD_ScopeCode/text()', $mdMetadata);
-            $ident = $handler->valueFor('./gmd:fileIdentifier/gco:CharacterString/text()', $mdMetadata);
-            $hls = $cswConfig->getProfileMapping();
-            if (isset($hls[$hl])) {
-//            8ddbc1e0-ef70-4f1b-9721-bc00081eb9c5
+            $profiles = $cswConfig->getProfileMapping();
+            if (isset($profiles[$hl])) {
+                $profile = $profiles[$hl];
+                $source = $cswConfig->getSource();
+                $username = $cswConfig->getUsername();
+                $public = true;
+                $xml = $mdMetadata->ownerDocument->saveXML($mdMetadata);
+
+                $p = $this->metadata->xmlToObject($xml, $profile);
+                $this->metadata
+                    ->updateObject($p, $source, $profile, $username, $public);
+                if (!$this->metadata->exists($p['_uuid'])) {
+                    throw new CswException('fileIdentifier', CswException::InvalidParameterValue);
+                }
+                $this->metadata->saveObject($p);
+                $updated++;
             } else {
                 $this->log($cswConfig, 'warning', 'update', '', 'Type: $hl ist nicht unterstützt');
             }
@@ -491,32 +483,32 @@ class Csw
 //            return null;
 //        }
 //    }
-
-    /**
-     * @param array $profileMapping
-     * @param ExprHandler $expression
-     * @return mixed|null
-     * @throws \WhereGroup\CoreBundle\Component\Search\PropertyNameNotFoundException
-     */
-    private function getProfileExpression(array $profileMapping, ExprHandler $expression)
-    {
-        $or = array();
-        foreach ($profileMapping as $hierarchyLevel => $profile) {
-            $or[] = $expression->andx(
-                array(
-                    $expression->eq('hierarchyLevel', $hierarchyLevel),
-                    $expression->eq('profile', $profile),
-                )
-            );
-        }
-        if (count($or) > 1) {
-            return $expression->orx($or);
-        } elseif (count($or) === 1) {
-            return $or[0];
-        } else {
-            return null;
-        }
-    }
+//
+//    /**
+//     * @param array $profileMapping
+//     * @param ExprHandler $expression
+//     * @return mixed|null
+//     * @throws \WhereGroup\CoreBundle\Component\Search\PropertyNameNotFoundException
+//     */
+//    private function getProfileExpression(array $profileMapping, ExprHandler $expression)
+//    {
+//        $or = array();
+//        foreach ($profileMapping as $hierarchyLevel => $profile) {
+//            $or[] = $expression->andx(
+//                array(
+//                    $expression->eq('hierarchyLevel', $hierarchyLevel),
+//                    $expression->eq('profile', $profile),
+//                )
+//            );
+//        }
+//        if (count($or) > 1) {
+//            return $expression->orx($or);
+//        } elseif (count($or) === 1) {
+//            return $or[0];
+//        } else {
+//            return null;
+//        }
+//    }
 
     /**
      * @param array $profileMapping
