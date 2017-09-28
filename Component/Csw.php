@@ -103,7 +103,9 @@ class Csw
     }
 
     /**
-     * @return mixed
+     * @return int
+     * @throws \Doctrine\ORM\NoResultException
+     * @throws \Doctrine\ORM\NonUniqueResultException
      */
     public function count()
     {
@@ -122,6 +124,7 @@ class Csw
      * @param $slug
      * @param $source
      * @return mixed
+     * @throws \Doctrine\ORM\NonUniqueResultException
      */
     public function findOneBySlugAndSource($slug, $source)
     {
@@ -131,6 +134,7 @@ class Csw
     /**
      * @param $entity
      * @return $this
+     * @throws \Doctrine\ORM\OptimisticLockException
      */
     public function save($entity)
     {
@@ -142,6 +146,7 @@ class Csw
     /**
      * @param $entity
      * @return $this
+     * @throws \Doctrine\ORM\OptimisticLockException
      */
     public function remove($entity)
     {
@@ -180,9 +185,11 @@ class Csw
     /**
      * @param Parameter $parameter
      * @param CswEntity $cswConfig
-     * @param string $url
-     * @param string $urlTransaction
+     * @param $url
+     * @param $urlTransaction
      * @return string
+     * @throws CswException
+     * @throws \Twig\Error\Error
      */
     public function getCapabilities(Parameter $parameter, CswEntity $cswConfig, $url, $urlTransaction)
     {
@@ -202,6 +209,8 @@ class Csw
      * @param Parameter $parameter
      * @param CswEntity $cswConfig
      * @return string
+     * @throws CswException
+     * @throws \Twig\Error\Error
      */
     public function describeRecord(Parameter $parameter, CswEntity $cswConfig)
     {
@@ -273,6 +282,9 @@ class Csw
      * @param Parameter $parameter
      * @param CswEntity $cswConfig
      * @return string
+     * @throws CswException
+     * @throws \Twig\Error\Error
+     * @throws \WhereGroup\CoreBundle\Component\Search\PropertyNameNotFoundException
      */
     public function getRecords(Parameter $parameter, CswEntity $cswConfig)
     {
@@ -338,6 +350,8 @@ class Csw
      * @param CswEntity $cswConfig
      * @return string
      * @throws CswException
+     * @throws \Twig\Error\Error
+     * @throws \WhereGroup\CoreBundle\Component\Search\PropertyNameNotFoundException
      */
     public function transaction(TransactionParameter $parameter, CswEntity $cswConfig)
     {
@@ -349,19 +363,30 @@ class Csw
         $parameter->initOperation($operation);
 
         while (($action = $parameter->nextAction($operation, $this->metadataSearch->createExpression()))) {
-            switch ($action->getType()) {
+            switch (($atype = $action->getType())) {
                 case Transaction::INSERT:
+                    if (!$cswConfig->getInsert()) {
+                        throw new CswException($atype, CswException::OperationNotSupported);
+                    }
                     $inserted = $this->doInsert($cswConfig, $action, $parameter);
                     $operation->addInserted($inserted);
                     break;
                 case Transaction::UPDATE:
+                    if (!$cswConfig->getUpdate()) {
+                        throw new CswException($atype, CswException::OperationNotSupported);
+                    }
                     $updated = $this->doUpdate($cswConfig, $action, $parameter);
                     $operation->addUpdated($updated);
                     break;
                 case Transaction::DELETE:
+                    if (!$cswConfig->getDelete()) {
+                        throw new CswException($atype, CswException::OperationNotSupported);
+                    }
                     $deleted = $this->doDelete($cswConfig, $action, $parameter);
                     $operation->addDeleted($deleted);
                     break;
+                default:
+                    throw new CswException($atype, CswException::OperationNotSupported);
             }
         }
 
@@ -413,10 +438,10 @@ class Csw
 
     /**
      * @param CswEntity $cswConfig
-     * @param TransactionOperation $operation
+     * @param TransactionOperation $action
      * @param TransactionParameter $handler
      * @return int
-     * @throws \WhereGroup\CoreBundle\Component\Search\PropertyNameNotFoundException
+     * @throws CswException
      */
     public function doUpdate(CswEntity $cswConfig, TransactionOperation $action, TransactionParameter $handler)
     {
