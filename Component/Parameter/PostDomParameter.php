@@ -86,6 +86,7 @@ class PostDomParameter implements Parameter
             $parameters[$value] = $this->getParameter($key);
         }
         $operation->setParameters($parameters);
+        return $operation;
     }
 
     /**

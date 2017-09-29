@@ -43,12 +43,6 @@ class GetRecords extends FindRecord
     protected $startPosition;
     protected $maxRecords;
     protected $sortBy;
-    /**
-     * @var ExprHandler $constraint
-     */
-    protected $exprHandler;
-    /* @var Expression $constraint */
-    protected $constraint;
     protected $constraintLanguage;
     protected $resultType;
     protected $requestId;
@@ -66,8 +60,7 @@ class GetRecords extends FindRecord
         \Plugins\WhereGroup\CatalogueServiceBundle\Entity\Csw $entity = null,
         ExprHandler $exprHandler
     ) {
-        parent::__construct($entity);
-        $this->exprHandler = $exprHandler;
+        parent::__construct($entity, $exprHandler);
         $this->resultType = self::RESULTTYPE_HITS;
         $this->typeNames = array('gmd:MD_Metadata');
         $this->constraintLanguage = 'FILTER';
@@ -104,8 +97,9 @@ class GetRecords extends FindRecord
     }
 
     /**
-     * @param $typeNames
+     * @param string $typeNames
      * @return $this
+     * @throws CswException
      */
     public function setTypeNames($typeNames)
     {
@@ -126,6 +120,7 @@ class GetRecords extends FindRecord
     /**
      * @param mixed $startPosition
      * @return $this
+     * @throws CswException
      */
     public function setStartPosition($startPosition)
     {
@@ -151,6 +146,7 @@ class GetRecords extends FindRecord
     /**
      * @param mixed $maxRecords
      * @return $this
+     * @throws CswException
      */
     public function setMaxRecords($maxRecords)
     {
@@ -182,22 +178,14 @@ class GetRecords extends FindRecord
     }
 
     /**
-     * @return Expression
-     */
-    public function getConstraint()
-    {
-        return $this->constraint;
-    }
-
-    /**
      * @param \DOMElement|string $constraintContent
      * @return $this
      * @throws CswException
+     * @throws \WhereGroup\CoreBundle\Component\Search\PropertyNameNotFoundException
      */
     public function setConstraint($constraintContent)
     {
         // only xml Filter is supported
-        // TODO mapping PropertyName <-> Database column
         if (is_string($constraintContent)) {
             $xml = '<?xml version="1.0" >\n<csw:Filter>'.$constraintContent.'</csw:Filter>';
             $dom = new \DOMDocument();
@@ -223,6 +211,7 @@ class GetRecords extends FindRecord
     /**
      * @param $constraintLanguage
      * @return $this
+     * @throws CswException
      */
     public function setConstraintLanguage($constraintLanguage)
     {
@@ -233,7 +222,7 @@ class GetRecords extends FindRecord
 
     /**
      * Returns the result type.
-     * @return string result type
+     * @return string
      */
     public function getResultType()
     {
@@ -243,6 +232,7 @@ class GetRecords extends FindRecord
     /**
      * @param string $resultType
      * @return $this
+     * @throws CswException
      */
     public function setResultType($resultType)
     {

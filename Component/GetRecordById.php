@@ -2,6 +2,8 @@
 
 namespace Plugins\WhereGroup\CatalogueServiceBundle\Component;
 
+use WhereGroup\CoreBundle\Component\Search\Expression;
+
 /**
  * The class GetRecordById is a representation of the OGC CSW GetCapabilities operation.
  *
@@ -12,7 +14,7 @@ class GetRecordById extends FindRecord
     /**
      * {@inheritdoc}
      */
-    static $parameterMap = array(
+    public static $parameterMap = array(
         'version' => '/csw:GetRecordById/@version',
         'service' => '/csw:GetRecordById/@service',
         'outputSchema' => '/csw:GetRecordById/@outputSchema',
@@ -23,6 +25,18 @@ class GetRecordById extends FindRecord
 
     protected $outputSchema;
     protected $id;
+
+    /**
+     * {@inheritdoc}
+     */
+    public function setConstraint($constraintContent)
+    {
+        $parameters = array();
+        $this->constraint = new Expression(
+            $this->exprHandler->in('Identifier', $constraintContent, $parameters),
+            $parameters
+        );
+    }
 
     /**
      * {@inheritdoc}
@@ -57,7 +71,8 @@ class GetRecordById extends FindRecord
 
     /**
      * @param mixed $id
-     * @return GetRecordById
+     * @return $this
+     * @throws \WhereGroup\CoreBundle\Component\Search\PropertyNameNotFoundException
      */
     public function setId($id)
     {
@@ -66,6 +81,7 @@ class GetRecordById extends FindRecord
         } elseif ($id && is_array($id)) {
             $this->id = $id;
         }
+        $this->setConstraint($this->id);
 
         return $this;
     }

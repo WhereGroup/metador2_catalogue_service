@@ -32,6 +32,7 @@ class TransactionParameter extends PostDomParameter
         }
         $operation->setParameters($parameters);
         $this->reset();
+        return $operation;
     }
 
     /**
@@ -69,7 +70,11 @@ class TransactionParameter extends PostDomParameter
 
     /**
      * @param Transaction $operation
-     * @return null|TransactionOperation
+     * @param ExprHandler $expression
+     * @return null|Transaction|TransactionOperation
+     * @throws CswException
+     * @throws \Exception
+     * @throws \WhereGroup\CoreBundle\Component\Search\PropertyNameNotFoundException
      */
     public function nextAction(Transaction $operation, ExprHandler $expression)
     {
@@ -91,10 +96,13 @@ class TransactionParameter extends PostDomParameter
 
     /**
      * @param Transaction $operation
+     * @param ExprHandler $expression
      * @param \DOMElement $actionElm
      * @param array $config
-     * @return TransactionOperation
+     * @return Transaction|TransactionOperation
      * @throws CswException
+     * @throws \Exception
+     * @throws \WhereGroup\CoreBundle\Component\Search\PropertyNameNotFoundException
      */
     private function initAction(Transaction $operation, ExprHandler $expression, \DOMElement $actionElm, array $config)
     {
@@ -108,8 +116,11 @@ class TransactionParameter extends PostDomParameter
         if (isset($config[Transaction::FILTER])) {
             $operation->setFilter($this->getValue($config[Transaction::FILTER], $actionElm, true));
         }
-        $operation->setItems($this->getValue($config[Transaction::ITEMS], $actionElm, false));
+        try {
+            $operation->setItems($this->getValue($config[Transaction::ITEMS], $actionElm, false));
+        } catch(\Exception $ex) {
 
+        }
         return $operation;
     }
 }

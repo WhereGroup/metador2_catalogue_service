@@ -2,6 +2,8 @@
 
 namespace Plugins\WhereGroup\CatalogueServiceBundle\Component;
 
+use WhereGroup\CoreBundle\Component\Search\ExprHandler;
+
 /**
  * Description of Operation
  *
@@ -36,15 +38,37 @@ abstract class FindRecord extends Operation
      */
     protected $elementSetName;
 
-    /**
-     * {@inheritdoc}
-     */
-    public function __construct(\Plugins\WhereGroup\CatalogueServiceBundle\Entity\Csw $entity)
-    {
+    /*  @var ExprHandler $exprHandler */
+    protected $exprHandler;
+    /* @var Expression $constraint */
+    protected $constraint;
+
+    public function __construct(
+        \Plugins\WhereGroup\CatalogueServiceBundle\Entity\Csw $entity = null,
+        ExprHandler $exprHandler
+    ) {
         parent::__construct($entity);
+        $this->exprHandler = $exprHandler;
         $this->outputSchema = "http://www.isotc211.org/2005/gmd";
         $this->elementSetName = 'summary';
     }
+
+    /**
+     * @return Expression
+     */
+    public function getConstraint()
+    {
+        return $this->constraint;
+    }
+
+    /**
+     * @param mixed $constraintContent
+     * @return $this
+     * @throws CswException
+     * @throws \WhereGroup\CoreBundle\Component\Search\PropertyNameNotFoundException
+     */
+    abstract public function setConstraint($constraintContent);
+
 
     /**
      * Returns the output schema.
@@ -56,8 +80,9 @@ abstract class FindRecord extends Operation
     }
 
     /**
-     * @param mixed $outputSchema
-     * @return FindRecord
+     * @param $outputSchema
+     * @return $this
+     * @throws CswException
      */
     public function setOutputSchema($outputSchema)
     {

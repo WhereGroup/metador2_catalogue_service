@@ -25,6 +25,7 @@ interface Parameter
 
     /**
      * @param Operation $operation
+     * @return Operation
      */
     public function initOperation(Operation $operation);
 }

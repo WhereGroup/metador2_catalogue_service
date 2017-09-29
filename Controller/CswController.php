@@ -28,6 +28,7 @@ class CswController extends Controller
      * @Route("{source}/{slug}/", name="csw_default")
      * @Method({"GET", "POST"})
      * @return Response
+     * @throws \Doctrine\ORM\NonUniqueResultException
      * @throws \Twig\Error\Error
      */
     public function defaultAction(Request $request, $source, $slug)
@@ -91,6 +92,7 @@ class CswController extends Controller
      * @Route("manager/{source}/{slug}/", name="csw_transaction")
      * @Method({"POST"})
      * @return Response
+     * @throws \Doctrine\ORM\NonUniqueResultException
      * @throws \Twig\Error\Error
      */
     public function transactionAction(Request $request, $source, $slug)

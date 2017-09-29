@@ -121,10 +121,11 @@ class TransactionOperation
     /**
      * @param \DOMElement $filter
      * @return $this
+     * @throws \WhereGroup\CoreBundle\Component\Search\PropertyNameNotFoundException
      */
     public function setFilter(\DOMElement $filter)
     {
-        GmlFilterReader::read($filter, $this->filter);
+        $this->filter = GmlFilterReader::read($filter, $this->filter);
 
         return $this;
     }

@@ -51,13 +51,13 @@ class Csw
      */
     private $plugin;
 
-//    /**
-//     * @var Search
-//     */
+    /**
+     * @var Search
+     */
     private $metadataSearch;
 
     /**
-     * @var
+     * @var MetadataInterface
      */
     private $metadata;
 
@@ -193,8 +193,7 @@ class Csw
      */
     public function getCapabilities(Parameter $parameter, CswEntity $cswConfig, $url, $urlTransaction)
     {
-        $operation = new GetCapabilities($cswConfig, $url, $urlTransaction);
-        $parameter->initOperation($operation);
+        $operation = $parameter->initOperation(new GetCapabilities($cswConfig, $url, $urlTransaction));
         $operation->validateParameter();
 
         return $this->templating->render(
@@ -214,8 +213,7 @@ class Csw
      */
     public function describeRecord(Parameter $parameter, CswEntity $cswConfig)
     {
-        $operation = new DescribeRecord($cswConfig);
-        $parameter->initOperation($operation);
+        $operation = $parameter->initOperation(new DescribeRecord($cswConfig));
         $operation->validateParameter();
 
         return $this->templating->render(
@@ -236,35 +234,23 @@ class Csw
     {
         /* @var ExprHandler $exprHandler */
         $exprHandler = $this->metadataSearch->createExpression();
-        $operation = new GetRecordById($cswConfig);
-        $parameter->initOperation($operation);
+        $operation = $parameter->initOperation(new GetRecordById($cswConfig, $exprHandler));
         $operation->validateParameter();
-        $searchParameters = array();
-        /* @var Expression $expr */
-        $expr = null;
-        if (($defExpr = JsonFilterReader::read($cswConfig->getFilter(), $exprHandler))) {
-            $searchParameters = $defExpr->getParameters();
-            $expr = new Expression(
-                $exprHandler->andx(
-                    array(
-                        $defExpr->getExpression(),
-                        // add ids to expression
-                        $exprHandler->in('uuid', $operation->getId(), $searchParameters),
-                    )
-                ),
-                $searchParameters
-            );
-        } else {
-            // add ids to expression
-            $expr = new Expression($exprHandler->in('uuid', $operation->getId(), $searchParameters), $searchParameters);
-        }
+
+        /* @var Expression $cswAndGetRecordByIdExpr */
+        $cswAndGetRecordByIdExpr = $this->mergeExpression(
+            $exprHandler,
+            $this->getExpressionForCsw($cswConfig, $exprHandler),
+            $operation->getConstraint()
+        );
+
         $pluginLocation = $this->getProfileLocations($cswConfig->getProfileMapping());
         $templateName = self::getTemplateForElementSetName($operation->getElementSetName());
         $this->metadataSearch
             ->setPage(1)
             ->setHits(100)// set max count for GetRecordById ???
             ->setSource($cswConfig->getSource())
-            ->setExpression($expr)
+            ->setExpression($cswAndGetRecordByIdExpr)
             ->find();
 
         return $this->templating->render(
@@ -290,51 +276,38 @@ class Csw
     {
         /* @var ExprHandler $exprHandler */
         $exprHandler = $this->metadataSearch->createExpression();
-        $getrecords = new GetRecords($cswConfig, $this->metadataSearch->createExpression());
-        $parameter->initOperation($getrecords);
-        $getrecords->validateParameter();
+        $operation = $parameter->initOperation(new GetRecords($cswConfig, $exprHandler));
+        $operation->validateParameter();
 
-        $pluginLocation = $this->getProfileLocations($cswConfig->getProfileMapping());
-        $templateName = self::getTemplateForElementSetName($getrecords->getElementSetName());
-        $offset = $getrecords->getStartPosition() - 1;
+        /* @var Expression $cswAndGetRecordsExpr */
+        $cswAndGetRecordsExpr = $this->mergeExpression(
+            $exprHandler,
+            $this->getExpressionForCsw($cswConfig, $exprHandler),
+            $operation->getConstraint()
+        );
 
-        /* @var Expression $expr */
-        $expr = null;
-        if (($defExpr = JsonFilterReader::read($cswConfig->getFilter(), $exprHandler))) {
-            if ($getrecords->getConstraint()) {
-                $expr = new Expression(
-                    $exprHandler->andx(
-                        array(
-                            $defExpr->getExpression(),
-                            // add ids to expression
-                            $getrecords->getConstraint()->getExpression(),
-                        )
-                    ),
-                    array_merge($getrecords->getConstraint()->getParameters(), $defExpr->getParameters())
-                );
-            }
-        } else {
-            $expr = $getrecords->getConstraint();
-        }
+        $offset = $operation->getStartPosition() - 1;
         $this->metadataSearch
             ->setPage(0)// use no page
-            ->setHits($getrecords->getMaxRecords())
+            ->setHits($operation->getMaxRecords())
             ->setOffset($offset)
             ->setSource($cswConfig->getSource());
-        if ($expr) {
-            $this->metadataSearch->setExpression($expr);
+        if ($cswAndGetRecordsExpr) {
+            $this->metadataSearch->setExpression($cswAndGetRecordsExpr);
         }
         $this->metadataSearch->find();
 
-        $time = new \DateTime();
         $matched = $this->metadataSearch->getResultCount();
         $records = $this->metadataSearch->getResult();
+        $time = new \DateTime();
         $next = $offset + count($records) + 1;
+        $pluginLocation = $this->getProfileLocations($cswConfig->getProfileMapping());
+        $templateName = self::getTemplateForElementSetName($operation->getElementSetName());
 
         return $this->templating->render(
             'CatalogueServiceBundle:CSW:records_response.xml.twig',
             array(
-                'getrecords' => $getrecords,
+                'getrecords' => $operation,
                 'pluginLocation' => $pluginLocation,
                 'templateName' => $templateName,
                 'timestamp' => $time->format('Y-m-d\TH:i:s'),
@@ -350,6 +323,7 @@ class Csw
      * @param CswEntity $cswConfig
      * @return string
      * @throws CswException
+     * @throws \Exception
      * @throws \Twig\Error\Error
      * @throws \WhereGroup\CoreBundle\Component\Search\PropertyNameNotFoundException
      */
@@ -359,8 +333,7 @@ class Csw
         if ($operationName !== 'Transaction') {
             throw new CswException('request', CswException::OperationNotSupported);
         }
-        $operation = new Transaction($cswConfig);
-        $parameter->initOperation($operation);
+        $operation = $parameter->initOperation(new Transaction($cswConfig));
 
         while (($action = $parameter->nextAction($operation, $this->metadataSearch->createExpression()))) {
             switch (($atype = $action->getType())) {
@@ -408,6 +381,7 @@ class Csw
     public function doInsert(CswEntity $cswConfig, TransactionOperation $action, TransactionParameter $handler)
     {
         $inserted = 0;
+        /* list of metadates- no filter */
         foreach ($action->getItems() as $mdMetadata) {
             $hierarchyLevel = $handler->valueFor('./gmd:hierarchyLevel[1]/gmd:MD_ScopeCode/text()', $mdMetadata);
             $profiles = $cswConfig->getProfileMapping();
@@ -419,8 +393,7 @@ class Csw
                 $xml = $mdMetadata->ownerDocument->saveXML($mdMetadata);
 
                 $p = $this->metadata->xmlToObject($xml, $profile);
-                $this->metadata
-                    ->updateObject($p, $source, $profile, $username, $public);
+                $this->metadata->updateObject($p, $source, $profile, $username, $public);
 
                 if ($this->metadata->exists($p['_uuid'])) {
                     throw new CswException('fileIdentifier', CswException::InvalidParameterValue);
@@ -473,67 +446,107 @@ class Csw
     }
 
     /**
-     * @param CswEntity $entity
+     * @param CswEntity $cswConfig
      * @param TransactionOperation $action
      * @param TransactionParameter $handler
      * @return int
+     * @throws CswException
+     * @throws \WhereGroup\CoreBundle\Component\Search\PropertyNameNotFoundException
      */
-    public function doDelete(CswEntity $entity, TransactionOperation $action, TransactionParameter $handler)
+    public function doDelete(CswEntity $cswConfig, TransactionOperation $action, TransactionParameter $handler)
     {
         $deleted = 0;
-        foreach ($action->getItems() as $item) {
-            // TODO do delete
+        /* list of metadates- no filter */
+        if ($action->getItems()) {
+            foreach ($action->getItems() as $mdMetadata) {
+                $hl = $handler->valueFor('./gmd:hierarchyLevel[1]/gmd:MD_ScopeCode/text()', $mdMetadata);
+                $profiles = $cswConfig->getProfileMapping();
+                if (isset($profiles[$hl])) {
+                    $profile = $profiles[$hl];
+                    $source = $cswConfig->getSource();
+                    $username = $cswConfig->getUsername();
+                    $public = true;
+                    $xml = $mdMetadata->ownerDocument->saveXML($mdMetadata);
+
+                    $p = $this->metadata->xmlToObject($xml, $profile);
+                    $this->metadata
+                        ->updateObject($p, $source, $profile, $username, $public);
+                    if (!$this->metadata->exists($p['_uuid'])) {
+                        throw new CswException('fileIdentifier', CswException::InvalidParameterValue);
+                    }
+                    $this->metadata->deleteById($p['_id']);
+                    $deleted++;
+                } else {
+                    $this->log($cswConfig, 'warning', 'delete', '', 'Type: $hl ist nicht unterstützt');
+                }
+            }
+            /* filter */
+        } elseif ($action->getFilter()) {
+            $exprHandler = $this->metadataSearch->createExpression();
+            /* @var Expression $expr */
+            $expr = $this->combineExpressions($cswConfig, $exprHandler, $action->getFilter());
+
+            $this->metadataSearch
+                ->setPage(0)// use no page
+                ->setHits(1)
+                ->setOffset(0)
+                ->setSource($cswConfig->getSource());
+            if ($expr) {
+                $this->metadataSearch->setExpression($expr);
+            }
+            $this->metadataSearch->find();
+
+            $records = $this->metadataSearch->getResult();
+            foreach ($records as $record) {
+                $p = json_decode($record['object'], true);
+                $this->metadata->deleteById($p['_id']);
+            }
+            $deleted++;
         }
 
         return $deleted;
     }
-//
-//    /**
-//     * @param array $profileMapping
-//     * @return array
-//     */
-//    private function getImportConfig(array $profileMapping, $hierarchyLevel)
-//    {
-//        if (isset($profileMapping[$hierarchyLevel])) {
-//            $plugin = $this->plugin->getPlugin($profileMapping[$hierarchyLevel]);
-////            $file = $this->kernel->locateResource(
-////                '@'.$plugin['class_name'].'/Resources/views/Import/metadata.xml.json'
-////            );
-//            $file = $this->kernel->locateResource(
-//                '@'.$plugin['class_name'].'/Resources/config/import.json'
-//            );
-//
-//            return $file;
-//        } else {
-//            return null;
-//        }
-//    }
-//
-//    /**
-//     * @param array $profileMapping
-//     * @param ExprHandler $expression
-//     * @return mixed|null
-//     * @throws \WhereGroup\CoreBundle\Component\Search\PropertyNameNotFoundException
-//     */
-//    private function getProfileExpression(array $profileMapping, ExprHandler $expression)
-//    {
-//        $or = array();
-//        foreach ($profileMapping as $hierarchyLevel => $profile) {
-//            $or[] = $expression->andx(
-//                array(
-//                    $expression->eq('hierarchyLevel', $hierarchyLevel),
-//                    $expression->eq('profile', $profile),
-//                )
-//            );
-//        }
-//        if (count($or) > 1) {
-//            return $expression->orx($or);
-//        } elseif (count($or) === 1) {
-//            return $or[0];
-//        } else {
-//            return null;
-//        }
-//    }
+
+    /**
+     * @param CswEntity $cswConfig
+     * @param ExprHandler $exprHandler
+     * @return null|Expression
+     * @throws \WhereGroup\CoreBundle\Component\Search\PropertyNameNotFoundException
+     */
+    private function getExpressionForCsw(CswEntity $cswConfig, ExprHandler $exprHandler)
+    {
+        $cswExpr = JsonFilterReader::read($cswConfig->getFilter(), $exprHandler);
+
+        return $cswExpr;
+    }
+
+    /**
+     * @param ExprHandler $exprHandler
+     * @param Expression|null $exprA
+     * @param Expression|null $exprB
+     * @return null|Expression
+     * @throws \WhereGroup\CoreBundle\Component\Search\PropertyNameNotFoundException
+     */
+    private function mergeExpression(ExprHandler $exprHandler, Expression $exprA = null, Expression $exprB = null)
+    {
+        if ($exprA === null && $exprB === null) {
+            return null;
+        } elseif ($exprA === null) {
+            return $exprB;
+        } elseif ($exprB === null) {
+            return $exprA;
+        } else {
+            return new Expression(
+                $exprHandler->andx(
+                    array(
+                        $exprA->getExpression(),
+                        $exprB->getExpression(),
+                    )
+                ),
+                array_merge($exprA->getParameters(), $exprB->getParameters())
+            );
+        }
+    }
 
     /**
      * @param array $profileMapping
