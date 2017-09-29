@@ -416,7 +416,7 @@ class Csw
      * @return int
      * @throws CswException
      */
-    public function doUpdate(CswEntity $cswConfig, TransactionOperation $action, TransactionParameter $handler)
+    public function doUpdateOld(CswEntity $cswConfig, TransactionOperation $action, TransactionParameter $handler)
     {
         $updated = 0;
         foreach ($action->getItems() as $mdMetadata) {
@@ -439,6 +439,68 @@ class Csw
                 $updated++;
             } else {
                 $this->log($cswConfig, 'warning', 'update', '', 'Type: $hl ist nicht unterstützt');
+            }
+        }
+
+        return $updated;
+    }
+
+    /**
+     * @param CswEntity $cswConfig
+     * @param TransactionOperation $action
+     * @param TransactionParameter $handler
+     * @return int
+     * @throws \WhereGroup\CoreBundle\Component\Search\PropertyNameNotFoundException
+     */
+    public function doUpdate(CswEntity $cswConfig, TransactionOperation $action, TransactionParameter $handler)
+    {
+        $updated = 0;
+        if ($action->getConstraint()) {
+            /* @var ExprHandler $exprHandler */
+            $exprHandler = $this->metadataSearch->createExpression();
+            /* @var Expression $cswAndDeleteExpr */
+            $cswAndDeleteExpr = $this->mergeExpression(
+                $exprHandler,
+                $this->getExpressionForCsw($cswConfig, $exprHandler),
+                $action->getConstraint()
+            );
+
+            $this->metadataSearch
+                ->setPage(0)// use no page
+                ->setHits(100)// @TODO max count?
+                ->setOffset(0)
+                ->setSource($cswConfig->getSource());
+            if ($cswAndDeleteExpr) {
+                $this->metadataSearch->setExpression($cswAndDeleteExpr);
+            }
+            $this->metadataSearch->find();
+            $records = $this->metadataSearch->getResult();
+            /* datarow to update */
+            foreach ($records as $record) {
+                $existing = json_decode($record['object'], true);
+                foreach ($action->getItems() as $mdMetadata) {
+                    $hl = $handler->valueFor('./gmd:hierarchyLevel[1]/gmd:MD_ScopeCode/text()', $mdMetadata);
+                    $profiles = $cswConfig->getProfileMapping();
+                    if (isset($profiles[$hl])) {
+                        $profile = $profiles[$hl];
+                        $source = $cswConfig->getSource();
+                        $username = $cswConfig->getUsername();
+                        $public = true;
+                        $xml = $mdMetadata->ownerDocument->saveXML($mdMetadata);
+                        /* data for datarow to update */
+                        $new = $this->metadata->xmlToObject($xml, $profile);
+                        $this->metadata->updateObject($new, $source, $profile, $username, $public);
+                        $this->metadata->saveObject(
+                            $new,
+                            isset($existing['_id']) ? $existing['_id'] : null,
+                            isset($existing['_uuid']) ? $existing['_uuid'] : null
+                        );
+                        $updated++;
+                    } else {
+                        $this->log($cswConfig, 'warning', 'update', '', 'Type: $hl ist nicht unterstützt');
+                    }
+                    break;
+                }
             }
         }
 
@@ -479,7 +541,8 @@ class Csw
             $records = $this->metadataSearch->getResult();
             foreach ($records as $record) {
                 $p = json_decode($record['object'], true);
-                $this->metadata->deleteById($p['_id']);
+                $item = $this->metadata->getByUUID($p['_uuid']);
+                $this->metadata->deleteById($item->getId());
                 $deleted++;
             }
         }
