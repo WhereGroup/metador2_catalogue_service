@@ -4,6 +4,7 @@ namespace Plugins\WhereGroup\CatalogueServiceBundle\Component;
 
 
 use Plugins\WhereGroup\CatalogueServiceBundle\Component\Search\GmlFilterReader;
+use WhereGroup\CoreBundle\Component\Search\Expression;
 use WhereGroup\CoreBundle\Component\Search\ExprHandler;
 
 class TransactionOperation
@@ -31,18 +32,23 @@ class TransactionOperation
     /**
      * @var ExprHandler
      */
-    private $filter;
+    private $exprHandler;
+
+    /**
+     * @var Expression
+     */
+    private $constraint;
 
     /**
      * TransactionOperation constructor.
      * @param $type
-     * @param ExprHandler $expression
+     * @param ExprHandler $exprHandler
      */
-    public function __construct($type, ExprHandler $expression)
+    public function __construct($type, ExprHandler $exprHandler)
     {
         $this->type = $type;
         $this->items = array();
-        $this->filter = $expression;
+        $this->exprHandler = $exprHandler;
     }
 
     /**
@@ -113,9 +119,9 @@ class TransactionOperation
     /**
      * @return ExprHandler
      */
-    public function getFilter()
+    public function getConstraint()
     {
-        return $this->filter;
+        return $this->constraint;
     }
 
     /**
@@ -123,9 +129,9 @@ class TransactionOperation
      * @return $this
      * @throws \WhereGroup\CoreBundle\Component\Search\PropertyNameNotFoundException
      */
-    public function setFilter(\DOMElement $filter)
+    public function setConstraint(\DOMElement $filter)
     {
-        $this->filter = GmlFilterReader::read($filter, $this->filter);
+        $this->constraint = GmlFilterReader::read($filter, $this->exprHandler);
 
         return $this;
     }

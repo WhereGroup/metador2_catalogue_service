@@ -456,43 +456,23 @@ class Csw
     public function doDelete(CswEntity $cswConfig, TransactionOperation $action, TransactionParameter $handler)
     {
         $deleted = 0;
-        /* list of metadates- no filter */
-        if ($action->getItems()) {
-            foreach ($action->getItems() as $mdMetadata) {
-                $hl = $handler->valueFor('./gmd:hierarchyLevel[1]/gmd:MD_ScopeCode/text()', $mdMetadata);
-                $profiles = $cswConfig->getProfileMapping();
-                if (isset($profiles[$hl])) {
-                    $profile = $profiles[$hl];
-                    $source = $cswConfig->getSource();
-                    $username = $cswConfig->getUsername();
-                    $public = true;
-                    $xml = $mdMetadata->ownerDocument->saveXML($mdMetadata);
-
-                    $p = $this->metadata->xmlToObject($xml, $profile);
-                    $this->metadata
-                        ->updateObject($p, $source, $profile, $username, $public);
-                    if (!$this->metadata->exists($p['_uuid'])) {
-                        throw new CswException('fileIdentifier', CswException::InvalidParameterValue);
-                    }
-                    $this->metadata->deleteById($p['_id']);
-                    $deleted++;
-                } else {
-                    $this->log($cswConfig, 'warning', 'delete', '', 'Type: $hl ist nicht unterstützt');
-                }
-            }
-            /* filter */
-        } elseif ($action->getFilter()) {
+        if ($action->getConstraint()) {
+            /* @var ExprHandler $exprHandler */
             $exprHandler = $this->metadataSearch->createExpression();
-            /* @var Expression $expr */
-            $expr = $this->combineExpressions($cswConfig, $exprHandler, $action->getFilter());
+            /* @var Expression $cswAndDeleteExpr */
+            $cswAndDeleteExpr = $this->mergeExpression(
+                $exprHandler,
+                $this->getExpressionForCsw($cswConfig, $exprHandler),
+                $action->getConstraint()
+            );
 
             $this->metadataSearch
                 ->setPage(0)// use no page
-                ->setHits(1)
+                ->setHits(100)// @TODO max count?
                 ->setOffset(0)
                 ->setSource($cswConfig->getSource());
-            if ($expr) {
-                $this->metadataSearch->setExpression($expr);
+            if ($cswAndDeleteExpr) {
+                $this->metadataSearch->setExpression($cswAndDeleteExpr);
             }
             $this->metadataSearch->find();
 
@@ -500,8 +480,8 @@ class Csw
             foreach ($records as $record) {
                 $p = json_decode($record['object'], true);
                 $this->metadata->deleteById($p['_id']);
+                $deleted++;
             }
-            $deleted++;
         }
 
         return $deleted;

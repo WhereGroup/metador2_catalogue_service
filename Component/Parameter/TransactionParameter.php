@@ -8,8 +8,8 @@
 
 namespace Plugins\WhereGroup\CatalogueServiceBundle\Component\Parameter;
 
-use Plugins\WhereGroup\CatalogueServiceBundle\Component\Operation;
 use Plugins\WhereGroup\CatalogueServiceBundle\Component\CswException;
+use Plugins\WhereGroup\CatalogueServiceBundle\Component\Operation;
 use Plugins\WhereGroup\CatalogueServiceBundle\Component\Transaction;
 use Plugins\WhereGroup\CatalogueServiceBundle\Component\TransactionOperation;
 use WhereGroup\CoreBundle\Component\Search\ExprHandler;
@@ -32,6 +32,7 @@ class TransactionParameter extends PostDomParameter
         }
         $operation->setParameters($parameters);
         $this->reset();
+
         return $operation;
     }
 
@@ -96,7 +97,7 @@ class TransactionParameter extends PostDomParameter
 
     /**
      * @param Transaction $operation
-     * @param ExprHandler $expression
+     * @param ExprHandler $exprHandler
      * @param \DOMElement $actionElm
      * @param array $config
      * @return Transaction|TransactionOperation
@@ -104,23 +105,28 @@ class TransactionParameter extends PostDomParameter
      * @throws \Exception
      * @throws \WhereGroup\CoreBundle\Component\Search\PropertyNameNotFoundException
      */
-    private function initAction(Transaction $operation, ExprHandler $expression, \DOMElement $actionElm, array $config)
-    {
-        if (!$operation->isTypeSupported($config[Transaction::ACTION])) {
+    private function initAction(
+        Transaction $transaction,
+        ExprHandler $exprHandler,
+        \DOMElement $actionElm,
+        array $config
+    ) {
+        if (!$transaction->isTypeSupported($config[Transaction::ACTION])) {
             throw new CswException($config[Transaction::ACTION], CswException::OperationNotSupported);
         }
-        $operation = new TransactionOperation($config[Transaction::ACTION], $expression);
+        $action = new TransactionOperation($config[Transaction::ACTION], $exprHandler);
         foreach ($config[Transaction::PARAMS] as $key => $value) {
-            $operation->setParameter($value, $this->getParameter($key, $actionElm));
+            $action->setParameter($value, $this->getParameter($key, $actionElm));
         }
         if (isset($config[Transaction::FILTER])) {
-            $operation->setFilter($this->getValue($config[Transaction::FILTER], $actionElm, true));
+            $action->setConstraint($this->getValue($config[Transaction::FILTER], $actionElm, true));
         }
         try {
-            $operation->setItems($this->getValue($config[Transaction::ITEMS], $actionElm, false));
-        } catch(\Exception $ex) {
-
+            $action->setItems($this->getValue($config[Transaction::ITEMS], $actionElm, false));
+        } catch (\Exception $ex) {
+            ;
         }
-        return $operation;
+
+        return $action;
     }
 }
