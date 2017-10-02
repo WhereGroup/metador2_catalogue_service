@@ -466,9 +466,6 @@ class Csw
             );
 
             $this->metadataSearch
-                ->setPage(0)// use no page
-                ->setHits(100)// @TODO max count?
-                ->setOffset(0)
                 ->setSource($cswConfig->getSource());
             if ($cswAndDeleteExpr) {
                 $this->metadataSearch->setExpression($cswAndDeleteExpr);
