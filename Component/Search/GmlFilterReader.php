@@ -15,7 +15,7 @@ class GmlFilterReader implements FilterReader
 {
 
     /**
-     * @param mixed       $filter
+     * @param mixed $filter
      * @param ExprHandler $expression
      * @return null|Expression
      * @throws \WhereGroup\CoreBundle\Component\Search\PropertyNameNotFoundException
@@ -24,21 +24,21 @@ class GmlFilterReader implements FilterReader
     {
         $parameters = array();
         $expression = self::getExpression($filter, $expression, $parameters);
-        if (is_array($expression) && count($expression) === 0) {
+        if (is_array($expression) && count($expression) !== 1) {
             return null;
         } else {
-            return new Expression($expression, $parameters);
+            return new Expression($expression[0], $parameters);
         }
     }
 
     /**
      * @param \DOMElement $filter
-     * @param ExprHandler $expression
+     * @param ExprHandler $exprH
      * @param             $parameters
      * @return array|mixed|null
      * @throws \WhereGroup\CoreBundle\Component\Search\PropertyNameNotFoundException
      */
-    private static function getExpression(\DOMElement $filter, ExprHandler $expression, &$parameters)
+    private static function getExpression(\DOMElement $filter, ExprHandler $exprH, &$parameters)
     {
         $items = array();
         /* @var \DOMElement $child */
@@ -50,41 +50,36 @@ class GmlFilterReader implements FilterReader
 
             switch ($child->localName) {
                 case 'And':
-                    $list = self::getExpression($child, $expression, $parameters);
-
+                    $list = self::getExpression($child, $exprH, $parameters);
                     if (count($list) > 1) {
-                        return $expression->andx($list);
+                        $items[] = $exprH->andx($list);
                     } elseif (count($list) === 1) {
-                        return $list[0];
+                        $items[] = $list[0];
                     }
-
-                    return null;
+                    break;
                 case 'Or':
-                    $list = self::getExpression($child, $expression, $parameters);
-
+                    $list = self::getExpression($child, $exprH, $parameters);
                     if (count($list) > 1) {
-                        return $expression->orx($list);
+                        $items[] = $exprH->orx($list);
                     } elseif (count($list) === 1) {
-                        return $list[0];
+                        $items[] = $list[0];
                     }
-
-                    return null;
+                    break;
                 case 'Not':
-                    $item = self::getExpression($child, $expression, $parameters);
-
-                    return $expression->not($item);
+                    $item = self::getExpression($child, $exprH, $parameters);
+                    $items[] = $exprH->not($item);
+                    break;
                 case 'PropertyIsEqualTo':
                     $operands = self::getComparisonContent($child);
-
-                    return $expression->eq($operands['name'], $operands['literal'], $parameters);
+                    $items[] = $exprH->eq($operands['name'], $operands['literal'], $parameters);
+                    break;
                 case 'PropertyIsNotEqualTo':
                     $operands = self::getComparisonContent($child);
-
-                    return $expression->neq($operands['name'], $operands['literal'], $parameters);
+                    $items[] = $exprH->neq($operands['name'], $operands['literal'], $parameters);
+                    break;
                 case 'PropertyIsLike':
                     $operands = self::getComparisonContent($child);
-
-                    return $expression->like(
+                    $items[] = $exprH->like(
                         $operands['name'],
                         $operands['literal'],
                         $parameters,
@@ -92,45 +87,46 @@ class GmlFilterReader implements FilterReader
                         $child->getAttribute('singleChar'),
                         $child->getAttribute('wildCard')
                     );
+                    break;
                 case 'PropertyIsBetween':
                     $operands = self::getBetweenContent($child);
-
-                    return $expression->between($operands['name'], $operands['lower'], $operands['upper'], $parameters);
+                    $items[] = $exprH->between($operands['name'], $operands['lower'], $operands['upper'], $parameters);
+                    break;
                 case 'PropertyIsGreaterThan':
                     $operands = self::getGtLtContent($child);
-
-                    return $expression->gt($operands['name'], $operands['literal'], $parameters);
+                    $items[] = $exprH->gt($operands['name'], $operands['literal'], $parameters);
+                    break;
                 case 'PropertyIsGreaterThanOrEqualTo':
                     $operands = self::getGtLtContent($child);
-
-                    return $expression->gte($operands['name'], $operands['literal'], $parameters);
+                    $items[] = $exprH->gte($operands['name'], $operands['literal'], $parameters);
+                    break;
                 case 'PropertyIsLessThan':
                     $operands = self::getGtLtContent($child);
-
-                    return $expression->lt($operands['name'], $operands['literal'], $parameters);
+                    $items[] = $exprH->lt($operands['name'], $operands['literal'], $parameters);
+                    break;
                 case 'PropertyIsLessThanOrEqualTo':
                     $operands = self::getGtLtContent($child);
-
-                    return $expression->lte($operands['name'], $operands['literal'], $parameters);
+                    $items[] = $exprH->lte($operands['name'], $operands['literal'], $parameters);
+                    break;
                 case 'PropertyIsNull':
                     $operands = self::getComparisonContent($child);
-
-                    return $expression->isNull($operands['name']);
+                    $items[] = $exprH->isNull($operands['name']);
+                    break;
                 case 'BBOX':
                 case 'Intersects':
                     $operands = self::getSpatialContent($child);
-
-                    return $expression->bbox($operands['name'], $operands['geom'], $parameters);
+                    $items[] = $exprH->bbox($operands['name'], $operands['geom'], $parameters);
+                    break;
                 case 'Contains':
                     $operands = self::getSpatialContent($child);
-
-                    return $expression->contains($operands['name'], $operands['geom'], $parameters);
+                    $items[] = $exprH->contains($operands['name'], $operands['geom'], $parameters);
+                    break;
                 case 'Within':
                     $operands = self::getSpatialContent($child);
-
-                    return $expression->within($operands['name'], $operands['geom'], $parameters);
+                    $items[] = $exprH->within($operands['name'], $operands['geom'], $parameters);
+                    break;
                 default:
-                    return null;
+                    throw new PropertyNameNotFoundException($child->localName);
             }
         }
 
