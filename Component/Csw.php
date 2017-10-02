@@ -246,20 +246,17 @@ class Csw
 
         $pluginLocation = $this->getProfileLocations($cswConfig->getProfileMapping());
         $templateName = self::getTemplateForElementSetName($operation->getElementSetName());
-        $this->metadataSearch
-            ->setPage(1)
-            ->setHits(100)// set max count for GetRecordById ???
+        $result = $this->metadataSearch
             ->setSource($cswConfig->getSource())
             ->setExpression($cswAndGetRecordByIdExpr)
             ->find();
-
         return $this->templating->render(
             'CatalogueServiceBundle:CSW:recordbyid_response.xml.twig',
             array(
                 'getredcordbyid' => $operation,
                 'pluginLocation' => $pluginLocation,
                 'templateName' => $templateName,
-                'records' => $this->metadataSearch->getResult(),
+                'records' => $result['rows'],
             )
         );
     }
@@ -288,17 +285,16 @@ class Csw
 
         $offset = $operation->getStartPosition() - 1;
         $this->metadataSearch
-            ->setPage(0)// use no page
             ->setHits($operation->getMaxRecords())
             ->setOffset($offset)
             ->setSource($cswConfig->getSource());
         if ($cswAndGetRecordsExpr) {
             $this->metadataSearch->setExpression($cswAndGetRecordsExpr);
         }
-        $this->metadataSearch->find();
+        $result = $this->metadataSearch->find();
 
-        $matched = $this->metadataSearch->getResultCount();
-        $records = $this->metadataSearch->getResult();
+        $matched = $result['paging']->count;
+        $records = $result['rows'];
         $time = new \DateTime();
         $next = $offset + count($records) + 1;
         $pluginLocation = $this->getProfileLocations($cswConfig->getProfileMapping());
@@ -414,42 +410,6 @@ class Csw
      * @param TransactionOperation $action
      * @param TransactionParameter $handler
      * @return int
-     * @throws CswException
-     */
-    public function doUpdateOld(CswEntity $cswConfig, TransactionOperation $action, TransactionParameter $handler)
-    {
-        $updated = 0;
-        foreach ($action->getItems() as $mdMetadata) {
-            $hl = $handler->valueFor('./gmd:hierarchyLevel[1]/gmd:MD_ScopeCode/text()', $mdMetadata);
-            $profiles = $cswConfig->getProfileMapping();
-            if (isset($profiles[$hl])) {
-                $profile = $profiles[$hl];
-                $source = $cswConfig->getSource();
-                $username = $cswConfig->getUsername();
-                $public = true;
-                $xml = $mdMetadata->ownerDocument->saveXML($mdMetadata);
-
-                $p = $this->metadata->xmlToObject($xml, $profile);
-                $this->metadata
-                    ->updateObject($p, $source, $profile, $username, $public);
-                if (!$this->metadata->exists($p['_uuid'])) {
-                    throw new CswException('fileIdentifier', CswException::InvalidParameterValue);
-                }
-                $this->metadata->saveObject($p);
-                $updated++;
-            } else {
-                $this->log($cswConfig, 'warning', 'update', '', 'Type: $hl ist nicht unterstützt');
-            }
-        }
-
-        return $updated;
-    }
-
-    /**
-     * @param CswEntity $cswConfig
-     * @param TransactionOperation $action
-     * @param TransactionParameter $handler
-     * @return int
      * @throws \WhereGroup\CoreBundle\Component\Search\PropertyNameNotFoundException
      */
     public function doUpdate(CswEntity $cswConfig, TransactionOperation $action, TransactionParameter $handler)
@@ -526,9 +486,6 @@ class Csw
             );
 
             $this->metadataSearch
-                ->setPage(0)// use no page
-                ->setHits(100)// @TODO max count?
-                ->setOffset(0)
                 ->setSource($cswConfig->getSource());
             if ($cswAndDeleteExpr) {
                 $this->metadataSearch->setExpression($cswAndDeleteExpr);
