@@ -541,7 +541,7 @@ class Csw
             $records = $this->metadataSearch->getResult();
             foreach ($records as $record) {
                 $p = json_decode($record['object'], true);
-                $item = $this->metadata->getByUUID($p['_uuid']);
+                $item = $this->metadata->getById($p['_uuid']);
                 $this->metadata->deleteById($item->getId());
                 $deleted++;
             }
