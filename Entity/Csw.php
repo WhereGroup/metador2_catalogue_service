@@ -148,19 +148,19 @@ class Csw
 
     /**
      * @var $insert boolean is a csw transaction insert supported.
-     * @ORM\Column(type="boolean", nullable=true)
+     * @ORM\Column(name="`insert`", type="boolean", nullable=true)
      */
     protected $insert = false;
 
     /**
      * @var $update boolean is a csw transaction update supported.
-     * @ORM\Column(type="boolean", nullable=true)
+     * @ORM\Column(name="`update`", type="boolean", nullable=true)
      */
     protected $update = false;
 
     /**
      * @var $delete boolean is a csw transaction delete supported.
-     * @ORM\Column(type="boolean", nullable=true)
+     * @ORM\Column(name="`delete`", type="boolean", nullable=true)
      */
     protected $delete = false;
 
