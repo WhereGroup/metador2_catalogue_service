@@ -75,8 +75,7 @@ class CswController extends Controller
                     $content = $csw->getRecords($parameter, $cswConfig);
                     break;
                 default:
-                    throw new CswException('request', CswException::OperationNotSupported);
-
+                    throw new CswException('request', CswException::OPERATIONNOTSUPPORTED);
             }
         } catch (\Exception $ex) {
             return $this->renderException($ex);
@@ -140,14 +139,14 @@ class CswController extends Controller
             return $this->renderException(
                 new CswException(
                     $ex->getMessage(),
-                    CswException::DuplicateStoredQueryParameterName
+                    CswException::DUPLICATESTOREDQUERYPARAMETERNAME
                 )
             );
         } else {
             return $this->renderException(
                 new CswException(
                     $ex->getMessage(),
-                    CswException::NoApplicableCode
+                    CswException::NOAPPLICABLECODE
                 )
             );
         }

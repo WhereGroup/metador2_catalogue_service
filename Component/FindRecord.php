@@ -101,8 +101,9 @@ abstract class FindRecord extends Operation
     }
 
     /**
-     * @param string $elementSetName
-     * @return FindRecord
+     * @param $elementSetName
+     * @return $this
+     * @throws CswException
      */
     public function setElementSetName($elementSetName)
     {

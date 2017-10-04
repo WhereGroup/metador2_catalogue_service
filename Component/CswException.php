@@ -10,23 +10,23 @@ namespace Plugins\WhereGroup\CatalogueServiceBundle\Component;
 class CswException extends \Exception
 {
     /* OGC exception code */
-    const CannotLockAllFeatures = 101;
-    const DuplicateStoredQueryIdValue = 102;
-    const DuplicateStoredQueryParameterName = 103;
-    const FeaturesNotLocked = 104;
-    const InvalidLockId = 105;
-    const InvalidValue = 106;
-    const LockHasExpired = 107;
-    const OperationParsingFailed = 108;
-    const OperationProcessingFailed = 109;
+    const CANNOTLOCKALLFEATURES = 101;
+    const DUPLICATESTOREDQUERYIDVALUE = 102;
+    const DUPLICATESTOREDQUERYPARAMETERNAME = 103;
+    const FEATURESNOTLOCKED = 104; // WFS-T
+    const INVALIDLOCKID = 105; // WFS-T
+    const INVALIDVALUE = 106;
+    const LOCKHASEXPIRED = 107; // WFS-T
+    const OPERATIONPARSINGFAILED = 108;
+    const OPERATIONPROCESSINGFAILED = 109;
     /* OWS exception code */
-    const OperationNotSupported = 110;
-    const MissingParameterValue = 111;
-    const InvalidParameterValue = 112;
-    const VersionNegotiationFailed = 113;
-    const InvalidUpdateSequence = 114;
-    const OptionNotSupported = 115;
-    const NoApplicableCode = 116;
+    const OPERATIONNOTSUPPORTED = 110;
+    const MISSINGPARAMETERVALUE = 111;
+    const INVALIDPARAMETERVALUE = 112;
+    const VERSIONNEGOTIATIONFAILED = 113;
+    const INVALIDUPDATESEQUENCE = 114;
+    const OPTIONNOTSUPPORTED = 115;
+    const NOAPPLICABLECODE = 116;
 
     /**
      * CswException constructor.
@@ -75,24 +75,24 @@ class CswException extends \Exception
     public function hasLocator($code)
     {
         switch ($code) {
-            case self::OperationNotSupported:
-            case self::CannotLockAllFeatures:
-            case self::DuplicateStoredQueryIdValue:
-            case self::DuplicateStoredQueryParameterName:
-            case self::InvalidLockId:
-            case self::InvalidValue:
-            case self::OperationNotSupported:
-            case self::MissingParameterValue:
-            case self::InvalidParameterValue:
-            case self::OptionNotSupported:
+            case self::OPERATIONNOTSUPPORTED:
+            case self::CANNOTLOCKALLFEATURES:
+            case self::DUPLICATESTOREDQUERYIDVALUE:
+            case self::DUPLICATESTOREDQUERYPARAMETERNAME:
+            case self::INVALIDLOCKID:
+            case self::INVALIDVALUE:
+            case self::OPERATIONNOTSUPPORTED:
+            case self::MISSINGPARAMETERVALUE:
+            case self::INVALIDPARAMETERVALUE:
+            case self::OPTIONNOTSUPPORTED:
                 return true;
-            case self::FeaturesNotLocked:
-            case self::LockHasExpired:
-            case self::OperationProcessingFailed:
-            case self::OperationParsingFailed:
-            case self::VersionNegotiationFailed:
-            case self::InvalidUpdateSequence:
-            case self::NoApplicableCode:
+            case self::FEATURESNOTLOCKED:
+            case self::LOCKHASEXPIRED:
+            case self::OPERATIONPROCESSINGFAILED:
+            case self::OPERATIONPARSINGFAILED:
+            case self::VERSIONNEGOTIATIONFAILED:
+            case self::INVALIDUPDATESEQUENCE:
+            case self::NOAPPLICABLECODE:
                 return false;
             default:
                 return false;
@@ -106,40 +106,40 @@ class CswException extends \Exception
     public function getErrorCode($code)
     {
         switch ($code) {
-            case self::CannotLockAllFeatures:
+            case self::CANNOTLOCKALLFEATURES:
                 return "CannotLockAllFeatures";
-            case self::DuplicateStoredQueryIdValue:
+            case self::DUPLICATESTOREDQUERYIDVALUE:
                 return "DuplicateStoredQueryIdValue";
-            case self::DuplicateStoredQueryParameterName:
+            case self::DUPLICATESTOREDQUERYPARAMETERNAME:
                 return "DuplicateStoredQueryParameterName";
-            case self::FeaturesNotLocked:
+            case self::FEATURESNOTLOCKED:
                 return "FeaturesNotLocked";
-            case self::InvalidLockId:
+            case self::INVALIDLOCKID:
                 return "InvalidLockId";
-            case self::InvalidValue:
+            case self::INVALIDVALUE:
                 return "InvalidValue";
-            case self::LockHasExpired:
+            case self::LOCKHASEXPIRED:
                 return "LockHasExpired";
-            case self::OperationParsingFailed:
+            case self::OPERATIONPARSINGFAILED:
                 return "OperationParsingFailed";
-            case self::OperationProcessingFailed:
+            case self::OPERATIONPROCESSINGFAILED:
                 return "OperationProcessingFailed";
-            case self::OperationNotSupported:
+            case self::OPERATIONNOTSUPPORTED:
                 return "OperationNotSupported";
-            case self::MissingParameterValue:
+            case self::MISSINGPARAMETERVALUE:
                 return "MissingParameterValue";
-            case self::InvalidParameterValue:
+            case self::INVALIDPARAMETERVALUE:
                 return "InvalidParameterValue";
-            case self::VersionNegotiationFailed:
+            case self::VERSIONNEGOTIATIONFAILED:
                 return "VersionNegotiationFailed";
-            case self::InvalidUpdateSequence:
+            case self::INVALIDUPDATESEQUENCE:
                 return "InvalidUpdateSequence";
-            case self::OptionNotSupported:
+            case self::OPTIONNOTSUPPORTED:
                 return "OptionNotSupported";
-            case self::NoApplicableCode:
+            case self::NOAPPLICABLECODE:
                 return "NoApplicableCode";
             default:
-                return $this->getErrorCode(self::NoApplicableCode);
+                return $this->getErrorCode(self::NOAPPLICABLECODE);
         }
     }
 
@@ -149,42 +149,42 @@ class CswException extends \Exception
     public function getErrorMessage()
     {
         switch ($this->code) {
-            case self::CannotLockAllFeatures:
+            case self::CANNOTLOCKALLFEATURES:
                 return "Cannot lock all features";
-            case self::DuplicateStoredQueryIdValue:
+            case self::DUPLICATESTOREDQUERYIDVALUE:
                 return "Duplicate stored query identifier";
-            case self::DuplicateStoredQueryParameterName:
+            case self::DUPLICATESTOREDQUERYPARAMETERNAME:
                 return "Duplicate stored query parameter name";
-            case self::FeaturesNotLocked:
+            case self::FEATURESNOTLOCKED:
                 return "Automatic locking not implemented";
-            case self::InvalidLockId:
+            case self::INVALIDLOCKID:
                 return "Invalid lock identifier";
-            case self::InvalidValue:
+            case self::INVALIDVALUE:
                 return "Invalid feature or property value";
-            case self::LockHasExpired:
+            case self::LOCKHASEXPIRED:
                 return "Lock identifier has expired";
-            case self::OperationParsingFailed:
+            case self::OPERATIONPARSINGFAILED:
                 return "Parsing failed: ".$this->getLocator();
-            case self::OperationProcessingFailed:
+            case self::OPERATIONPROCESSINGFAILED:
                 return "Operation processing failed";
-            case self::OperationNotSupported:
+            case self::OPERATIONNOTSUPPORTED:
                 return "Request is for an operation that is not supported by this server/version";
-            case self::MissingParameterValue:
+            case self::MISSINGPARAMETERVALUE:
                 return "Operation request does not include a parameter value";
-            case self::InvalidParameterValue:
+            case self::INVALIDPARAMETERVALUE:
                 return "Operation request contains an invalid parameter value";
-            case self::VersionNegotiationFailed:
+            case self::VERSIONNEGOTIATIONFAILED:
                 return "List of versions in AcceptVersions parameter value in GetCapabilities operation request"
                     ." did not include any version supported by this server";
-            case self::InvalidUpdateSequence:
+            case self::INVALIDUPDATESEQUENCE:
                 return "Value of (optional) updateSequence parameter in GetCapabilities operation request is"
                     ." greater than current value of service metadata updateSequence number";
-            case self::OptionNotSupported:
+            case self::OPTIONNOTSUPPORTED:
                 return "Option is not supported";
-            case self::NoApplicableCode:
+            case self::NOAPPLICABLECODE:
                 return "No other exceptionCode specified by this service and server applies to this exception";
             default:
-                return $this->getErrorMessage(self::NoApplicableCode);
+                return $this->getErrorMessage(self::NOAPPLICABLECODE);
         }
     }
 
@@ -194,40 +194,40 @@ class CswException extends \Exception
     public function getHttpStatusCode()
     {
         switch ($this->code) {
-            case self::CannotLockAllFeatures:
+            case self::CANNOTLOCKALLFEATURES:
                 return 409;
-            case self::DuplicateStoredQueryIdValue:
+            case self::DUPLICATESTOREDQUERYIDVALUE:
                 return 403;
-            case self::DuplicateStoredQueryParameterName:
+            case self::DUPLICATESTOREDQUERYPARAMETERNAME:
                 return 403;
-            case self::FeaturesNotLocked:
+            case self::FEATURESNOTLOCKED:
                 return 501;
-            case self::InvalidLockId:
+            case self::INVALIDLOCKID:
                 return 403;
-            case self::InvalidValue:
+            case self::INVALIDVALUE:
                 return 403;
-            case self::LockHasExpired:
+            case self::LOCKHASEXPIRED:
                 return 403;
-            case self::OperationParsingFailed:
+            case self::OPERATIONPARSINGFAILED:
                 return 400;
-            case self::OperationProcessingFailed:
+            case self::OPERATIONPROCESSINGFAILED:
                 return 500;
-            case self::OperationNotSupported:
+            case self::OPERATIONNOTSUPPORTED:
                 return 501;
-            case self::MissingParameterValue:
+            case self::MISSINGPARAMETERVALUE:
                 return 400;
-            case self::InvalidParameterValue:
+            case self::INVALIDPARAMETERVALUE:
                 return 400;
-            case self::VersionNegotiationFailed:
+            case self::VERSIONNEGOTIATIONFAILED:
                 return 400;
-            case self::InvalidUpdateSequence:
+            case self::INVALIDUPDATESEQUENCE:
                 return 400;
-            case self::OptionNotSupported:
+            case self::OPTIONNOTSUPPORTED:
                 return 501;
-            case self::NoApplicableCode:
+            case self::NOAPPLICABLECODE:
                 return 500;
             default:
-                return $this->getHttpStatusCode(self::NoApplicableCode);
+                return $this->getHttpStatusCode(self::NOAPPLICABLECODE);
         }
     }
 }

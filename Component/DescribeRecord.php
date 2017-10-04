@@ -2,7 +2,6 @@
 
 namespace Plugins\WhereGroup\CatalogueServiceBundle\Component;
 
-
 /**
  * The class DescribeRecord is a representation of the OGC CSW DescribeRecord operation.
  *

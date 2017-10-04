@@ -167,9 +167,9 @@ abstract class Operation
         if ($service === self::SERVICE) {
             $this->service = $service;
         } elseif ($service === null || $service === '') {
-            $this->addCswException('service', CswException::InvalidParameterValue);
+            $this->addCswException('service', CswException::INVALIDPARAMETERVALUE);
         } else {
-            $this->addCswException('service', CswException::MissingParameterValue);
+            $this->addCswException('service', CswException::MISSINGPARAMETERVALUE);
         }
 
         return $this;
@@ -201,7 +201,7 @@ abstract class Operation
     public function validateParameter()
     {
         if ($this->version !== self::VERSION) {
-            $this->addCswException('version', CswException::InvalidParameterValue);
+            $this->addCswException('version', CswException::INVALIDPARAMETERVALUE);
         }
         //  brake by first exception
         foreach ($this->exceptions as $exc) {
@@ -271,12 +271,12 @@ abstract class Operation
         if ($outputFormat && is_string($outputFormat)) { # GET request
 //            $outputFormat = self::parseCsl($outputFormat);
             if ($this->outputFormat !== $outputFormat) {
-                $this->addCswException('outputFormat', CswException::InvalidParameterValue);
+                $this->addCswException('outputFormat', CswException::INVALIDPARAMETERVALUE);
             } else {
                 $this->outputFormat = $outputFormat;
             }
         } elseif ($outputFormat && !in_array($this->outputFormat, $outputFormat)) {
-            $this->addCswException('outputFormat', CswException::InvalidParameterValue);
+            $this->addCswException('outputFormat', CswException::INVALIDPARAMETERVALUE);
         }
     }
 
@@ -313,11 +313,11 @@ abstract class Operation
         if ($validString && in_array($value, $values)) {
             return true;
         } elseif ($validString && !in_array($value, $values)) {
-            $this->addCswException($name, CswException::InvalidParameterValue);
+            $this->addCswException($name, CswException::INVALIDPARAMETERVALUE);
 
             return false;
         } elseif ($mandatory && (!$validString || !in_array($value, $values))) {
-            $this->addCswException($name, CswException::InvalidParameterValue);
+            $this->addCswException($name, CswException::INVALIDPARAMETERVALUE);
 
             return false;
         } else {
@@ -337,7 +337,7 @@ abstract class Operation
             if ($int >= 0) {
                 return $int;
             } else {
-                $this->addCswException($name, CswException::InvalidParameterValue);
+                $this->addCswException($name, CswException::INVALIDPARAMETERVALUE);
 
                 return null;
             }
@@ -359,7 +359,7 @@ abstract class Operation
         } elseif (ctype_digit(trim($intToTest))) {
             return intval(trim($intToTest));
         } else {
-            $this->addCswException($name, CswException::InvalidParameterValue);
+            $this->addCswException($name, CswException::INVALIDPARAMETERVALUE);
 
             return null;
         }
@@ -377,7 +377,7 @@ abstract class Operation
         if ((is_integer($numberToTest) || is_float($numberToTest)) && $numberToTest > $number) {
             return $numberToTest;
         } else {
-            $this->addCswException($name, CswException::InvalidParameterValue);
+            $this->addCswException($name, CswException::INVALIDPARAMETERVALUE);
 
             return null;
         }

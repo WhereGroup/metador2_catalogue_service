@@ -2,7 +2,11 @@
 
 namespace Plugins\WhereGroup\CatalogueServiceBundle\Component;
 
-
+/**
+ * Class Transaction
+ * @package Plugins\WhereGroup\CatalogueServiceBundle\Component
+ * @author Paul Schmidt <panadium@gmx.de>
+ */
 class Transaction extends Operation
 {
 
@@ -122,7 +126,7 @@ class Transaction extends Operation
             case self::DELETE:
                 return $this->isDeleteSupported();
             default:
-                throw new CswException($type, CswException::OperationNotSupported);
+                throw new CswException($type, CswException::OPERATIONNOTSUPPORTED);
         }
     }
 

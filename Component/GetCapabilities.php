@@ -160,7 +160,7 @@ final class GetCapabilities extends Operation
         if (count($sectionArr) > 0) {
             foreach ($sectionArr as $item) {
                 if (!in_array($item, self::SECTIONS)) {
-                    $this->addCswException('section', CswException::InvalidParameterValue);
+                    $this->addCswException('section', CswException::INVALIDPARAMETERVALUE);
                 }
             }
             $this->section = $sectionArr;
@@ -190,7 +190,7 @@ final class GetCapabilities extends Operation
     public function validateParameter()
     {
         if ($this->acceptVersion && !in_array($this->version, $this->acceptVersion)) {
-            $this->exceptions[] = new CswException('acceptVersion', CswException::VersionNegotiationFailed);
+            $this->exceptions[] = new CswException('acceptVersion', CswException::VERSIONNEGOTIATIONFAILED);
         }
         parent::validateParameter();
     }

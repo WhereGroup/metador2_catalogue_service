@@ -327,7 +327,7 @@ class Csw
     {
         $operationName = $parameter->getOperationName();
         if ($operationName !== 'Transaction') {
-            throw new CswException('request', CswException::OperationNotSupported);
+            throw new CswException('request', CswException::OPERATIONNOTSUPPORTED);
         }
         $operation = $parameter->initOperation(new Transaction($cswConfig));
 
@@ -335,27 +335,27 @@ class Csw
             switch (($atype = $action->getType())) {
                 case Transaction::INSERT:
                     if (!$cswConfig->getInsert()) {
-                        throw new CswException($atype, CswException::OperationNotSupported);
+                        throw new CswException($atype, CswException::OPERATIONNOTSUPPORTED);
                     }
                     $inserted = $this->doInsert($cswConfig, $action, $parameter);
                     $operation->addInserted($inserted);
                     break;
                 case Transaction::UPDATE:
                     if (!$cswConfig->getUpdate()) {
-                        throw new CswException($atype, CswException::OperationNotSupported);
+                        throw new CswException($atype, CswException::OPERATIONNOTSUPPORTED);
                     }
                     $updated = $this->doUpdate($cswConfig, $action, $parameter);
                     $operation->addUpdated($updated);
                     break;
                 case Transaction::DELETE:
                     if (!$cswConfig->getDelete()) {
-                        throw new CswException($atype, CswException::OperationNotSupported);
+                        throw new CswException($atype, CswException::OPERATIONNOTSUPPORTED);
                     }
                     $deleted = $this->doDelete($cswConfig, $action, $parameter);
                     $operation->addDeleted($deleted);
                     break;
                 default:
-                    throw new CswException($atype, CswException::OperationNotSupported);
+                    throw new CswException($atype, CswException::OPERATIONNOTSUPPORTED);
             }
         }
 
@@ -392,7 +392,7 @@ class Csw
                 $this->metadata->updateObject($p, $source, $profile, $username, $public);
 
                 if ($this->metadata->exists($p['_uuid'])) {
-                    throw new CswException('fileIdentifier', CswException::InvalidParameterValue);
+                    throw new CswException('fileIdentifier', CswException::INVALIDPARAMETERVALUE);
                 }
 
                 $this->metadata->saveObject($p);
@@ -602,7 +602,7 @@ class Csw
             case 'brief':
                 return 'metadata.xml.twig';
             default:
-                throw new CswException('elementSetName', CswException::NoApplicableCode);
+                throw new CswException('elementSetName', CswException::NOAPPLICABLECODE);
         }
     }
 }

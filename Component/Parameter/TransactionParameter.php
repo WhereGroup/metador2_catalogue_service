@@ -96,11 +96,11 @@ class TransactionParameter extends PostDomParameter
     }
 
     /**
-     * @param Transaction $operation
+     * @param Transaction $transaction
      * @param ExprHandler $exprHandler
      * @param \DOMElement $actionElm
      * @param array $config
-     * @return Transaction|TransactionOperation
+     * @return TransactionOperation
      * @throws CswException
      * @throws \Exception
      * @throws \WhereGroup\CoreBundle\Component\Search\PropertyNameNotFoundException
@@ -112,7 +112,7 @@ class TransactionParameter extends PostDomParameter
         array $config
     ) {
         if (!$transaction->isTypeSupported($config[Transaction::ACTION])) {
-            throw new CswException($config[Transaction::ACTION], CswException::OperationNotSupported);
+            throw new CswException($config[Transaction::ACTION], CswException::OPERATIONNOTSUPPORTED);
         }
         $action = new TransactionOperation($config[Transaction::ACTION], $exprHandler);
         foreach ($config[Transaction::PARAMS] as $key => $value) {

@@ -2,11 +2,15 @@
 
 namespace Plugins\WhereGroup\CatalogueServiceBundle\Component;
 
-
 use Plugins\WhereGroup\CatalogueServiceBundle\Component\Search\GmlFilterReader;
 use WhereGroup\CoreBundle\Component\Search\Expression;
 use WhereGroup\CoreBundle\Component\Search\ExprHandler;
 
+/**
+ * Class TransactionOperation
+ * @package Plugins\WhereGroup\CatalogueServiceBundle\Component
+ * @author Paul Schmidt <panadium@gmx.de>
+ */
 class TransactionOperation
 {
     /**
