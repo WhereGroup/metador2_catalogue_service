@@ -386,7 +386,7 @@ class Csw
                 $source = $cswConfig->getSource();
                 $username = $cswConfig->getUsername();
                 $public = true;
-                $xml = $mdMetadata->ownerDocument->saveXML($mdMetadata);
+                $xml = self::elementToString($mdMetadata);
 
                 $p = $this->metadata->xmlToObject($xml, $profile);
                 $this->metadata->updateObject($p, $source, $profile, $username, $public);
@@ -443,7 +443,7 @@ class Csw
                         $source = $cswConfig->getSource();
                         $username = $cswConfig->getUsername();
                         $public = true;
-                        $xml = $mdMetadata->ownerDocument->saveXML($mdMetadata);
+                        $xml = self::elementToString($mdMetadata);
                         /* data for datarow to update */
                         $new = $this->metadata->xmlToObject($xml, $profile);
                         $this->metadata->updateObject($new, $source, $profile, $username, $public);
@@ -586,6 +586,15 @@ class Csw
             ->setUser($entity->getUsername());//('');
         $this->logger->set($log);
     }
+
+
+    private static function elementToString(\DOMElement $element)
+    {
+        $doc = new \DOMDocument();
+        $doc->appendChild($doc->importNode($element, true));
+        return $doc->saveXML();
+    }
+
 
     /**
      * @param $elementSetName
