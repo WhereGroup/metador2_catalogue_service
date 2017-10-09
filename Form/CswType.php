@@ -196,8 +196,15 @@ class CswType extends AbstractType
         );
 
         $textJsonTransformer = new CallbackTransformer(
-            function ($array) {
-                return is_array($array) ? json_encode($array, JSON_PRETTY_PRINT) : '';
+            function ($data) {
+                if (is_array($data)) {
+                    return json_encode($data, JSON_PRETTY_PRINT);
+                } else {
+                    return json_encode(
+                        !empty($data) ? json_decode($data, true, 512, JSON_FORCE_OBJECT) : [],
+                        JSON_PRETTY_PRINT
+                    );
+                }
             },
             function ($text) {
                 return is_string($text) ? json_decode($text, true, 512, JSON_FORCE_OBJECT) : array();

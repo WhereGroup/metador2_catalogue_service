@@ -62,3 +62,8 @@ metador_catalogue_service:
             type: string
             label: Mail
             description: Mail
+        filter:
+            type: text
+            label: Filter
+            description: Filter
+            default: '{ "eq": {"public": true}}'
