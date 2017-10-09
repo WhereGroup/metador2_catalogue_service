@@ -3,7 +3,6 @@
 namespace Plugins\WhereGroup\CatalogueServiceBundle\Component;
 
 use Plugins\WhereGroup\CatalogueServiceBundle\Component\Search\GmlFilterReader;
-use WhereGroup\CoreBundle\Component\Search\Expression;
 use WhereGroup\CoreBundle\Component\Search\ExprHandler;
 
 /**
@@ -38,6 +37,9 @@ class GetRecords extends FindRecord
 //        '/csw:GetRecords/csw:DistributedSearch/@hopCount' => 'hopCount',
     );
 
+    /* @var array supported typenames */
+    protected static $TYPENAMES = ['gmd:MD_Metadata'];
+
     /* Request parameters */
     protected $typeNames;
     protected $startPosition;
@@ -62,7 +64,6 @@ class GetRecords extends FindRecord
     ) {
         parent::__construct($entity, $exprHandler);
         $this->resultType = self::RESULTTYPE_HITS;
-        $this->typeNames = array('gmd:MD_Metadata');
         $this->constraintLanguage = 'FILTER';
 
         $this->startPosition = 1; # default value s. xsd
@@ -104,7 +105,8 @@ class GetRecords extends FindRecord
     public function setTypeNames($typeNames)
     {
         $typeNameArr = preg_split('/[\s,]/', $typeNames);
-        $this->isListAtList('typeNames', $typeNameArr, $this->typeNames, false); # only check
+        $this->isListAtList('typeNames', $typeNameArr, self::$TYPENAMES, false); # only check
+        $this->typeNames = $typeNames;
 
         return $this;
     }
@@ -192,9 +194,13 @@ class GetRecords extends FindRecord
             if (!@$dom->loadXML($xml, LIBXML_DTDLOAD | LIBXML_DTDATTR | LIBXML_NOENT | LIBXML_XINCLUDE)) {
                 throw new CswException('filter', CswException::ParsingError);
             }
-            $this->constraint = GmlFilterReader::read($dom->documentElement, $this->exprHandler);
+            if ($constraintContent !== null) {
+                $this->constraint = GmlFilterReader::read($dom->documentElement, $this->exprHandler);
+            }
         } else {
-            $this->constraint = GmlFilterReader::read($constraintContent, $this->exprHandler);
+            if ($constraintContent !== null) {
+                $this->constraint = GmlFilterReader::read($constraintContent, $this->exprHandler);
+            }
         }
 
         return $this;
@@ -323,6 +329,10 @@ class GetRecords extends FindRecord
      */
     public function validateParameter()
     {
+        if (!$this->typeNames) {
+            $this->addCswException('typeNames', CswException::MISSINGPARAMETERVALUE);
+        }
+
         return parent::validateParameter();
     }
 }
