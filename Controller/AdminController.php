@@ -13,7 +13,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 /**
  * Class CSWController
  * @package Plugins\WhereGroup\CatalogueServiceBundle\Controller
- * @Route("/csw/admin")
+ * @Route("/admin/csw")
  */
 class AdminController extends Controller
 {
@@ -66,7 +66,7 @@ class AdminController extends Controller
             }
 
             $this->get('metador_catalogue_service')->save($csw);
-            
+
             $this->setFlash(
                 'success',
                 'new',
