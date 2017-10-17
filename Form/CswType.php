@@ -109,7 +109,7 @@ class CswType extends AbstractType
                 'required' => true,
             ))
             ->add('providerSite', UrlType::class, array(
-                'label' => 'Betreiber Seite',
+                'label' => 'Webseite des Betreibers',
                 'required' => false,
             ))
             ->add('individualName', TextType::class, array(
@@ -117,7 +117,7 @@ class CswType extends AbstractType
                 'required' => false,
             ))
             ->add('positionName', TextType::class, array(
-                'label' => 'Role',
+                'label' => 'Position',
                 'required' => false,
             ))
             ->add('phoneVoice', TextType::class, array(
@@ -125,7 +125,7 @@ class CswType extends AbstractType
                 'required' => false,
             ))
             ->add('phoneFacsimile', TextType::class, array(
-                'label' => 'FAX',
+                'label' => 'Fax',
                 'required' => false,
             ))
             ->add('deliveryPoint', TextType::class, array(
