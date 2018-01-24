@@ -7,8 +7,8 @@ use Plugins\WhereGroup\CatalogueServiceBundle\Entity\Csw;
 use Plugins\WhereGroup\CatalogueServiceBundle\Form\CswType;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Method;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
-use Sensio\Bundle\FrameworkExtraBundle\Configuration\Template;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
+use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 
 /**
  * Class CSWController
@@ -20,24 +20,20 @@ class AdminController extends Controller
     /**
      * @Route("/", name="metador_admin_csw")
      * @Method("GET")
-     * @Template()
-     * @return array
      */
     public function indexAction()
     {
         $this->get('metador_core')->denyAccessUnlessGranted('ROLE_SYSTEM_SUPERUSER');
 
-        return array(
+        return $this->render('@CatalogueService/Admin/index.html.twig', array(
             'services' => $this->get('metador_catalogue_service')->all(),
-        );
+        ));
     }
 
 
     /**
      * @Route("/new/", name="metador_admin_csw_new")
      * @Method({"GET", "POST"})
-     * @Template()
-     * @return array|\Symfony\Component\HttpFoundation\RedirectResponse
      */
     public function newAction()
     {
@@ -78,19 +74,20 @@ class AdminController extends Controller
             return $this->redirectToRoute('metador_admin_csw');
         }
 
-        return array(
+        return $this->render('@CatalogueService/Admin/new.html.twig', array(
             'action' => 'new',
             'form' => $form->createView(),
-        );
+        ));
     }
 
     /**
      * @Route("/edit/{source}/{slug}", name="metador_admin_csw_edit")
      * @Method({"GET", "POST"})
-     * @Template("CatalogueServiceBundle:Admin:new.html.twig")
      * @param string $source
      * @param string $slug
-     * @return array
+     * @return \Symfony\Component\HttpFoundation\RedirectResponse|\Symfony\Component\HttpFoundation\Response
+     * @throws \Doctrine\ORM\NonUniqueResultException
+     * @throws \Doctrine\ORM\OptimisticLockException
      */
     public function editAction($source, $slug)
     {
@@ -117,19 +114,19 @@ class AdminController extends Controller
             return $this->redirectToRoute('metador_admin_csw');
         }
 
-        return array(
+        return $this->render('@CatalogueService/Admin/new.html.twig', array(
             'action' => 'edit',
             'form' => $form->createView(),
-        );
+        ));
     }
 
     /**
      * @Route("/confirm/{source}/{slug}", name="metador_admin_csw_confirm")
      * @Method({"GET", "POST"})
-     * @Template()
-     * @param string $source
-     * @param string $slug
-     * @return array|\Symfony\Component\HttpFoundation\RedirectResponse
+     * @param $source
+     * @param $slug
+     * @return \Symfony\Component\HttpFoundation\RedirectResponse|\Symfony\Component\HttpFoundation\Response
+     * @throws \Doctrine\ORM\NonUniqueResultException
      */
     public function confirmAction($source, $slug)
     {
@@ -137,14 +134,13 @@ class AdminController extends Controller
         $cswInstance = $this->get('metador_catalogue_service')->findOneBySlugAndSource($slug, $source);
         $form = $this
             ->createFormBuilder($cswInstance)
-            ->add('delete', 'submit', array('label' => 'löschen'))
+            ->add('delete', SubmitType::class, array('label' => 'löschen'))
             ->getForm()
             ->handleRequest($this->get('request_stack')->getCurrentRequest());
 
         if ($form->isSubmitted() && $form->isValid()) {
             /* @var Csw $entity */
             $entity = $form->getData();
-            $name = $entity->getTitle();
             $id = $entity->getSlug();
 
             $this->get('metador_source')->remove($entity);
@@ -160,9 +156,9 @@ class AdminController extends Controller
             return $this->redirectToRoute('metador_admin_csw');
         }
 
-        return array(
+        return $this->render('@CatalogueService/Admin/confirm.html.twig', array(
             'form' => $form->createView(),
-        );
+        ));
     }
 
     /**
