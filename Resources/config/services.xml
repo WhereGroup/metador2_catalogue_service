@@ -14,7 +14,7 @@
     </parameters>
     <services>
         <!-- SERVICE -->
-        <service id="metador_catalogue_service" class="%metador.csw.service.class%">
+        <service id="metador_catalogue_service" class="%metador.csw.service.class%" public="true">
             <argument type="service" id="kernel" />
             <argument type="service" id="doctrine.orm.default_entity_manager" />
             <argument type="service" id="templating" />
