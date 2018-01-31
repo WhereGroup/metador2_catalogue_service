@@ -34,6 +34,8 @@ class AdminController extends Controller
     /**
      * @Route("/new/", name="metador_admin_csw_new")
      * @Method({"GET", "POST"})
+     * @throws \Doctrine\ORM\NonUniqueResultException
+     * @throws \Doctrine\ORM\OptimisticLockException
      */
     public function newAction()
     {
@@ -42,8 +44,9 @@ class AdminController extends Controller
         $cswDefaults = $this
             ->get('metador_configuration')
             ->getValues('plugin', 'metador_catalogue_service');
+
         $form = $this
-            ->createForm($this->get("csw_form_type"), (new Csw())->fromArray($cswDefaults))
+            ->createForm(CswType::class, (new Csw())->fromArray($cswDefaults))
             ->handleRequest($this->get('request_stack')->getCurrentRequest());
 
         if ($form->isSubmitted() && $form->isValid()) {
