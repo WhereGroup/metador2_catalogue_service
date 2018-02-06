@@ -13,8 +13,10 @@ class CswRepository extends EntityRepository
 {
     /**
      * @return mixed
+     * @throws NoResultException
+     * @throws \Doctrine\ORM\NonUniqueResultException
      */
-    public function count()
+    public function countAll()
     {
         return $this
             ->getEntityManager()
@@ -29,6 +31,7 @@ class CswRepository extends EntityRepository
      * @param $slug
      * @param $source
      * @return mixed
+     * @throws \Doctrine\ORM\NonUniqueResultException
      */
     public function findOneBySlugAndSource($slug, $source)
     {
@@ -48,6 +51,7 @@ class CswRepository extends EntityRepository
     /**
      * @param $entity
      * @return $this
+     * @throws \Doctrine\ORM\OptimisticLockException
      */
     public function save($entity)
     {
@@ -60,6 +64,7 @@ class CswRepository extends EntityRepository
     /**
      * @param $entity
      * @return $this
+     * @throws \Doctrine\ORM\OptimisticLockException
      */
     public function remove($entity)
     {
