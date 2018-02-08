@@ -23,7 +23,7 @@ class AdminController extends Controller
      */
     public function indexAction()
     {
-        $this->get('metador_core')->denyAccessUnlessGranted('ROLE_SYSTEM_SUPERUSER');
+        $this->denyAccessUnlessGranted('ROLE_SYSTEM_SUPERUSER');
 
         return $this->render('@CatalogueService/Admin/index.html.twig', array(
             'services' => $this->get('metador_catalogue_service')->all(),
@@ -39,7 +39,7 @@ class AdminController extends Controller
      */
     public function newAction()
     {
-        $this->get('metador_core')->denyAccessUnlessGranted('ROLE_SYSTEM_SUPERUSER');
+        $this->denyAccessUnlessGranted('ROLE_SYSTEM_SUPERUSER');
 
         $cswDefaults = $this
             ->get('metador_configuration')
@@ -94,7 +94,7 @@ class AdminController extends Controller
      */
     public function editAction($source, $slug)
     {
-        $this->get('metador_core')->denyAccessUnlessGranted('ROLE_SYSTEM_SUPERUSER');
+        $this->denyAccessUnlessGranted('ROLE_SYSTEM_SUPERUSER');
         $cswInstance = $this->get('metador_catalogue_service')->findOneBySlugAndSource($slug, $source);
 
         $form = $this
@@ -133,7 +133,7 @@ class AdminController extends Controller
      */
     public function confirmAction($source, $slug)
     {
-        $this->get('metador_core')->denyAccessUnlessGranted('ROLE_SYSTEM_SUPERUSER');
+        $this->denyAccessUnlessGranted('ROLE_SYSTEM_SUPERUSER');
         $cswInstance = $this->get('metador_catalogue_service')->findOneBySlugAndSource($slug, $source);
         $form = $this
             ->createFormBuilder($cswInstance)
