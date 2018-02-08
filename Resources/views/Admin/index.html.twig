@@ -24,6 +24,7 @@
             <th>{% trans %}Slug{% endtrans %}</th>
             <th>{% trans %}Titel{% endtrans %}</th>
             <th>{% trans %}Quelle{% endtrans %}</th>
+            <th class="icon-column">#</th>
         </tr>
         </thead>
         <tbody>
@@ -34,6 +35,11 @@
                 </td>
                 <td>{{ service.title }}</td>
                 <td>{{ service.source }}</td>
+                <td>
+                    <a href="{{ path('csw_default', {'source': service.source, 'slug': service.slug }) }}?Request=GetCapabilities&version=2.2.0&Service=CSW" target="_blank">
+                        <span class="icon-earth"></span>
+                    </a>
+                </td>
             </tr>
         {% endfor %}
         </tbody>
