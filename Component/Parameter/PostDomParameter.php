@@ -2,8 +2,8 @@
 
 namespace Plugins\WhereGroup\CatalogueServiceBundle\Component\Parameter;
 
-use Plugins\WhereGroup\CatalogueServiceBundle\Component\Operation;
 use Plugins\WhereGroup\CatalogueServiceBundle\Component\CswException;
+use Plugins\WhereGroup\CatalogueServiceBundle\Component\Operation;
 
 /**
  * Class PostDomParameter
@@ -83,9 +83,14 @@ class PostDomParameter implements Parameter
         $parameterMap = $operation->getPOSTParameterMap();
         $parameters = array();
         foreach ($parameterMap as $key => $value) {
-            $parameters[$value] = $this->getParameter($key);
+            try {
+                $parameters[$value] = $this->getParameter($key);
+            } catch (\Exception $e) {
+                $parameters[$value] = null;
+            }
         }
         $operation->setParameters($parameters);
+
         return $operation;
     }
 

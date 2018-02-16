@@ -130,8 +130,8 @@
                     <ows:Value>validate</ows:Value>
                 </ows:Parameter>
                 <ows:Parameter name="ElementSetName">
-                    <ows:Value>brief</ows:Value>
-                    <ows:Value>summary</ows:Value>
+                    {#<ows:Value>brief</ows:Value>#}
+                    {#<ows:Value>summary</ows:Value>#}
                     <ows:Value>full</ows:Value>
                 </ows:Parameter>
                 <ows:Constraint name="PostEncoding">
@@ -149,6 +149,11 @@
                     <ows:Value>hits</ows:Value>
                     <ows:Value>results</ows:Value>
                     <ows:Value>validate</ows:Value>
+                </ows:Parameter>
+                <ows:Parameter name="ElementSetName">
+                    {#<ows:Value>brief</ows:Value>#}
+                    {#<ows:Value>summary</ows:Value>#}
+                    <ows:Value>full</ows:Value>
                 </ows:Parameter>
                 <ows:Parameter name="outputFormat">
                     <ows:Value>application/xml</ows:Value>
