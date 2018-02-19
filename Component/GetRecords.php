@@ -3,8 +3,8 @@
 namespace Plugins\WhereGroup\CatalogueServiceBundle\Component;
 
 use Plugins\WhereGroup\CatalogueServiceBundle\Component\Search\GmlFilterReader;
-use Symfony\Component\Debug\Exception\ContextErrorException;
 use WhereGroup\CoreBundle\Component\Search\ExprHandler;
+use WhereGroup\CoreBundle\Component\Search\PropertyNameNotFoundException;
 
 /**
  * Class GetRecords
@@ -181,17 +181,18 @@ class GetRecords extends FindRecord
     }
 
     /**
-     * @param \DOMElement|string $constraintContent
+     * @param mixed $constraintContent
      * @return $this
-     * @throws CswException
-     * @throws \WhereGroup\CoreBundle\Component\Search\PropertyNameNotFoundException
      */
     public function setConstraint($constraintContent)
     {
         // only xml Filter is supported TODO for other (e.g. CQL)
         try {
             if (is_string($constraintContent)) {
-                $xml = '<?xml version="1.0" >\n<csw:Filter>'.$constraintContent.'</csw:Filter>';
+                $xml = '<?xml version="1.0" ?>'
+                    .'<csw:Filter xmlns:csw="http://www.opengis.net/cat/csw/2.0.2"'
+                    .' xmlns="http://www.opengis.net/cat/csw/2.0.2" xmlns:ogc="http://www.opengis.net/ogc">'
+                    .$constraintContent.'</csw:Filter>';
                 $dom = new \DOMDocument();
                 if (!$dom->loadXML($xml, LIBXML_DTDLOAD | LIBXML_DTDATTR | LIBXML_NOENT | LIBXML_XINCLUDE)) {
                     throw new CswException('filter', CswException::ParsingError);
@@ -206,6 +207,8 @@ class GetRecords extends FindRecord
             }
 
             return $this;
+        } catch (PropertyNameNotFoundException $e) {
+            $this->addCswException($e->getMessage(), CswException::INVALIDPARAMETERVALUE);
         } catch (\Exception $e) {
             $this->addCswException('Constraint', CswException::INVALIDPARAMETERVALUE);
         }
