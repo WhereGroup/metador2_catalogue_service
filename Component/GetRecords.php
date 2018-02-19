@@ -3,6 +3,7 @@
 namespace Plugins\WhereGroup\CatalogueServiceBundle\Component;
 
 use Plugins\WhereGroup\CatalogueServiceBundle\Component\Search\GmlFilterReader;
+use Symfony\Component\Debug\Exception\ContextErrorException;
 use WhereGroup\CoreBundle\Component\Search\ExprHandler;
 
 /**
@@ -187,23 +188,27 @@ class GetRecords extends FindRecord
      */
     public function setConstraint($constraintContent)
     {
-        // only xml Filter is supported
-        if (is_string($constraintContent)) {
-            $xml = '<?xml version="1.0" >\n<csw:Filter>'.$constraintContent.'</csw:Filter>';
-            $dom = new \DOMDocument();
-            if (!@$dom->loadXML($xml, LIBXML_DTDLOAD | LIBXML_DTDATTR | LIBXML_NOENT | LIBXML_XINCLUDE)) {
-                throw new CswException('filter', CswException::ParsingError);
+        // only xml Filter is supported TODO for other (e.g. CQL)
+        try {
+            if (is_string($constraintContent)) {
+                $xml = '<?xml version="1.0" >\n<csw:Filter>'.$constraintContent.'</csw:Filter>';
+                $dom = new \DOMDocument();
+                if (!$dom->loadXML($xml, LIBXML_DTDLOAD | LIBXML_DTDATTR | LIBXML_NOENT | LIBXML_XINCLUDE)) {
+                    throw new CswException('filter', CswException::ParsingError);
+                }
+                if ($constraintContent !== null) {
+                    $this->constraint = GmlFilterReader::read($dom->documentElement, $this->exprHandler);
+                }
+            } else {
+                if ($constraintContent !== null) {
+                    $this->constraint = GmlFilterReader::read($constraintContent, $this->exprHandler);
+                }
             }
-            if ($constraintContent !== null) {
-                $this->constraint = GmlFilterReader::read($dom->documentElement, $this->exprHandler);
-            }
-        } else {
-            if ($constraintContent !== null) {
-                $this->constraint = GmlFilterReader::read($constraintContent, $this->exprHandler);
-            }
-        }
 
-        return $this;
+            return $this;
+        } catch (\Exception $e) {
+            $this->addCswException('Constraint', CswException::INVALIDPARAMETERVALUE);
+        }
     }
 
     /**
