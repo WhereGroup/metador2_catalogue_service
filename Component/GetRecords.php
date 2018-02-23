@@ -209,6 +209,8 @@ class GetRecords extends FindRecord
             return $this;
         } catch (PropertyNameNotFoundException $e) {
             $this->addCswException($e->getPropertyName(), CswException::INVALIDPARAMETERVALUE);
+        } catch (CswException $e) {
+            throw $e;
         } catch (\Exception $e) {
             $this->addCswException('Constraint', CswException::INVALIDPARAMETERVALUE);
         }

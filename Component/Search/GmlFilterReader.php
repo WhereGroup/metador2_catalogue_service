@@ -2,6 +2,7 @@
 
 namespace Plugins\WhereGroup\CatalogueServiceBundle\Component\Search;
 
+use Plugins\WhereGroup\CatalogueServiceBundle\Component\CswException;
 use WhereGroup\CoreBundle\Component\Search\Expression;
 use WhereGroup\CoreBundle\Component\Search\ExprHandler;
 use WhereGroup\CoreBundle\Component\Search\FilterReader;
@@ -79,14 +80,26 @@ class GmlFilterReader implements FilterReader
                     break;
                 case 'PropertyIsLike':
                     $operands = self::getComparisonContent($child);
-                    $items[] = $exprH->like(
-                        $operands['name'],
-                        $operands['literal'],
-                        $parameters,
-                        $child->getAttribute('escapeChar'),
-                        $child->getAttribute('singleChar'),
-                        $child->getAttribute('wildCard')
-                    );
+                    $escapeChar = $child->getAttribute('escapeChar');
+                    if (!$escapeChar) {
+                        throw new CswException('escapeChar', CswException::MISSINGPARAMETERVALUE);
+                    } elseif (strlen($escapeChar) !== 1) {
+                        throw new CswException('escapeChar', CswException::INVALIDPARAMETERVALUE);
+                    }
+                    $singleChar = $child->getAttribute('singleChar');
+                    if (!$singleChar) {
+                        throw new CswException('singleChar', CswException::MISSINGPARAMETERVALUE);
+                    } elseif (strlen($singleChar) !== 1) {
+                        throw new CswException('singleChar', CswException::INVALIDPARAMETERVALUE);
+                    }
+                    $wildCard = $child->getAttribute('wildCard');
+                    if (!$wildCard) {
+                        throw new CswException('wildCard', CswException::MISSINGPARAMETERVALUE);
+                    } elseif (strlen($wildCard) !== 1) {
+                        throw new CswException('wildCard', CswException::INVALIDPARAMETERVALUE);
+                    }
+                    $items[] = $exprH->like($operands['name'], $operands['literal'], $parameters, $escapeChar,
+                        $singleChar, $wildCard);
                     break;
                 case 'PropertyIsBetween':
                     $operands = self::getBetweenContent($child);
