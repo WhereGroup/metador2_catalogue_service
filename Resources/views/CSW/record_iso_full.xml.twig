@@ -184,7 +184,7 @@ xsi:schemaLocation="http://www.isotc211.org/2005/gmd http://schemas.opengis.net/
              </gmd:date>
            {% endif %}
 
-           {% for identifier in p['identifier'] %}
+{#            {% for identifier in p['identifier'] %}
              <gmd:identifier>
                <gmd:RS_Identifier>
                  {% if identifier['code'] is defined %}
@@ -199,7 +199,7 @@ xsi:schemaLocation="http://www.isotc211.org/2005/gmd http://schemas.opengis.net/
                  {% endif %}
                </gmd:RS_Identifier>
              </gmd:identifier>
-           {% endfor %}
+           {% endfor %} #}
          </gmd:CI_Citation>
        </gmd:citation>
 
