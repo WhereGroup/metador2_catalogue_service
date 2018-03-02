@@ -20,6 +20,7 @@ class GmlFilterReader implements FilterReader
      * @param ExprHandler $expression
      * @return null|Expression
      * @throws \WhereGroup\CoreBundle\Component\Search\PropertyNameNotFoundException
+     * @throws CswException
      */
     public static function read($filter, ExprHandler $expression)
     {
@@ -38,6 +39,7 @@ class GmlFilterReader implements FilterReader
      * @param             $parameters
      * @return array|mixed|null
      * @throws \WhereGroup\CoreBundle\Component\Search\PropertyNameNotFoundException
+     * @throws CswException
      */
     private static function getExpression(\DOMElement $filter, ExprHandler $exprH, &$parameters)
     {
@@ -72,6 +74,20 @@ class GmlFilterReader implements FilterReader
                     break;
                 case 'PropertyIsEqualTo':
                     $operands = self::getComparisonContent($child);
+
+                    // TODO: CLEAN UP !!! :'(
+                    if (isset($operands['name']) && strtolower($operands['name']) === 'subject') {
+                        $items[] = $exprH->like(
+                            $operands['name'],
+                            $operands['literal'],
+                            $parameters,
+                            "|",
+                            "_",
+                            "%"
+                        );
+                        break;
+                    }
+
                     $items[] = $exprH->eq($operands['name'], $operands['literal'], $parameters);
                     break;
                 case 'PropertyIsNotEqualTo':
