@@ -28,6 +28,44 @@ class CswRepository extends EntityRepository
     }
 
     /**
+     * @param $source
+     * @return int|mixed
+     * @throws \Doctrine\ORM\NonUniqueResultException
+     */
+    public function countBySource($source)
+    {
+        try {
+            return $this
+                ->getEntityManager()
+                ->getRepository("CatalogueServiceBundle:Csw")
+                ->createQueryBuilder('u')
+                ->select('count(u.slug)')
+                ->where('u.source = :source')
+                ->setParameter('source', $source)
+                ->getQuery()
+                ->getSingleScalarResult();
+        } catch (NoResultException $e) {
+            return 0;
+        }
+    }
+
+    /**
+     * @param $source
+     * @return $this
+     */
+    public function deleteBySource($source)
+    {
+        $this
+            ->getEntityManager()
+            ->createQuery('DELETE FROM CatalogueServiceBundle:Csw u WHERE u.source = :source')
+            ->setParameter('source', $source)
+            ->execute()
+        ;
+
+        return $this;
+    }
+
+    /**
      * @param $slug
      * @param $source
      * @return mixed

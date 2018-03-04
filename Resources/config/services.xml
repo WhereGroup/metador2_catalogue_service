@@ -28,6 +28,11 @@
         <service id="catalogue_service_app_listener" class="%csw.app.listener.class%">
             <tag name="kernel.event_listener" event="application.loading" method="onLoading"/>
         </service>
+        <service id="mcatalogue_service_source_listener" class="Plugins\WhereGroup\CatalogueServiceBundle\EventListener\SourceListener">
+            <tag name="kernel.event_listener" event="source.confirm_delete" method="onConfirm" />
+            <tag name="kernel.event_listener" event="source.post_delete" method="onPostDelete" />
+            <argument type="service" id="doctrine.orm.default_entity_manager" />
+        </service>
 
         <!-- FORM TYPE -->
         <service id="csw_form_type" class="%csw.form.type.class%">
