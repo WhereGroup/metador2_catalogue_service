@@ -79,9 +79,9 @@ class GmlFilterReader implements FilterReader
                     if (isset($operands['name']) && strtolower($operands['name']) === 'subject') {
                         $items[] = $exprH->like(
                             $operands['name'],
-                            $operands['literal'],
+                            "%".$operands['literal']."%",
                             $parameters,
-                            "|",
+                            "\\",
                             "_",
                             "%"
                         );
