@@ -72,6 +72,14 @@ class CswType extends AbstractType
             array_keys($this->plugin->getActiveProfiles())
         );
         $builder
+            ->add('active', ChoiceType::class, array(
+                'label' => 'Aktiv',
+                'required' => true,
+                'choices' => [
+                    'Ja'   => true,
+                    'Nein' => false
+                ],
+            ))
             ->add('slug', TextType::class, array(
                 'label' => 'URL Titel',
                 'required' => true,

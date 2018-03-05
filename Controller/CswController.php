@@ -35,10 +35,16 @@ class CswController extends Controller
     {
         /* @var Csw $csw */
         $csw = $this->get('metador_catalogue_service');
+
+        /** @var \Plugins\WhereGroup\CatalogueServiceBundle\Entity\Csw $cswConfig */
         $cswConfig = $csw->findOneBySlugAndSource($slug, $source);
 
         if ($cswConfig === null) {
             throw new NotFoundHttpException('Csw mit slug:"'.$slug.'" und source:"'.$source.'" existiert nicht.');
+        }
+
+        if ($cswConfig->getActive() !== true) {
+            return new Response('', Response::HTTP_NOT_FOUND);
         }
 
         $content = null;
@@ -102,6 +108,10 @@ class CswController extends Controller
 
         if ($cswConfig === null) {
             throw new NotFoundHttpException('Csw mit slug:"'.$slug.'" und source:"'.$source.'" existiert nicht.');
+        }
+
+        if ($cswConfig->getActive() !== true) {
+            return new Response('', Response::HTTP_NOT_FOUND);
         }
 
         $content = null;

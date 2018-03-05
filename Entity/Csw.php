@@ -39,6 +39,11 @@ class Csw
     protected $username;
 
     /**
+     * @ORM\Column(type="boolean", nullable=true)
+     */
+    protected $active;
+
+    /**
      * @var string $title ServiceIdentification title
      * @ORM\Column(type="string", nullable=true)
      */
@@ -845,5 +850,23 @@ class Csw
     public function getFilter()
     {
         return $this->filter;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getActive()
+    {
+        return $this->active;
+    }
+
+    /**
+     * @param mixed $active
+     * @return Csw
+     */
+    public function setActive($active)
+    {
+        $this->active = (boolean)$active;
+        return $this;
     }
 }

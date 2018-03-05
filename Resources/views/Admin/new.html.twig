@@ -44,6 +44,16 @@
     <div class="grid space responsive">
         <div class="row r-3">
             <div class="col c-1-3">
+                <div>{{ form_label(form.active, null, { 'label_attr': {'class': 'form-label'}}) }}</div>
+                <div class="form-field-wrapper">
+                    {{ form_widget(form.active, { 'attr': {'class': 'select'}}) }}
+                </div>
+            </div>
+            <div class="col c-1-3"></div>
+            <div class="col c-1-3"></div>
+        </div>
+        <div class="row r-3">
+            <div class="col c-1-3">
                 <div>{{ form_label(form.slug, null, { 'label_attr': {'class': 'form-label'}}) }}</div>
                 <div class="form-field-wrapper">
                     {% if form.vars.value.slug is defined and form.vars.value.slug is not empty %}
@@ -56,13 +66,13 @@
             <div class="col c-1-3">
                 <div>{{ form_label(form.source, null, { 'label_attr': {'class': 'form-label'}}) }}</div>
                 <div class="form-field-wrapper">
-                    {{ form_widget(form.source, { 'attr': {'class': 'input'}}) }}
+                    {{ form_widget(form.source, { 'attr': {'class': 'select'}}) }}
                 </div>
             </div>
             <div class="col c-1-3">
                 <div>{{ form_label(form.username, null, { 'label_attr': {'class': 'form-label'}}) }}</div>
                 <div class="form-field-wrapper">
-                    {{ form_widget(form.username, { 'attr': {'class': 'input'}}) }}
+                    {{ form_widget(form.username, { 'attr': {'class': 'select'}}) }}
                 </div>
             </div>
         </div>
@@ -197,25 +207,42 @@
                 </div>
             </div>
         </div>
+
+        <h2>CSW-T</h2>
+
+        <div class="row r-3">
+            <div class="col c-1-3">
+                {{ form_widget(form.insert, { 'attr': {'class': 'checkbox'}}) }} {{ form_label(form.insert, null, { 'label_attr': {'class': 'form-label'}}) }}
+            </div>
+            <div class="col c-1-3">
+                {{ form_widget(form.update, { 'attr': {'class': 'checkbox'}}) }} {{ form_label(form.update, null, { 'label_attr': {'class': 'form-label'}}) }}
+            </div>
+            <div class="col c-1-3">
+                {{ form_widget(form.delete, { 'attr': {'class': 'checkbox'}}) }} {{ form_label(form.delete, null, { 'label_attr': {'class': 'form-label'}}) }}
+            </div>
+        </div>
+
         <hr class="line-separator"/>
+
         {% for hierarchy_level in get_setting('hierarchy_levels', 'plugin', 'metador_core') %}
-        <div class="row r-1">
-            <div class="col c-1">
-                <div>{{ form_label(form[hierarchy_level], null, { 'label_attr': {'class': 'form-label'}}) }}</div>
+            {% if loop.first or loop.index % 3 == 0 %}
+                <div class="row r-2">
+            {% endif %}
+
+            <div class="col c-1-2">
+                <div>{{ form_label(form[hierarchy_level], null, { 'label_attr': {'class': 'form-label'}}) }} {% trans %}Mapping beim Import{% endtrans %}</div>
                 <div class="form-field-wrapper">
-                    {{ form_widget(form[hierarchy_level], { 'attr': {'class': 'input'}}) }}
+                    {{ form_widget(form[hierarchy_level], { 'attr': {'class': 'select'}}) }}
                 </div>
             </div>
-        </div>
+
+            {% if loop.last or loop.index % 2 == 0 %}
+                </div>
+            {% endif %}
         {%  endfor %}
+
         <hr class="line-separator"/>
-        <div class="row r-1">
-            <div class="col c-1">
-                <div>{{ form_widget(form.insert, { 'attr': {'class': 'textarea'}}) }} {{ form_label(form.insert, null, { 'label_attr': {'class': 'form-label'}}) }}</div>
-                <div>{{ form_widget(form.update, { 'attr': {'class': 'textarea'}}) }} {{ form_label(form.update, null, { 'label_attr': {'class': 'form-label'}}) }}</div>
-                <div>{{ form_widget(form.delete, { 'attr': {'class': 'textarea'}}) }} {{ form_label(form.delete, null, { 'label_attr': {'class': 'form-label'}}) }}</div>
-            </div>
-        </div>
+
         <div class="row r-1">
             <div class="col c-1 text-right">
                 <button class="btn success medium">
