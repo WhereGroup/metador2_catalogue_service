@@ -2,8 +2,6 @@
 
 namespace Plugins\WhereGroup\CatalogueServiceBundle\Component;
 
-use Symfony\Bundle\TwigBundle\TwigEngine;
-
 /**
  * The class GetCapabilities is a representation of the OGC CSW GetCapabilities operation.
  *
@@ -11,7 +9,12 @@ use Symfony\Bundle\TwigBundle\TwigEngine;
  */
 final class GetCapabilities extends Operation
 {
-    const SECTIONS = array('ServiceIdentification', 'ServiceProvider', 'OperationsMetadata', 'Filter_Capabilities');
+    public static $SECTIONS = array(
+        'ServiceIdentification',
+        'ServiceProvider',
+        'OperationsMetadata',
+        'Filter_Capabilities',
+    );
     /**
      * {@inheritdoc}
      */
@@ -159,7 +162,7 @@ final class GetCapabilities extends Operation
         }
         if (count($sectionArr) > 0) {
             foreach ($sectionArr as $item) {
-                if (!in_array($item, self::SECTIONS)) {
+                if (!in_array($item, self::$SECTIONS)) {
                     $this->addCswException('section', CswException::INVALIDPARAMETERVALUE);
                 }
             }

@@ -25,10 +25,12 @@ class CswController extends Controller
      * @param Request $request
      * @param $source
      * @param $slug
-     * @Route("{source}/{slug}/", name="csw_default")
+     * @Route("{source}/{slug}", name="csw_default")
      * @Method({"GET", "POST"})
      * @return Response
      * @throws \Doctrine\ORM\NonUniqueResultException
+     * @throws \Psr\Container\ContainerExceptionInterface
+     * @throws \Psr\Container\NotFoundExceptionInterface
      * @throws \Twig\Error\Error
      */
     public function defaultAction(Request $request, $source, $slug)
@@ -94,10 +96,12 @@ class CswController extends Controller
      * @param Request $request
      * @param $source
      * @param $slug
-     * @Route("manager/{source}/{slug}/", name="csw_transaction")
+     * @Route("manager/{source}/{slug}", name="csw_transaction")
      * @Method({"POST"})
      * @return Response
      * @throws \Doctrine\ORM\NonUniqueResultException
+     * @throws \Psr\Container\ContainerExceptionInterface
+     * @throws \Psr\Container\NotFoundExceptionInterface
      * @throws \Twig\Error\Error
      */
     public function transactionAction(Request $request, $source, $slug)

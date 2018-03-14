@@ -175,6 +175,7 @@
                     <ows:Value>Title</ows:Value>
                     <ows:Value>Language</ows:Value>
                     <ows:Value>AnyText</ows:Value>
+                    <ows:Value>Subject</ows:Value>
                     {#<ows:Value>Operation</ows:Value>#}
                     {#<ows:Value>Format</ows:Value>#}
                     {#<ows:Value>OrganisationName</ows:Value>#}
@@ -194,7 +195,6 @@
                     {#<ows:Value>OperatesOnIdentifier</ows:Value>#}
                     {#<ows:Value>ServiceTypeVersion</ows:Value>#}
                     {#<ows:Value>TempExtent_end</ows:Value>#}
-                    {#<ows:Value>Subject</ows:Value>#}
                     {#<ows:Value>CreationDate</ows:Value>#}
                     {#<ows:Value>OperatesOnName</ows:Value>#}
                     {#<ows:Value>DistanceUOM</ows:Value>#}
@@ -222,6 +222,14 @@
                 {#<ows:Value>Degree</ows:Value>#}
                 {#<ows:Value>SpecificationTitle</ows:Value>#}
                 {#</ows:Constraint>#}
+            </ows:Operation>
+
+            <ows:Operation name="Transaction">
+                <ows:DCP>
+                    <ows:HTTP>
+                        <ows:Post xlink:href="{{ getcap.urlTransaction }}"/>
+                    </ows:HTTP>
+                </ows:DCP>
             </ows:Operation>
         </ows:OperationsMetadata>
     {% endif %}
