@@ -223,7 +223,7 @@
                 {#<ows:Value>SpecificationTitle</ows:Value>#}
                 {#</ows:Constraint>#}
             </ows:Operation>
-
+            {% if getcap.entity.insert == true or getcap.entity.update == true or getcap.entity.delete == true %}
             <ows:Operation name="Transaction">
                 <ows:DCP>
                     <ows:HTTP>
@@ -231,6 +231,7 @@
                     </ows:HTTP>
                 </ows:DCP>
             </ows:Operation>
+            {% endif %}
         </ows:OperationsMetadata>
     {% endif %}
     <ogc:Filter_Capabilities>
