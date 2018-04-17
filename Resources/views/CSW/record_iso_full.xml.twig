@@ -339,10 +339,10 @@ xsi:schemaLocation="http://www.isotc211.org/2005/gmd http://schemas.opengis.net/
        {% endif %}
        <gmd:resourceConstraints>
          <gmd:MD_Constraints>
-           {% if p['uselimitation'] is defined %}
-             {% for uselimitation in p['uselimitation'] %}
+           {% if p['useLimitation'] is defined %}
+             {% for useLimitation in p['useLimitation'] %}
                <gmd:useLimitation>
-                 <gco:CharacterString>{{ uselimitation }}</gco:CharacterString>
+                 <gco:CharacterString>{{ useLimitation }}</gco:CharacterString>
                </gmd:useLimitation>
              {% endfor %}
            {% else %}
