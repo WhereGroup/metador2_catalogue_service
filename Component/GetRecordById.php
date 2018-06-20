@@ -33,7 +33,7 @@ class GetRecordById extends FindRecord
     {
         $parameters = array();
         $this->constraint = new Expression(
-            $this->exprHandler->in('Identifier', $constraintContent, $parameters),
+            $this->exprHandler->in(self::QUERYABLE_MAP['Identifier'], $constraintContent, $parameters),
             $parameters
         );
     }
