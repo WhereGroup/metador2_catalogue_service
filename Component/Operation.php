@@ -10,6 +10,16 @@ namespace Plugins\WhereGroup\CatalogueServiceBundle\Component;
 abstract class Operation
 {
 
+    const ISO_QUERYABLES = array(
+        'Identifier' => 'uuid',
+        'Title' => 'title',
+        'Language' => 'language',
+        'AnyText' => 'anyText',
+        'Subject' => 'subject',
+    );
+
+    const ADDITIONAL_QUERYABLES = array();
+
     /**
      * The element prefix for csw namespace
      */
@@ -33,32 +43,27 @@ abstract class Operation
      * @var array $parameterMap
      */
     protected static $parameterMap = array();
-
     /**
      * List with exceptions
      * @var array $exceptions
      */
     protected $exceptions = array();
-
     /**
      * @var CswEntity entity
      */
     protected $entity;
-
-    /* request parameters */
-
     /**
      * The service name (CSW)
      * @var string $service
      */
     protected $service;
 
+    /* request parameters */
     /**
      * The requested versions
      * @var string $version
      */
     protected $version;
-
     /**
      * The requested output formats
      * @var array $outputFormat
@@ -74,6 +79,22 @@ abstract class Operation
         $this->entity = $entity;
         $this->version = self::VERSION;
         $this->outputFormat = 'application/xml';
+    }
+
+    /**
+     * @param $name
+     * @return mixed
+     * @throws CswException
+     */
+    protected function mapQueryable($name)
+    {
+        if (isset(self::ISO_QUERYABLES[$name])) {
+            return self::ISO_QUERYABLES[$name];
+        } elseif (isset(self::ADDITIONAL_QUERYABLES[$name])) {
+            return self::ADDITIONAL_QUERYABLES[$name];
+        } else {
+            throw new CswException($name, CswException::OPTIONNOTSUPPORTED);
+        }
     }
 
     /**
@@ -235,7 +256,6 @@ abstract class Operation
         foreach ($parameters as $key => $value) {
             $this->setParameter($key, $value);
         }
-//        $this->validateParameter(); // call manually
     }
 
     /**
@@ -269,7 +289,6 @@ abstract class Operation
     public function setOutputFormat($outputFormat)
     {
         if ($outputFormat && is_string($outputFormat)) { # GET request
-//            $outputFormat = self::parseCsl($outputFormat);
             if ($this->outputFormat !== $outputFormat) {
                 $this->addCswException('outputFormat', CswException::INVALIDPARAMETERVALUE);
             } else {

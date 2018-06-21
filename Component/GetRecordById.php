@@ -33,7 +33,7 @@ class GetRecordById extends FindRecord
     {
         $parameters = array();
         $this->constraint = new Expression(
-            $this->exprHandler->in(self::QUERYABLE_MAP['Identifier'], $constraintContent, $parameters),
+            $this->exprHandler->in($this->mapQueryable('Identifier'), $constraintContent, $parameters),
             $parameters
         );
     }
@@ -70,9 +70,9 @@ class GetRecordById extends FindRecord
     }
 
     /**
-     * @param mixed $id
+     * @param $id
      * @return $this
-     * @throws \WhereGroup\CoreBundle\Component\Search\PropertyNameNotFoundException
+     * @throws CswException
      */
     public function setId($id)
     {

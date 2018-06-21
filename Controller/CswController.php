@@ -133,6 +133,8 @@ class CswController extends Controller
     /**
      * @param \Exception $ex
      * @return Response
+     * @throws \Psr\Container\ContainerExceptionInterface
+     * @throws \Psr\Container\NotFoundExceptionInterface
      * @throws \Twig\Error\Error
      */
     private function renderException(\Exception $ex)
@@ -159,8 +161,9 @@ class CswController extends Controller
         } else {
             return $this->renderException(
                 new CswException(
-                    $ex->getMessage(),
-                    CswException::NOAPPLICABLECODE
+                    '',
+                    CswException::NOAPPLICABLECODE,
+                    $ex
                 )
             );
         }

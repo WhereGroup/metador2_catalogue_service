@@ -51,6 +51,18 @@ final class GetCapabilities extends Operation
     protected $section;
 
     /**
+     * The list of supported ISO queryables
+     * @var array $isoqueryables
+     */
+    protected $isoqueryables;
+
+    /**
+     * The list of supported additional queryables
+     * @var array $addedqueryables
+     */
+    protected $addedqueryables;
+
+    /**
      * {@inheritdoc}
      */
     public function __construct(\Plugins\WhereGroup\CatalogueServiceBundle\Entity\Csw $entity, $urlBasic, $urlTAction)
@@ -59,6 +71,24 @@ final class GetCapabilities extends Operation
         $this->urlBasic = $urlBasic;
         $this->urlTransaction = $urlTAction;
         $this->section = array();
+        $this->isoqueryables = array_keys(self::ISO_QUERYABLES);
+        $this->addedqueryables = array_keys(self::ADDITIONAL_QUERYABLES);
+    }
+
+    /**
+     * @return array
+     */
+    public function getIsoqueryables()
+    {
+        return $this->isoqueryables;
+    }
+
+    /**
+     * @return array
+     */
+    public function getAddedqueryables()
+    {
+        return $this->addedqueryables;
     }
 
     /**

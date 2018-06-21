@@ -170,12 +170,16 @@
                 <ows:Constraint name="PostEncoding">
                     <ows:Value>XML</ows:Value>
                 </ows:Constraint>
+                {% if getcap.isoqueryables|length > 0 %}
                 <ows:Constraint name="SupportedISOQueryables">
-                    <ows:Value>Identifier</ows:Value>
-                    <ows:Value>Title</ows:Value>
-                    <ows:Value>Language</ows:Value>
-                    <ows:Value>AnyText</ows:Value>
-                    <ows:Value>Subject</ows:Value>
+                    {# for more options extend the "Plugins\WhereGroup\CatalogueServiceBundle\Component\Operation::ISO_QUERYABLES" #}
+                    {% for queryable in getcap.isoqueryables %}
+                    <ows:Value>{{ queryable }}</ows:Value>
+                    {% endfor %}
+                    {#<ows:Value>Title</ows:Value>#}
+                    {#<ows:Value>Language</ows:Value>#}
+                    {#<ows:Value>AnyText</ows:Value>#}
+                    {#<ows:Value>Subject</ows:Value>#}
                     {#<ows:Value>Operation</ows:Value>#}
                     {#<ows:Value>Format</ows:Value>#}
                     {#<ows:Value>OrganisationName</ows:Value>#}
@@ -205,7 +209,13 @@
                     {#<ows:Value>KeywordType</ows:Value>#}
                     {#<ows:Value>Abstract</ows:Value>#}
                 </ows:Constraint>
-                {#<ows:Constraint name="AdditionalQueryables">#}
+                {% endif %}
+                {% if getcap.addedqueryables|length > 0 %}
+                <ows:Constraint name="AdditionalQueryables">
+                    {# for more options extend the "Plugins\WhereGroup\CatalogueServiceBundle\Component\Operation::ADDITIONAL_QUERYABLES" #}
+                {% for queryable in getcap.isoqueryables %}
+                    <ows:Value>{{ queryable }}</ows:Value>
+                {% endfor %}
                 {#<ows:Value>Relation</ows:Value>#}
                 {#<ows:Value>AccessConstraints</ows:Value>#}
                 {#<ows:Value>ResponsiblePartyRole</ows:Value>#}
@@ -221,7 +231,8 @@
                 {#<ows:Value>OtherConstraints</ows:Value>#}
                 {#<ows:Value>Degree</ows:Value>#}
                 {#<ows:Value>SpecificationTitle</ows:Value>#}
-                {#</ows:Constraint>#}
+                </ows:Constraint>
+                {% endif %}
             </ows:Operation>
             {% if getcap.entity.insert == true or getcap.entity.update == true or getcap.entity.delete == true %}
             <ows:Operation name="Transaction">
