@@ -84,7 +84,6 @@ abstract class Operation
     /**
      * @param $name
      * @return mixed
-     * @throws CswException
      */
     protected function mapQueryable($name)
     {
@@ -93,7 +92,7 @@ abstract class Operation
         } elseif (isset(self::ADDITIONAL_QUERYABLES[$name])) {
             return self::ADDITIONAL_QUERYABLES[$name];
         } else {
-            throw new CswException($name, CswException::OPTIONNOTSUPPORTED);
+            return $name;
         }
     }
 
