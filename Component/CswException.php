@@ -34,7 +34,7 @@ class CswException extends \Exception
      * @param int $code
      * @param CswException|null $previous
      */
-    public function __construct($locator = "", $code = 105, CswException $previous = null)
+    public function __construct($locator = "", $code = 105, \Exception $previous = null)
     {
         // @TODO locator vs $previous locator
         parent::__construct($locator, $code, $previous);
@@ -62,9 +62,28 @@ class CswException extends \Exception
     public function getText()
     {
         if ($this->getPrevious()) {
-            return array_merge(array($this->getErrorMessage($this->code)), $this->getPrevious()->getText());
+            $messages = array();
+            $this->getMessageText($this, $messages);
+
+            return $messages;
         } else {
             return array($this->getErrorMessage($this->code));
+        }
+    }
+
+    /**
+     * @param \Exception $e
+     * @param array $messages
+     */
+    private function getMessageText(\Exception $e, array &$messages)
+    {
+        if ($e instanceof CswException) {
+            $messages[] = $e->getErrorMessage($e->getCode());
+        } else {
+            $messages[] = $e->getMessage();
+        }
+        if ($e->getPrevious()) {
+            $this->getMessageText($e->getPrevious(), $messages);
         }
     }
 
