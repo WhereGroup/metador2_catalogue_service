@@ -2,6 +2,8 @@
 
 namespace Plugins\WhereGroup\CatalogueServiceBundle\Component;
 
+use WhereGroup\CoreBundle\Component\Search\Search;
+
 /**
  * Description of Operation
  *
@@ -9,15 +11,22 @@ namespace Plugins\WhereGroup\CatalogueServiceBundle\Component;
  */
 abstract class Operation
 {
-
+    /**
+     * The list "WhereGroup\CoreBundle\Component\Search::MAP_QUERY2SOURCE['metadata']" contains a lower case of the
+     * each "iso queryables" item.
+     */
     const ISO_QUERYABLES = array(
-        'Identifier' => 'uuid',
-        'Title' => 'title',
-        'Language' => 'language',
-        'AnyText' => 'anyText',
-        'Subject' => 'subject',
+        'Identifier',
+        'Title',
+        'Language',
+        'AnyText',
+        'Subject'
     );
 
+    /**
+     * The list "WhereGroup\CoreBundle\Component\Search::MAP_QUERY2SOURCE['metadata']" contains a lower case of the
+     * each "additional queryables" item.
+     */
     const ADDITIONAL_QUERYABLES = array();
 
     /**

@@ -71,8 +71,8 @@ final class GetCapabilities extends Operation
         $this->urlBasic = $urlBasic;
         $this->urlTransaction = $urlTAction;
         $this->section = array();
-        $this->isoqueryables = array_keys(self::ISO_QUERYABLES);
-        $this->addedqueryables = array_keys(self::ADDITIONAL_QUERYABLES);
+        $this->isoqueryables = self::ISO_QUERYABLES;
+        $this->addedqueryables = self::ADDITIONAL_QUERYABLES;
     }
 
     /**

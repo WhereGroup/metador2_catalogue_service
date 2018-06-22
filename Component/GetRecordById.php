@@ -3,6 +3,7 @@
 namespace Plugins\WhereGroup\CatalogueServiceBundle\Component;
 
 use WhereGroup\CoreBundle\Component\Search\Expression;
+use WhereGroup\CoreBundle\Component\Search\Search;
 
 /**
  * The class GetRecordById is a representation of the OGC CSW GetCapabilities operation.
@@ -31,9 +32,10 @@ class GetRecordById extends FindRecord
      */
     public function setConstraint($constraintContent)
     {
+        $identifier = Search::MAP_QUERY2SOURCE['metadata'][strtolower('Identifier')];
         $parameters = array();
         $this->constraint = new Expression(
-            $this->exprHandler->in($this->mapQueryable('Identifier'), $constraintContent, $parameters),
+            $this->exprHandler->in($identifier, $constraintContent, $parameters),
             $parameters
         );
     }
