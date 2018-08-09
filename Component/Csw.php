@@ -389,13 +389,18 @@ class Csw
                 $xml = self::elementToString($mdMetadata);
 
                 $p = $this->metadata->xmlToObject($xml, $profile);
-                $this->metadata->updateObject($p, $source, $profile, $username, $public);
 
-                if ($this->metadata->exists($p['_uuid'])) {
+                if ($this->metadata->exists($p['fileIdentifier'])) {
                     throw new CswException('fileIdentifier', CswException::INVALIDPARAMETERVALUE);
                 }
 
-                $this->metadata->saveObject($p);
+                $this->metadata->saveObject($p, null, [
+                    'source'   => $source,
+                    'profile'  => $profile,
+                    'username' => $username,
+                    'public'   => $public
+                ]);
+
                 $inserted++;
             } else {
                 $this->log($cswConfig, 'warning', 'insert', '', 'Type: $hl ist nicht unterstützt');
@@ -446,12 +451,17 @@ class Csw
                         $xml = self::elementToString($mdMetadata);
                         /* data for datarow to update */
                         $new = $this->metadata->xmlToObject($xml, $profile);
-                        $this->metadata->updateObject($new, $source, $profile, $username, $public);
-                        $this->metadata->saveObject(
-                            $new,
-                            isset($existing['_id']) ? $existing['_id'] : null,
-                            isset($existing['_uuid']) ? $existing['_uuid'] : null
-                        );
+
+                        $id = !empty($existing['_id']) ? $existing['_id'] : null;
+                        $id = is_null($id) && !empty($existing['_uuid']) ? $existing['_uuid'] : $id;
+
+                        $this->metadata->saveObject($new, $id, [
+                            'source'   => $source,
+                            'profile'  => $profile,
+                            'username' => $username,
+                            'public'   => $public
+                        ]);
+
                         $updated++;
                     } else {
                         $this->log($cswConfig, 'warning', 'update', '', 'Type: $hl ist nicht unterstützt');
