@@ -80,6 +80,10 @@ class CswType extends AbstractType
                     'Nein' => false
                 ],
             ))
+            ->add('title', TextType::class, array(
+                'label' => 'Titel',
+                'required' => true,
+            ))
             ->add('slug', TextType::class, array(
                 'label' => 'URL Titel',
                 'required' => true,
