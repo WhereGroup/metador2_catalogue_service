@@ -119,7 +119,10 @@ class TransactionParameter extends PostDomParameter
             $action->setParameter($value, $this->getParameter($key, $actionElm));
         }
         if (isset($config[Transaction::FILTER])) {
-            $action->setConstraint($this->getValue($config[Transaction::FILTER], $actionElm, true));
+            if (($filter = $this->getValue($config[Transaction::FILTER], $actionElm, true)) === null) {
+                throw new CswException(Transaction::FILTER, CswException::MISSINGPARAMETERVALUE);
+            }
+            $action->setConstraint($filter);
         }
         try {
             $action->setItems($this->getValue($config[Transaction::ITEMS], $actionElm, false));
