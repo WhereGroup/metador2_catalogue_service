@@ -32,7 +32,7 @@ class GetRecordById extends FindRecord
      */
     public function setConstraint($constraintContent)
     {
-        $identifier = Search::MAP_QUERY2SOURCE['metadata'][strtolower('Identifier')];
+        $identifier = Search::$MAP_QUERY2SOURCE['metadata'][strtolower('Identifier')];
         $parameters = array();
         $this->constraint = new Expression(
             $this->exprHandler->in($identifier, $constraintContent, $parameters),

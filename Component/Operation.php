@@ -12,7 +12,7 @@ use WhereGroup\CoreBundle\Component\Search\Search;
 abstract class Operation
 {
     /**
-     * The list "WhereGroup\CoreBundle\Component\Search::MAP_QUERY2SOURCE['metadata']" contains a lower case of the
+     * The list "WhereGroup\CoreBundle\Component\Search::$MAP_QUERY2SOURCE['metadata']" contains a lower case of the
      * each "iso queryables" item.
      */
     const ISO_QUERYABLES = array(
@@ -24,7 +24,7 @@ abstract class Operation
     );
 
     /**
-     * The list "WhereGroup\CoreBundle\Component\Search::MAP_QUERY2SOURCE['metadata']" contains a lower case of the
+     * The list "WhereGroup\CoreBundle\Component\Search::$MAP_QUERY2SOURCE['metadata']" contains a lower case of the
      * each "additional queryables" item.
      */
     const ADDITIONAL_QUERYABLES = array();
