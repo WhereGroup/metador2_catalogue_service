@@ -69,6 +69,7 @@ class Csw
      * @param Logger $logger
      * @param Plugin $plugin
      * @param Search $metadataSearch
+     * @param MetadataInterface $metadata
      */
     public function __construct(
         KernelInterface $kernel,
