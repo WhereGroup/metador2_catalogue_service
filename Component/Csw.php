@@ -8,6 +8,7 @@ use Plugins\WhereGroup\CatalogueServiceBundle\Component\Parameter\Parameter;
 use Plugins\WhereGroup\CatalogueServiceBundle\Component\Parameter\PostDomParameter;
 use Plugins\WhereGroup\CatalogueServiceBundle\Component\Parameter\TransactionParameter;
 use Plugins\WhereGroup\CatalogueServiceBundle\Entity\Csw as CswEntity;
+use Plugins\WhereGroup\CatalogueServiceBundle\Component\Exception\GetCapabilitiesNotFoundException;
 use Symfony\Bundle\TwigBundle\TwigEngine;
 use Symfony\Component\HttpKernel\KernelInterface;
 use WhereGroup\CoreBundle\Component\Logger;
@@ -327,7 +328,9 @@ class Csw
     public function transaction(TransactionParameter $parameter, CswEntity $cswConfig)
     {
         $operationName = $parameter->getOperationName();
-        if ($operationName !== 'Transaction') {
+        if ($operationName === 'GetCapabilities') {
+            throw new GetCapabilitiesNotFoundException();
+        } elseif ($operationName !== 'Transaction') {
             throw new CswException('request', CswException::OPERATIONNOTSUPPORTED);
         }
         $operation = $parameter->initOperation(new Transaction($cswConfig));
@@ -523,7 +526,7 @@ class Csw
      */
     private function getExpressionForCsw(CswEntity $cswConfig, ExprHandler $exprHandler)
     {
-        $cswExpr = JsonFilterReader::read($cswConfig->getFilter(), $exprHandler);
+        $cswExpr = JsonFilterReader::readWithAlias($cswConfig->getFilter(), $exprHandler);
 
         return $cswExpr;
     }

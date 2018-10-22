@@ -4,6 +4,7 @@ namespace Plugins\WhereGroup\CatalogueServiceBundle\Controller;
 
 use Plugins\WhereGroup\CatalogueServiceBundle\Component\Csw;
 use Plugins\WhereGroup\CatalogueServiceBundle\Component\CswException;
+use Plugins\WhereGroup\CatalogueServiceBundle\Component\Exception\GetCapabilitiesNotFoundException;
 use Plugins\WhereGroup\CatalogueServiceBundle\Component\Parameter\Parameter;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Method;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
@@ -11,6 +12,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Symfony\Component\HttpKernel\HttpKernelInterface;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use WhereGroup\CoreBundle\Component\Search\PropertyNameNotFoundException;
 
@@ -123,6 +125,29 @@ class CswController extends Controller
             /*  @var Parameter $parameter */
             $parameter = $csw->readTransactionParameter($request->getContent());
             $content = $csw->transaction($parameter, $cswConfig);
+        } catch (GetCapabilitiesNotFoundException $ex) {
+            $url = $this->container->get('router')->generate("csw_default", ["source" => $source, "slug" => $slug]);
+//            return $this->redirect(
+//                $this->container->get('router')->generate("csw_default", ["source" => $source, "slug" => $slug])
+//            );
+//            return $this->redirectToRoute("csw_default", ["source" => $source, "slug" => $slug]);
+            $path = [
+                "_controller" => "Plugins\WhereGroup\CatalogueServiceBundle\Controller\CswController::defaultAction",
+                "source" => $source,
+                "slug" => $slug,
+                'url' => $url,
+            ];
+            $subRequest = new Request(
+                $request->query->all(),
+                $request->request->all(),
+                $path,
+                $request->cookies->all(),
+                [],
+                $request->server->all(),
+                $request->getContent()
+            );
+
+            return $this->container->get('http_kernel')->handle($subRequest, HttpKernelInterface::SUB_REQUEST);
         } catch (\Exception $ex) {
             return $this->renderException($ex);
         }
@@ -150,6 +175,7 @@ class CswController extends Controller
                     ),
                 )
             );
+
             return new Response($content, $ex->getHttpStatusCode(), array('content-type' => 'application/xml'));
         } elseif ($ex instanceof PropertyNameNotFoundException) {
             return $this->renderException(
