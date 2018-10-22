@@ -198,11 +198,11 @@ class GetRecords extends FindRecord
                     throw new CswException('filter', CswException::ParsingError);
                 }
                 if ($constraintContent !== null) {
-                    $this->constraint = GmlFilterReader::readWithAlias($dom->documentElement, $this->exprHandler);
+                    $this->constraint = GmlFilterReader::readFromCsw($dom->documentElement, $this->exprHandler);
                 }
             } else {
                 if ($constraintContent !== null) {
-                    $this->constraint = GmlFilterReader::readWithAlias($constraintContent, $this->exprHandler);
+                    $this->constraint = GmlFilterReader::readFromCsw($constraintContent, $this->exprHandler);
                 }
             }
 

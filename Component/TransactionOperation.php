@@ -135,7 +135,7 @@ class TransactionOperation
      */
     public function setConstraint(\DOMElement $filter)
     {
-        $this->constraint = GmlFilterReader::readWithAlias($filter, $this->exprHandler);
+        $this->constraint = GmlFilterReader::readFromCsw($filter, $this->exprHandler);
 
         return $this;
     }
