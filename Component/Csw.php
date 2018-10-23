@@ -504,14 +504,14 @@ class Csw
             if ($cswAndDeleteExpr) {
                 $this->metadataSearch->setExpression($cswAndDeleteExpr);
             }
-            $this->metadataSearch->find();
-
-            $records = $this->metadataSearch->getResult();
-            foreach ($records as $record) {
-                $p = json_decode($record['object'], true);
-                $item = $this->metadata->getById($p['_uuid']);
-                $this->metadata->deleteById($item->getId());
-                $deleted++;
+            $records = $this->metadataSearch->find();
+            if ($records['rows'] !== false) {
+                foreach ($records['rows'] as $record) {
+                    $p = json_decode($record['object'], true);
+                    $item = $this->metadata->getById($p['_uuid']);
+                    $this->metadata->deleteById($item->getId());
+                    $deleted++;
+                }
             }
         }
 
