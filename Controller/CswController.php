@@ -37,6 +37,8 @@ class CswController extends Controller
      */
     public function defaultAction(Request $request, $source, $slug)
     {
+        $this->logRequest($request);
+
         /* @var Csw $csw */
         $csw = $this->get('metador_catalogue_service');
 
@@ -108,6 +110,8 @@ class CswController extends Controller
      */
     public function transactionAction(Request $request, $source, $slug)
     {
+        $this->logRequest($request);
+
         /* @var Csw $csw */
         $csw = $this->get('metador_catalogue_service');
         $cswConfig = $csw->findOneBySlugAndSource($slug, $source);
@@ -193,5 +197,30 @@ class CswController extends Controller
                 )
             );
         }
+    }
+
+    /**
+     * @param Request $request
+     */
+    private function logRequest(Request $request) {
+        if (!$this->container->hasParameter('log_csw') || $this->container->getParameter('log_csw') !== true) {
+            return;
+        }
+
+        $time = microtime(true);
+        $path = $this->get('kernel')->getRootDir() . '/../var/logs/'
+            . date('Y-m-d_H-i-s_', $time)
+            . substr(strstr($time, '.'), 1) . '_'
+            . $request->getMethod() . '.log';
+
+        $data =
+            "\nMethod: " . $request->getMethod() .
+            "\nURL: " . $request->getUri();
+
+        if ($request->getMethod() !== 'GET') {
+            $data .= "\nContent:\n" . $request->getContent();
+        }
+
+        file_put_contents($path, $data);
     }
 }
