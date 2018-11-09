@@ -169,6 +169,7 @@ class Csw
     /**
      * @param $content
      * @return PostDomParameter
+     * @throws CswException
      */
     public function readPostParameter($content)
     {
@@ -178,6 +179,7 @@ class Csw
     /**
      * @param $content
      * @return TransactionParameter
+     * @throws CswException
      */
     public function readTransactionParameter($content)
     {
