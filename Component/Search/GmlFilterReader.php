@@ -7,6 +7,7 @@ use WhereGroup\CoreBundle\Component\Search\DatabaseExprHandler;
 use WhereGroup\CoreBundle\Component\Search\Expression;
 use WhereGroup\CoreBundle\Component\Search\ExprHandler;
 use WhereGroup\CoreBundle\Component\Search\FilterReader;
+use WhereGroup\CoreBundle\Component\Search\PropertyNameNotFoundException;
 
 /**
  * Class GmlFilterReader
@@ -15,97 +16,38 @@ use WhereGroup\CoreBundle\Component\Search\FilterReader;
  */
 class GmlFilterReader implements FilterReader
 {
-
-    /**
-     * @var array $aliasMap
-     */
-    protected $aliasMap;
-
-    /**
-     * @var string $defaultAlias
-     */
-    protected $defaultAlias;
-
-    /**
-     * @var array $propertyMap
-     */
-    protected $propertyMap;
-
     /**
      * @var ExprHandler
      */
     protected $exprHandler;
 
-    protected $isCsw;
-
     /**
      * JsonFilterReader constructor.
      * @param ExprHandler $exprHandler
      */
-    private function __construct(ExprHandler $exprHandler, $isCsw = false)
+    private function __construct(ExprHandler $exprHandler)
     {
         $this->exprHandler = $exprHandler;
-        $this->aliasMap = $exprHandler->getAliasMap();
-        $this->defaultAlias = $exprHandler->getDefaultAlias();
-        $this->propertyMap = $exprHandler->getPropertyMap();
-        $this->isCsw = $isCsw;
-    }
-
-    private function findMap($name, $delimiter = '.')
-    {
-        foreach ($this->aliasMap as $name => $alias) {
-            foreach ($this->propertyMap[$name] as $key => $propname) {
-                if ($key === $name) {
-                    return $alias.$delimiter.$propname;
-                }
-            }
-        }
-
-        throw new PropertyNameNotFoundException($name);
     }
 
     /**
      * @param $name
-     * @param string $delimiter
      * @return string
-     * @throws PropertyNameNotFoundException
      */
-    private function getName($name, $delimiter = '.')
+    private function getName($name)
     {
-        if ($this->exprHandler instanceof DatabaseExprHandler) {
-            if ($this->isCsw) {
-                $splittedName = explode('.', $name);
-                $name_ = count($splittedName) === 1 ? $splittedName[0] : $splittedName[1];
-                foreach ($this->aliasMap as $entityname => $alias) {
-                    foreach ($this->propertyMap[$entityname] as $key => $propname) {
-                        if (strtolower($key) === strtolower($name_)) {
-                            return $alias.$delimiter.$propname;
-                        }
-                    }
-                }
-
-                return $name;
-            } else {
-                return $name;
-            }
-        } else {
-            if ($this->isCsw) {
-                $splittedName = explode('.', $name);
-                $name_ = count($splittedName) === 1 ? $splittedName[0] : $splittedName[1];
-                if (count($splittedName) === 1 || $splittedName[0] === "metadata") {
-                    foreach ($this->aliasMap as $entityname => $alias) {
-                        foreach ($this->propertyMap[$entityname] as $key => $propname) {
-                            if (strtolower($key) === strtolower($name_)) {
-                                return $propname;
-                            }
-                        }
-                    }
-                }
-                return $name;
-            } else {
-                return $name;
-            }
+        switch($name) {
+            case 'subject': return 'keywords';
+            case 'anytext': return 'anyText';
+            case 'identifier':
+            case 'fileidentifier': return 'uuid';
+            case 'hierarchylevel': return 'hierarchyLevel';
+            case 'topiccategory': return 'topicCategory';
+            case 'insertuser': return 'insertUser';
+            case 'insertusername': return 'insertUsername';
         }
+
+        return $name;
     }
 
     /**
@@ -118,14 +60,14 @@ class GmlFilterReader implements FilterReader
     public static function readFromCsw($filter, ExprHandler $expression)
     {
         $parameters = array();
-        $reader = new GmlFilterReader($expression, true);
+        $reader = new GmlFilterReader($expression);
         $expression = $reader->getExpression($filter, $expression, $parameters);
 
         if (is_array($expression) && count($expression) !== 1) {
             return null;
-        } else {
-            return new Expression($expression[0], $parameters);
         }
+
+        return new Expression($expression[0], $parameters);
     }
 
     /**
@@ -143,9 +85,9 @@ class GmlFilterReader implements FilterReader
 
         if (is_array($expression) && count($expression) !== 1) {
             return null;
-        } else {
-            return new Expression($expression[0], $parameters);
         }
+
+        return new Expression($expression[0], $parameters);
     }
 
     /**
