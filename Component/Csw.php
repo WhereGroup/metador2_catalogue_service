@@ -528,7 +528,7 @@ class Csw
      */
     private function getExpressionForCsw(CswEntity $cswConfig, ExprHandler $exprHandler)
     {
-        $cswExpr = JsonFilterReader::readFromCsw($cswConfig->getFilter(), $exprHandler);
+        $cswExpr = JsonFilterReader::read($cswConfig->getFilter(), $exprHandler);
 
         return $cswExpr;
     }
