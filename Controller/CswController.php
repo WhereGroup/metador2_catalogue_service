@@ -170,7 +170,7 @@ class CswController extends Controller
     {
         if ($ex instanceof CswException) {
             $content = $this->get('templating')->render(
-                "CatalogueServiceBundle:CSW:exception.xml.twig",
+                "@CatalogueService/CSW/exception.xml.twig",
                 array(
                     'exception' => array(
                         'code' => $ex->getCswCode(),
