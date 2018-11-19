@@ -18,7 +18,7 @@ abstract class Operation
     const ISO_QUERYABLES = array(
         'Identifier',
         'Title',
-        'Language',
+//        'Language',
         'AnyText',
         'Subject'
     );
