@@ -3,7 +3,6 @@
 namespace Plugins\WhereGroup\CatalogueServiceBundle\Component\Search;
 
 use Plugins\WhereGroup\CatalogueServiceBundle\Component\CswException;
-use WhereGroup\CoreBundle\Component\Search\DatabaseExprHandler;
 use WhereGroup\CoreBundle\Component\Search\Expression;
 use WhereGroup\CoreBundle\Component\Search\ExprHandler;
 use WhereGroup\CoreBundle\Component\Search\FilterReader;
@@ -36,15 +35,24 @@ class GmlFilterReader implements FilterReader
      */
     private function getName($name)
     {
-        switch($name) {
-            case 'subject': return 'keywords';
-            case 'anytext': return 'anyText';
+        switch (strtolower($name)) {
+            case 'title':
+                return 'title';
+            case 'subject':
+                return 'keywords';
+            case 'anytext':
+                return 'anyText';
             case 'identifier':
-            case 'fileidentifier': return 'uuid';
-            case 'hierarchylevel': return 'hierarchyLevel';
-            case 'topiccategory': return 'topicCategory';
-            case 'insertuser': return 'insertUser';
-            case 'insertusername': return 'insertUsername';
+            case 'fileidentifier':
+                return 'uuid';
+            case 'hierarchylevel':
+                return 'hierarchyLevel';
+            case 'topiccategory':
+                return 'topicCategory';
+            case 'insertuser':
+                return 'insertUser';
+            case 'insertusername':
+                return 'insertUsername';
         }
 
         return $name;

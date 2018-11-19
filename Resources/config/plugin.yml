@@ -66,4 +66,4 @@ metador_catalogue_service:
             type: text
             label: Filter
             description: Filter
-            default: '{ "eq": {"public": true}}'
+            default: '{ "eq": {"public": 1}}'
