@@ -441,38 +441,41 @@ class Csw
             if ($cswAndDeleteExpr) {
                 $this->metadataSearch->setExpression($cswAndDeleteExpr);
             }
-            $this->metadataSearch->find();
-            $records = $this->metadataSearch->getResult();
-            /* datarow to update */
-            foreach ($records as $record) {
-                $existing = json_decode($record['object'], true);
-                foreach ($action->getItems() as $mdMetadata) {
-                    $hl = $handler->valueFor('./gmd:hierarchyLevel[1]/gmd:MD_ScopeCode/text()', $mdMetadata);
-                    $profiles = $cswConfig->getProfileMapping();
-                    if (isset($profiles[$hl])) {
-                        $profile = $profiles[$hl];
-                        $source = $cswConfig->getSource();
-                        $username = $cswConfig->getUsername();
-                        $public = true;
-                        $xml = self::elementToString($mdMetadata);
-                        /* data for datarow to update */
-                        $new = $this->metadata->xmlToObject($xml, $profile);
 
-                        $id = !empty($existing['_id']) ? $existing['_id'] : null;
-                        $id = is_null($id) && !empty($existing['_uuid']) ? $existing['_uuid'] : $id;
+            $records = $this->metadataSearch->find();
 
-                        $this->metadata->saveObject($new, $id, [
-                            'source'   => $source,
-                            'profile'  => $profile,
-                            'username' => $username,
-                            'public'   => $public
-                        ]);
+            if ($records['rows'] !== false) {
+                /* datarow to update */
+                foreach ($records['rows'] as $record) {
+                    $existing = json_decode($record['object'], true);
+                    foreach ($action->getItems() as $mdMetadata) {
+                        $hl = $handler->valueFor('./gmd:hierarchyLevel[1]/gmd:MD_ScopeCode/text()', $mdMetadata);
+                        $profiles = $cswConfig->getProfileMapping();
+                        if (isset($profiles[$hl])) {
+                            $profile = $profiles[$hl];
+                            $source = $cswConfig->getSource();
+                            $username = $cswConfig->getUsername();
+                            $public = true;
+                            $xml = self::elementToString($mdMetadata);
+                            /* data for datarow to update */
+                            $new = $this->metadata->xmlToObject($xml, $profile);
 
-                        $updated++;
-                    } else {
-                        $this->log($cswConfig, 'warning', 'update', '', 'Type: $hl ist nicht unterstützt');
+                            $id = !empty($existing['_id']) ? $existing['_id'] : null;
+                            $id = is_null($id) && !empty($existing['_uuid']) ? $existing['_uuid'] : $id;
+
+                            $this->metadata->saveObject($new, $id, [
+                                'source' => $source,
+                                'profile' => $profile,
+                                'username' => $username,
+                                'public' => $public
+                            ]);
+
+                            $updated++;
+                        } else {
+                            $this->log($cswConfig, 'warning', 'update', '', 'Type: $hl ist nicht unterstützt');
+                        }
+                        break;
                     }
-                    break;
                 }
             }
         }
