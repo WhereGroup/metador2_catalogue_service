@@ -460,7 +460,7 @@ class Csw
                             /* data for datarow to update */
                             $new = $this->metadata->xmlToObject($xml, $profile);
 
-                            $id = !empty($existing['_id']) ? $existing['_id'] : null;
+                            $id = !empty($existing['_uuid']) ? $existing['_uuid'] : null;
                             $id = is_null($id) && !empty($existing['_uuid']) ? $existing['_uuid'] : $id;
 
                             $this->metadata->saveObject($new, $id, [
