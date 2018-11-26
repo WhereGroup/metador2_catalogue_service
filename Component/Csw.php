@@ -488,7 +488,6 @@ class Csw
      * @param TransactionOperation $action
      * @param TransactionParameter $handler
      * @return int
-     * @throws CswException
      * @throws \WhereGroup\CoreBundle\Component\Search\PropertyNameNotFoundException
      */
     public function doDelete(CswEntity $cswConfig, TransactionOperation $action, TransactionParameter $handler)
@@ -541,7 +540,6 @@ class Csw
      * @param Expression|null $exprA
      * @param Expression|null $exprB
      * @return null|Expression
-     * @throws \WhereGroup\CoreBundle\Component\Search\PropertyNameNotFoundException
      */
     private function mergeExpression(ExprHandler $exprHandler, Expression $exprA = null, Expression $exprB = null)
     {
@@ -595,14 +593,14 @@ class Csw
     {
         $log = $this->logger->newLog();
         $log
-            ->setType($type)//('warning')
+            ->setType($type)
             ->setCategory('application')
             ->setSubcategory('csw')
-            ->setOperation($operation)//('insert')
-            ->setSource($entity->getSource())//('')
-            ->setIdentifier($identifier)//('')
-            ->setMessage($message)//('test')
-            ->setUser($entity->getUsername());//('');
+            ->setOperation($operation)
+            ->setSource($entity->getSource())
+            ->setIdentifier($identifier)
+            ->setMessage($message)
+            ->setUser($entity->getUsername());
         $this->logger->set($log);
     }
 
