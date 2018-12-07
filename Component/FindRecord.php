@@ -25,7 +25,7 @@ abstract class FindRecord extends Operation
     const ELEMENTSET_FULL = 'full';
 
     /* supported element sets */
-    const ELEMENTSET = array('full');//array('brief', 'summary', 'full');
+    const ELEMENTSET = array('brief', 'summary', 'full');
     const RESULTTYPE = array('hits', 'results', 'validate');
 
     /**

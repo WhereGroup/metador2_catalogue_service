@@ -238,6 +238,9 @@ class Csw
     {
         /* @var ExprHandler $exprHandler */
         $exprHandler = $this->metadataSearch->createExpression();
+        /**
+         * @var GetRecordById $operation
+         */
         $operation = $parameter->initOperation(new GetRecordById($cswConfig, $exprHandler));
         $operation->validateParameter();
 
@@ -250,6 +253,7 @@ class Csw
 
         $pluginLocation = $this->getProfileLocations($cswConfig->getProfileMapping());
         $templateName = self::getTemplateForElementSetName($operation->getElementSetName());
+        $elementSet = $operation->getElementSetName(); // full, summary, brief
         $result = $this->metadataSearch
             ->setSource($cswConfig->getSource())
             ->setExpression($cswAndGetRecordByIdExpr)
@@ -277,6 +281,9 @@ class Csw
     {
         /* @var ExprHandler $exprHandler */
         $exprHandler = $this->metadataSearch->createExpression();
+        /**
+         * @var GetRecords $operation
+         */
         $operation = $parameter->initOperation(new GetRecords($cswConfig, $exprHandler));
         $operation->validateParameter();
 
@@ -287,6 +294,7 @@ class Csw
             $operation->getConstraint()
         );
 
+        $elementSet = $operation->getElementSetName(); // full, summary, brief
         $offset = $operation->getStartPosition() - 1;
         $this->metadataSearch
             ->setHits($operation->getMaxRecords())
