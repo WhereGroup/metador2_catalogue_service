@@ -17,6 +17,7 @@ use WhereGroup\CoreBundle\Component\Search\Expression;
 use WhereGroup\CoreBundle\Component\Search\ExprHandler;
 use WhereGroup\CoreBundle\Component\Search\JsonFilterReader;
 use WhereGroup\CoreBundle\Component\Search\Search;
+use WhereGroup\CoreBundle\Component\Utils\ArrayParser;
 use WhereGroup\PluginBundle\Component\Plugin;
 
 /**
@@ -106,8 +107,6 @@ class Csw
 
     /**
      * @return int
-     * @throws \Doctrine\ORM\NoResultException
-     * @throws \Doctrine\ORM\NonUniqueResultException
      */
     public function count()
     {
@@ -222,9 +221,7 @@ class Csw
 
         return $this->templating->render(
             'CatalogueServiceBundle:CSW:describerecord.xml.twig',
-            array(
-                'descrec' => $operation,
-            )
+            ['descrec' => $operation]
         );
     }
 
@@ -253,19 +250,23 @@ class Csw
 
         $pluginLocation = $this->getProfileLocations($cswConfig->getProfileMapping());
         $templateName = self::getTemplateForElementSetName($operation->getElementSetName());
-        $elementSet = $operation->getElementSetName(); // full, summary, brief
+
+        // Prepare result for full, summary and brief metadata.
         $result = $this->metadataSearch
             ->setSource($cswConfig->getSource())
             ->setExpression($cswAndGetRecordByIdExpr)
             ->find();
+
+        $result = $this->prepareResult($result, $operation->getElementSetName());
+
         return $this->templating->render(
             'CatalogueServiceBundle:CSW:recordbyid_response.xml.twig',
-            array(
+            [
                 'getredcordbyid' => $operation,
                 'pluginLocation' => $pluginLocation,
                 'templateName' => $templateName,
                 'records' => $result['rows'],
-            )
+            ]
         );
     }
 
@@ -294,7 +295,6 @@ class Csw
             $operation->getConstraint()
         );
 
-        $elementSet = $operation->getElementSetName(); // full, summary, brief
         $offset = $operation->getStartPosition() - 1;
         $this->metadataSearch
             ->setHits($operation->getMaxRecords())
@@ -303,7 +303,9 @@ class Csw
         if ($cswAndGetRecordsExpr) {
             $this->metadataSearch->setExpression($cswAndGetRecordsExpr);
         }
-        $result = $this->metadataSearch->find();
+
+        // Prepare result for full, summary and brief metadata.
+        $result = $this->prepareResult($this->metadataSearch->find(), $operation->getElementSetName());
 
         $matched = $result['paging']->count;
         $records = $result['rows'];
@@ -324,6 +326,43 @@ class Csw
                 'nextrecord' => $next > $matched ? 0 : $next,
             )
         );
+    }
+
+    /**
+     * @param array $result
+     * @param string $elementSetName
+     * @return array
+     */
+    private function prepareResult(array $result, $elementSetName = 'full')
+    {
+        if ($elementSetName === 'full') {
+            return $result;
+        }
+
+        $newResult = [];
+
+        foreach ($result as $p) {
+            // brief
+            $row = [
+                'fileIdentifier' => ArrayParser::get($p, 'fileIdentifier', ''),
+                'hierarchyLevel' => ArrayParser::get($p, 'hierarchyLevel', ''),
+                'title'          => ArrayParser::get($p, 'title', ''),
+                'bbox'           => ArrayParser::get($p, 'bbox', []),
+            ];
+
+            if ($elementSetName === 'brief') {
+                $newResult[] = $row;
+                continue;
+            }
+
+            // summary
+            $row['dateStamp'] = ArrayParser::get($p, 'dateStamp', '');
+            $row['abstract'] = ArrayParser::get($p, 'abstract', '');
+
+            $newResult[] = $row;
+        }
+
+        return $newResult;
     }
 
     /**
