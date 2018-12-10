@@ -257,7 +257,7 @@ class Csw
             ->setExpression($cswAndGetRecordByIdExpr)
             ->find();
 
-        $result = $this->prepareResult($result, $operation->getElementSetName());
+        $result['rows'] = $this->prepareResult($result['rows'], $operation->getElementSetName());
 
         return $this->templating->render(
             'CatalogueServiceBundle:CSW:recordbyid_response.xml.twig',
@@ -305,10 +305,11 @@ class Csw
         }
 
         // Prepare result for full, summary and brief metadata.
-        $result = $this->prepareResult($this->metadataSearch->find(), $operation->getElementSetName());
+        $result  = $this->metadataSearch->find();
+
+        $records = $this->prepareResult($result['rows'], $operation->getElementSetName());
 
         $matched = $result['paging']->count;
-        $records = $result['rows'];
         $time = new \DateTime();
         $next = $offset + count($records) + 1;
         $pluginLocation = $this->getProfileLocations($cswConfig->getProfileMapping());
@@ -329,37 +330,47 @@ class Csw
     }
 
     /**
-     * @param array $result
+     * @param array $rows
      * @param string $elementSetName
      * @return array
      */
-    private function prepareResult(array $result, $elementSetName = 'full')
+    private function prepareResult(array $rows, $elementSetName = 'full')
     {
         if ($elementSetName === 'full') {
-            return $result;
+            return $rows;
         }
 
         $newResult = [];
 
-        foreach ($result as $p) {
+        foreach ($rows as $row) {
+            if (!isset($row['object'])) {
+                continue;
+            }
+
+            $p = json_decode($row['object'], true);
+
             // brief
-            $row = [
+            $newObject['object'] = [
                 'fileIdentifier' => ArrayParser::get($p, 'fileIdentifier', ''),
                 'hierarchyLevel' => ArrayParser::get($p, 'hierarchyLevel', ''),
                 'title'          => ArrayParser::get($p, 'title', ''),
                 'bbox'           => ArrayParser::get($p, 'bbox', []),
             ];
 
+            $this->metadata->mergeSystemInformations($p, $newObject['object']);
+
             if ($elementSetName === 'brief') {
-                $newResult[] = $row;
+                $newObject['object'] = json_encode($newObject['object']);
+                $newResult[] = $newObject;
                 continue;
             }
 
             // summary
-            $row['dateStamp'] = ArrayParser::get($p, 'dateStamp', '');
-            $row['abstract'] = ArrayParser::get($p, 'abstract', '');
+            $newObject['object']['dateStamp'] = ArrayParser::get($p, 'dateStamp', '');
+            $newObject['object']['abstract'] = ArrayParser::get($p, 'abstract', '');
 
-            $newResult[] = $row;
+            $newObject['object'] = json_encode($newObject['object']);
+            $newResult[] = $newObject;
         }
 
         return $newResult;
