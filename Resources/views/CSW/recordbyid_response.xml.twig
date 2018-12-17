@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <csw:GetRecordByIdResponse xmlns:csw="http://www.opengis.net/cat/csw/2.0.2">
 {% for record in records %}
-    {%  set r = record.object | json_decode(true) %}
-    {%  set vars = {'p': record.object | json_decode(true) } %}
-    {% include pluginLocation[r._profile].full ~ templateName with vars %}
+    {% set p = record.object|json_decode(true) %}
+    {% if templates[p._profile] is defined %}
+        {% include templates[p._profile] with { 'p': p } %}
+    {% endif %}
 {% endfor %}
 </csw:GetRecordByIdResponse>

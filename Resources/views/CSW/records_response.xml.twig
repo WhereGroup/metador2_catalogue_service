@@ -13,9 +13,10 @@
     <csw:SearchResults numberOfRecordsMatched="{{ matched }}" numberOfRecordsReturned="{{ records|length }}"
                        elementSet="{{ getrecords.elementSetName }}" nextRecord="{{ nextrecord }}">
         {% for record in records %}
-            {% set r = record.object | json_decode(true) %}
-            {% set vars = {'p': record.object | json_decode(true) } %}
-            {% include pluginLocation[r._profile].full ~ templateName with vars %}
+            {% set p = record.object|json_decode(true) %}
+            {% if templates[p._profile] is defined %}
+                {% include templates[p._profile] with { 'p': p } %}
+            {% endif %}
         {% endfor %}
     </csw:SearchResults>
     {% endif %}

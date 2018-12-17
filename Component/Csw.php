@@ -107,10 +107,11 @@ class Csw
 
     /**
      * @return int
+     * @throws \Doctrine\ORM\NonUniqueResultException
      */
     public function count()
     {
-        return (int)$this->repo->count();
+        return (int)$this->repo->countAll();
     }
 
     /**
@@ -135,6 +136,7 @@ class Csw
     /**
      * @param $entity
      * @return $this
+     * @throws \Doctrine\ORM\ORMException
      * @throws \Doctrine\ORM\OptimisticLockException
      */
     public function save($entity)
@@ -147,6 +149,7 @@ class Csw
     /**
      * @param $entity
      * @return $this
+     * @throws \Doctrine\ORM\ORMException
      * @throws \Doctrine\ORM\OptimisticLockException
      */
     public function remove($entity)
@@ -201,9 +204,9 @@ class Csw
 
         return $this->templating->render(
             'CatalogueServiceBundle:CSW:getcapabilities_response.xml.twig',
-            array(
+            [
                 'getcap' => $operation,
-            )
+            ]
         );
     }
 
@@ -235,6 +238,7 @@ class Csw
     {
         /* @var ExprHandler $exprHandler */
         $exprHandler = $this->metadataSearch->createExpression();
+
         /**
          * @var GetRecordById $operation
          */
@@ -248,9 +252,6 @@ class Csw
             $operation->getConstraint()
         );
 
-        $pluginLocation = $this->getProfileLocations($cswConfig->getProfileMapping());
-        $templateName = self::getTemplateForElementSetName($operation->getElementSetName());
-
         // Prepare result for full, summary and brief metadata.
         $result = $this->metadataSearch
             ->setSource($cswConfig->getSource())
@@ -263,9 +264,8 @@ class Csw
             'CatalogueServiceBundle:CSW:recordbyid_response.xml.twig',
             [
                 'getredcordbyid' => $operation,
-                'pluginLocation' => $pluginLocation,
-                'templateName' => $templateName,
-                'records' => $result['rows'],
+                'templates'      => $this->getProfileLocations(),
+                'records'        => $result['rows'],
             ]
         );
     }
@@ -277,6 +277,7 @@ class Csw
      * @throws CswException
      * @throws \Twig\Error\Error
      * @throws \WhereGroup\CoreBundle\Component\Search\PropertyNameNotFoundException
+     * @throws \Exception
      */
     public function getRecords(Parameter $parameter, CswEntity $cswConfig)
     {
@@ -312,15 +313,14 @@ class Csw
 
         return $this->templating->render(
             'CatalogueServiceBundle:CSW:records_response.xml.twig',
-            array(
+            [
                 'getrecords' => $operation,
-                'pluginLocation' => $this->getProfileLocations($cswConfig->getProfileMapping()),
-                'templateName' => self::getTemplateForElementSetName($operation->getElementSetName()),
-                'timestamp' => (new \DateTime())->format('Y-m-d\TH:i:s'),
-                'matched' => $matched,
-                'records' => $records,
+                'templates'  => $this->getProfileLocations(),
+                'timestamp'  => (new \DateTime())->format('Y-m-d\TH:i:s'),
+                'matched'    => $matched,
+                'records'    => $records,
                 'nextrecord' => $next > $matched ? 0 : $next,
-            )
+            ]
         );
     }
 
@@ -420,9 +420,9 @@ class Csw
 
         return $this->templating->render(
             'CatalogueServiceBundle:CSW:transaction_response.xml.twig',
-            array(
+            [
                 'ta' => $operation,
-            )
+            ]
         );
     }
 
@@ -432,6 +432,7 @@ class Csw
      * @param TransactionParameter $handler
      * @return int
      * @throws CswException
+     * @throws \Exception
      */
     public function doInsert(CswEntity $cswConfig, TransactionOperation $action, TransactionParameter $handler)
     {
@@ -541,6 +542,7 @@ class Csw
      * @param TransactionOperation $action
      * @param TransactionParameter $handler
      * @return int
+     * @throws \WhereGroup\CoreBundle\Component\Exceptions\MetadataException
      * @throws \WhereGroup\CoreBundle\Component\Search\PropertyNameNotFoundException
      */
     public function doDelete(CswEntity $cswConfig, TransactionOperation $action, TransactionParameter $handler)
@@ -605,10 +607,10 @@ class Csw
         } else {
             return new Expression(
                 $exprHandler->andx(
-                    array(
+                    [
                         $exprA->getExpression(),
                         $exprB->getExpression(),
-                    )
+                    ]
                 ),
                 array_merge($exprA->getParameters(), $exprB->getParameters())
             );
@@ -616,23 +618,23 @@ class Csw
     }
 
     /**
-     * @param array $profileMapping
      * @return array
+     * @throws \Exception
      */
-    private function getProfileLocations(array $profileMapping)
+    private function getProfileLocations()
     {
-        $pluginLocation = [];
-        foreach ($profileMapping as $hierarchyLevel => $profile) {
-            if (!isset($pluginLocation[$profile])) {
-                $plugin = $this->plugin->getPlugin($profile);
-                $pluginLocation[$profile] = array(
-                    'sf' => '@'.$plugin['class_name'].':Export:',
-                    'full' => $this->kernel->locateResource('@'.$plugin['class_name'].'/Resources/views/Export/'),
-                );
-            }
+        $templates = [];
+        $profiles = $this->plugin->getActiveProfiles();
+
+        if (empty($profiles)) {
+            return $templates;
         }
 
-        return $pluginLocation;
+        foreach ($profiles as $key => $profile) {
+            $templates[$profile] = $this->plugin->getResource($key, 'views/Export/metadata.xml.twig');
+        }
+
+        return $templates;
     }
 
     /**
@@ -663,25 +665,5 @@ class Csw
         $doc = new \DOMDocument();
         $doc->appendChild($doc->importNode($element, true));
         return $doc->saveXML();
-    }
-
-
-    /**
-     * @param $elementSetName
-     * @return string
-     * @throws CswException
-     */
-    private static function getTemplateForElementSetName($elementSetName)
-    {
-        switch ($elementSetName) {
-            case 'full':
-                return 'metadata.xml.twig';
-            case 'summary':
-                return 'metadata.xml.twig';
-            case 'brief':
-                return 'metadata.xml.twig';
-            default:
-                throw new CswException('elementSetName', CswException::NOAPPLICABLECODE);
-        }
     }
 }

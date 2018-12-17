@@ -13,7 +13,6 @@ class CswRepository extends EntityRepository
 {
     /**
      * @return mixed
-     * @throws NoResultException
      * @throws \Doctrine\ORM\NonUniqueResultException
      */
     public function countAll()
@@ -89,6 +88,7 @@ class CswRepository extends EntityRepository
     /**
      * @param $entity
      * @return $this
+     * @throws \Doctrine\ORM\ORMException
      * @throws \Doctrine\ORM\OptimisticLockException
      */
     public function save($entity)
@@ -102,6 +102,7 @@ class CswRepository extends EntityRepository
     /**
      * @param $entity
      * @return $this
+     * @throws \Doctrine\ORM\ORMException
      * @throws \Doctrine\ORM\OptimisticLockException
      */
     public function remove($entity)
