@@ -14,8 +14,8 @@
                        elementSet="{{ getrecords.elementSetName }}" nextRecord="{{ nextrecord }}">
         {% for record in records %}
             {% set p = record.object|json_decode(true) %}
-            {% if templates[p._profile] is defined %}
-                {% include templates[p._profile] with { 'p': p } %}
+            {% if p['_profile'] is defined and templates[p['_profile']] is defined %}
+                {% include templates[p['_profile']] with { 'p': p } %}
             {% endif %}
         {% endfor %}
     </csw:SearchResults>
