@@ -12,7 +12,7 @@ use WhereGroup\CoreBundle\Component\Search\ExprHandler;
 abstract class FindRecord extends Operation
 {
     const QUERYABLE_MAP = array(
-        'Identifier' => 'uuid',
+        'Identifier' => 'id',
         'Title' => 'title',
         'Abstract' => 'abstract',
     );

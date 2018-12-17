@@ -93,7 +93,7 @@ class CswController extends Controller
             return $this->renderException($ex);
         }
 
-        return new Response($content, Response::HTTP_OK, array('content-type' => 'application/xml'));
+        return new Response($content, Response::HTTP_OK, array('content-type' => 'application/xml; charset=utf-8'));
     }
 
     /**
@@ -152,7 +152,7 @@ class CswController extends Controller
             return $this->renderException($ex);
         }
 
-        return new Response($content, Response::HTTP_OK, array('content-type' => 'application/xml'));
+        return new Response($content, Response::HTTP_OK, array('content-type' => 'application/xml; charset=utf-8'));
     }
 
     /**
