@@ -631,7 +631,7 @@ class Csw
         }
 
         foreach ($profiles as $key => $profile) {
-            $templates[$profile] = $this->plugin->getResource($key, 'views/Export/metadata.xml.twig');
+            $templates[$key] = '@' . strstr($profile['class_name'], 'Bundle', true) . '/Export/metadata.xml.twig';
         }
 
         return $templates;
@@ -659,7 +659,10 @@ class Csw
         $this->logger->set($log);
     }
 
-
+    /**
+     * @param \DOMElement $element
+     * @return string
+     */
     private static function elementToString(\DOMElement $element)
     {
         $doc = new \DOMDocument();
