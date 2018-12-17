@@ -306,22 +306,17 @@ class Csw
 
         // Prepare result for full, summary and brief metadata.
         $result  = $this->metadataSearch->find();
-
         $records = $this->prepareResult($result['rows'], $operation->getElementSetName());
-
         $matched = $result['paging']->count;
-        $time = new \DateTime();
         $next = $offset + count($records) + 1;
-        $pluginLocation = $this->getProfileLocations($cswConfig->getProfileMapping());
-        $templateName = self::getTemplateForElementSetName($operation->getElementSetName());
 
         return $this->templating->render(
             'CatalogueServiceBundle:CSW:records_response.xml.twig',
             array(
                 'getrecords' => $operation,
-                'pluginLocation' => $pluginLocation,
-                'templateName' => $templateName,
-                'timestamp' => $time->format('Y-m-d\TH:i:s'),
+                'pluginLocation' => $this->getProfileLocations($cswConfig->getProfileMapping()),
+                'templateName' => self::getTemplateForElementSetName($operation->getElementSetName()),
+                'timestamp' => (new \DateTime())->format('Y-m-d\TH:i:s'),
                 'matched' => $matched,
                 'records' => $records,
                 'nextrecord' => $next > $matched ? 0 : $next,
@@ -626,7 +621,7 @@ class Csw
      */
     private function getProfileLocations(array $profileMapping)
     {
-        $pluginLocation = array();
+        $pluginLocation = [];
         foreach ($profileMapping as $hierarchyLevel => $profile) {
             if (!isset($pluginLocation[$profile])) {
                 $plugin = $this->plugin->getPlugin($profile);

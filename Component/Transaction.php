@@ -100,7 +100,7 @@ class Transaction extends Operation
      */
     public function getGETParameterMap()
     {
-        return array();
+        return [];
     }
 
     /**

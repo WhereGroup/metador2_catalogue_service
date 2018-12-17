@@ -42,7 +42,7 @@ class GetParameter implements Parameter
     {
         $parameterMap = $operation->getGETParameterMap();
 
-        $parameters = array();
+        $parameters = [];
         foreach ($parameterMap as $name) {
             $parameters[$name] = $this->getParameter($name);
         }

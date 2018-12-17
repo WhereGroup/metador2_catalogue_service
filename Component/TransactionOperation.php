@@ -51,7 +51,7 @@ class TransactionOperation
     public function __construct($type, ExprHandler $exprHandler)
     {
         $this->type = $type;
-        $this->items = array();
+        $this->items = [];
         $this->exprHandler = $exprHandler;
     }
 

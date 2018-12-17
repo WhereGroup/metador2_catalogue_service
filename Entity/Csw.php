@@ -186,10 +186,10 @@ class Csw
      */
     public function __construct()
     {
-        $this->keywords = array();
-        $this->accessConstraints = array();
-        $this->profileMapping = array();
-        $this->filter = array();
+        $this->keywords = [];
+        $this->accessConstraints = [];
+        $this->profileMapping = [];
+        $this->filter = [];
     }
 
     /**
@@ -203,7 +203,7 @@ class Csw
         $this->source = isset($kv['source']) ? $kv['source'] : null;
         $this->title = isset($kv['title']) ? $kv['title'] : null;
         $this->abstract = isset($kv['abstract']) ? $kv['abstract'] : null;
-        $this->keywords = isset($kv['keywords']) ? $kv['keywords'] : array();
+        $this->keywords = isset($kv['keywords']) ? $kv['keywords'] : [];
         $this->fees = isset($kv['fees']) ? $kv['fees'] : 'none';
         $this->accessConstraints = isset($kv['accessConstraints']) ? $kv['accessConstraints'] : array('none');
         $this->providerName = isset($kv['providerName']) ? $kv['providerName'] : null;
@@ -222,8 +222,8 @@ class Csw
         $this->insert = isset($kv['insert']) ? $kv['insert'] : false;
         $this->update = isset($kv['update']) ? $kv['update'] : false;
         $this->delete = isset($kv['delete']) ? $kv['delete'] : false;
-        $this->profileMapping = isset($kv['profileMapping']) ? $kv['profileMapping'] : array();
-        $this->filter = isset($kv['filter']) ? $kv['filter'] : array();
+        $this->profileMapping = isset($kv['profileMapping']) ? $kv['profileMapping'] : [];
+        $this->filter = isset($kv['filter']) ? $kv['filter'] : [];
 
         return $this;
     }

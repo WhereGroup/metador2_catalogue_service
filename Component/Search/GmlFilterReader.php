@@ -67,7 +67,7 @@ class GmlFilterReader implements FilterReader
      */
     public static function readFromCsw($filter, ExprHandler $expression)
     {
-        $parameters = array();
+        $parameters = [];
         $reader = new GmlFilterReader($expression);
         $expression = $reader->getExpression($filter, $expression, $parameters);
 
@@ -87,7 +87,7 @@ class GmlFilterReader implements FilterReader
      */
     public static function read($filter, ExprHandler $expression)
     {
-        $parameters = array();
+        $parameters = [];
         $reader = new GmlFilterReader($expression);
         $expression = $reader->getExpression($filter, $expression, $parameters);
 
@@ -108,7 +108,7 @@ class GmlFilterReader implements FilterReader
      */
     private function getExpression(\DOMElement $filter, ExprHandler $exprH, &$parameters)
     {
-        $items = array();
+        $items = [];
         /* @var \DOMElement $child */
         $child = null;
         foreach ($filter->childNodes as $child) {
@@ -244,7 +244,7 @@ class GmlFilterReader implements FilterReader
      */
     private static function getComparisonContent(\DOMElement $operator)
     {
-        $operands = array();
+        $operands = [];
         /* @var \DOMNode $child */
         $child = null;
         foreach ($operator->childNodes as $child) {
@@ -272,7 +272,7 @@ class GmlFilterReader implements FilterReader
      */
     private static function getBetweenContent(\DOMElement $operator)
     {
-        $operands = array();
+        $operands = [];
         /* @var \DOMNode $child */
         $child = null;
         foreach ($operator->childNodes as $child) {
@@ -305,7 +305,7 @@ class GmlFilterReader implements FilterReader
      */
     private static function getGtLtContent(\DOMElement $operator)
     {
-        $operands = array();
+        $operands = [];
         /* @var \DOMNode $child */
         $child = null;
         foreach ($operator->childNodes as $child) {
@@ -333,7 +333,7 @@ class GmlFilterReader implements FilterReader
      */
     private static function getSpatialContent(\DOMElement $operator)
     {
-        $operands = array();
+        $operands = [];
         /* @var \DOMNode $child */
         $child = null;
         foreach ($operator->childNodes as $child) {
@@ -371,7 +371,7 @@ class GmlFilterReader implements FilterReader
                     break;
                 case 'Polygon':
                     $help = self::getSpatialContent($child);
-                    $coords = array();
+                    $coords = [];
                     foreach ($help as $ring) {
                         $coords[] = self::toJsonCoordinates($ring);
                     }
@@ -478,7 +478,7 @@ class GmlFilterReader implements FilterReader
      */
     private static function toJsonCoordinates(array $ordinates)
     {
-        $coords = array();
+        $coords = [];
         for ($i = 1; $i < count($ordinates); $i += 2) {
             $coords[] = array($ordinates[$i - 1], $ordinates[$i]);
         }

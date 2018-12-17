@@ -62,7 +62,7 @@ class CswException extends \Exception
     public function getText()
     {
         if ($this->getPrevious()) {
-            $messages = array();
+            $messages = [];
             $this->getMessageText($this, $messages);
 
             return $messages;

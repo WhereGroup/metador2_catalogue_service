@@ -32,7 +32,7 @@ class DescribeRecord extends Operation
      */
     public function getPOSTParameterMap()
     {
-        $parameters = array();
+        $parameters = [];
         foreach (self::$parameterMap as $key => $value) {
             if ($value !== null) {
                 $parameters[$value] = $key;
@@ -80,7 +80,7 @@ class DescribeRecord extends Operation
      */
     public function setTypeName($typeName)
     {
-        $_typeName = array();
+        $_typeName = [];
         if ($typeName && is_string($typeName)) { # GET request or POST single typeName
             $_typeName = self::parseCsl($typeName);
         } elseif ($typeName && is_array($typeName)) { # POST request

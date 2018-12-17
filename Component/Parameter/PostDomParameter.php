@@ -81,7 +81,7 @@ class PostDomParameter implements Parameter
     public function initOperation(Operation $operation)
     {
         $parameterMap = $operation->getPOSTParameterMap();
-        $parameters = array();
+        $parameters = [];
         foreach ($parameterMap as $key => $value) {
             try {
                 $parameters[$value] = $this->getParameter($key);
@@ -122,7 +122,7 @@ class PostDomParameter implements Parameter
         } elseif ($list->length === 1 && $allowSingle) {
             return $this->getNodeValue($list->item(0));
         } else {
-            $result = array();
+            $result = [];
             foreach ($list as $item) {
                 $result[] = $this->getNodeValue($item);
             }

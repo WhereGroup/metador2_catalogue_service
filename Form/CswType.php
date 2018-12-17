@@ -62,7 +62,7 @@ class CswType extends AbstractType
      */
     public function buildForm(FormBuilderInterface $builder, array $options)
     {
-        $users = array();
+        $users = [];
         foreach ($this->user->findAll() as $user) {
             $users[$user->getUsername()] = $user->getUsername();
         }
@@ -193,7 +193,7 @@ class CswType extends AbstractType
             },
             function ($textAsString) {
                 // transform the string back to an array
-                return isset($textAsString) ? preg_split('/\s?,\s?/', trim($textAsString)) : array();
+                return isset($textAsString) ? preg_split('/\s?,\s?/', trim($textAsString)) : [];
             }
         );
         $stringAssocArrayTransformer = new CallbackTransformer(
@@ -203,7 +203,7 @@ class CswType extends AbstractType
             },
             function ($textAsString) {
                 // use value before data store
-                return isset($textAsString) ? $textAsString : array();
+                return isset($textAsString) ? $textAsString : [];
             }
         );
 
@@ -219,7 +219,7 @@ class CswType extends AbstractType
                 }
             },
             function ($text) {
-                return is_string($text) ? json_decode($text, true, 512, JSON_FORCE_OBJECT) : array();
+                return is_string($text) ? json_decode($text, true, 512, JSON_FORCE_OBJECT) : [];
             }
         );
         $builder->get('profileMapping')->addModelTransformer($stringAssocArrayTransformer);
@@ -227,7 +227,7 @@ class CswType extends AbstractType
         $builder->get('accessConstraints')->addModelTransformer($csvArrayTransformer);
         $builder->get('filter')->addModelTransformer($textJsonTransformer);
         $fields = $this->config->get('hierarchy_levels', 'plugin', 'metador_core');
-        $fields = $fields ? $fields : array();
+        $fields = $fields ? $fields : [];
         $builder->addEventListener(
             FormEvents::PRE_SET_DATA,
             function (FormEvent $event) use ($fields, $profiles) {
@@ -261,7 +261,7 @@ class CswType extends AbstractType
                 if (null === $data) {
                     return;
                 }
-                $pm = array();
+                $pm = [];
                 foreach ($fields as $field) {
                     if (isset($data[$field]) && $data[$field]) {
                         $pm[$field] = $data[$field];

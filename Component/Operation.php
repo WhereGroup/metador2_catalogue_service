@@ -27,7 +27,7 @@ abstract class Operation
      * The list "WhereGroup\CoreBundle\Component\Search::$MAP_QUERY2SOURCE['metadata']" contains a lower case of the
      * each "additional queryables" item.
      */
-    const ADDITIONAL_QUERYABLES = array();
+    const ADDITIONAL_QUERYABLES = [];
 
     /**
      * The element prefix for csw namespace
@@ -51,12 +51,12 @@ abstract class Operation
      * The list of key values pair to find parameters at request.
      * @var array $parameterMap
      */
-    protected static $parameterMap = array();
+    protected static $parameterMap = [];
     /**
      * List with exceptions
      * @var array $exceptions
      */
-    protected $exceptions = array();
+    protected $exceptions = [];
     /**
      * @var CswEntity entity
      */

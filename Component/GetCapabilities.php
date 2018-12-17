@@ -70,7 +70,7 @@ final class GetCapabilities extends Operation
         parent::__construct($entity);
         $this->urlBasic = $urlBasic;
         $this->urlTransaction = $urlTAction;
-        $this->section = array();
+        $this->section = [];
         $this->isoqueryables = self::ISO_QUERYABLES;
         $this->addedqueryables = self::ADDITIONAL_QUERYABLES;
     }
@@ -142,7 +142,7 @@ final class GetCapabilities extends Operation
      */
     public function getPOSTParameterMap()
     {
-        $parameters = array();
+        $parameters = [];
         foreach (self::$parameterMap as $key => $value) {
             if ($value !== null) {
                 $parameters[$value] = $key;
@@ -184,7 +184,7 @@ final class GetCapabilities extends Operation
      */
     public function setSection($section)
     {
-        $sectionArr = array();
+        $sectionArr = [];
         if ($section && is_string($section)) { # GET request
             $sectionArr = self::parseCsl($section);
         } elseif ($section && is_array($section)) { # POST request or parsed GET

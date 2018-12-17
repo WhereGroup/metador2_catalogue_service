@@ -24,7 +24,7 @@ class TransactionParameter extends PostDomParameter
     public function initOperation(Operation $operation)
     {
         $parameterMap = $operation->getPOSTParameterMap();
-        $parameters = array();
+        $parameters = [];
         foreach ($parameterMap as $key => $value) {
             if (is_string($value)) {
                 $parameters[$value] = $this->getParameter($key);
