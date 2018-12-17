@@ -31,8 +31,9 @@ class GetRecordById extends FindRecord
      */
     public function setConstraint($constraintContent)
     {
-        $identifier = "uuid";
+        $identifier = "id";
         $parameters = [];
+
         $this->constraint = new Expression(
             $this->exprHandler->in($identifier, $constraintContent, $parameters),
             $parameters

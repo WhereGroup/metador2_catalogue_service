@@ -44,7 +44,7 @@ class GmlFilterReader implements FilterReader
                 return 'anyText';
             case 'identifier':
             case 'fileidentifier':
-                return 'uuid';
+                return 'id';
             case 'hierarchylevel':
                 return 'hierarchyLevel';
             case 'topiccategory':
