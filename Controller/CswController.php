@@ -126,15 +126,11 @@ class CswController extends Controller
 
         $content = null;
         try {
-            /*  @var Parameter $parameter */
+            /** @var Parameter $parameter */
             $parameter = $csw->readTransactionParameter($request->getContent());
             $content = $csw->transaction($parameter, $cswConfig);
         } catch (GetCapabilitiesNotFoundException $ex) {
             $url = $this->container->get('router')->generate("csw_default", ["source" => $source, "slug" => $slug]);
-//            return $this->redirect(
-//                $this->container->get('router')->generate("csw_default", ["source" => $source, "slug" => $slug])
-//            );
-//            return $this->redirectToRoute("csw_default", ["source" => $source, "slug" => $slug]);
             $path = [
                 "_controller" => "Plugins\WhereGroup\CatalogueServiceBundle\Controller\CswController::defaultAction",
                 "source" => $source,

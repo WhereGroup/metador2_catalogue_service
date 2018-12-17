@@ -2,11 +2,9 @@
 
 namespace Plugins\WhereGroup\CatalogueServiceBundle\Controller;
 
-use Plugins\WhereGroup\CatalogueServiceBundle\Component\ContentSet;
 use Plugins\WhereGroup\CatalogueServiceBundle\Entity\Csw;
 use Plugins\WhereGroup\CatalogueServiceBundle\Form\CswType;
-use Sensio\Bundle\FrameworkExtraBundle\Configuration\Method;
-use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
+use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 
@@ -18,22 +16,20 @@ use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 class AdminController extends Controller
 {
     /**
-     * @Route("/", name="metador_admin_csw")
-     * @Method("GET")
+     * @Route("/", name="metador_admin_csw", methods={"GET"})
      */
     public function indexAction()
     {
         $this->denyAccessUnlessGranted('ROLE_SYSTEM_SUPERUSER');
 
-        return $this->render('@CatalogueService/Admin/index.html.twig', array(
+        return $this->render('@CatalogueService/Admin/index.html.twig', [
             'services' => $this->get('metador_catalogue_service')->all(),
-        ));
+        ]);
     }
 
 
     /**
-     * @Route("/new/", name="metador_admin_csw_new")
-     * @Method({"GET", "POST"})
+     * @Route("/new/", name="metador_admin_csw_new", methods={"GET", "POST"})
      * @throws \Doctrine\ORM\NonUniqueResultException
      * @throws \Doctrine\ORM\OptimisticLockException
      */
@@ -58,7 +54,7 @@ class AdminController extends Controller
                     'new',
                     '',
                     'Catalogue Service existiert bereits.',
-                    array()
+                    []
                 );
 
                 return $this->redirectToRoute('metador_admin_csw');
@@ -71,21 +67,20 @@ class AdminController extends Controller
                 'new',
                 $csw->getSlug(),
                 'Catalogue Service %service% erfolgreich erstellt.',
-                array('%service%' => $csw->getTitle())
+                ['%service%' => $csw->getTitle()]
             );
 
             return $this->redirectToRoute('metador_admin_csw');
         }
 
-        return $this->render('@CatalogueService/Admin/new.html.twig', array(
+        return $this->render('@CatalogueService/Admin/new.html.twig', [
             'action' => 'new',
             'form' => $form->createView(),
-        ));
+        ]);
     }
 
     /**
-     * @Route("/edit/{source}/{slug}", name="metador_admin_csw_edit")
-     * @Method({"GET", "POST"})
+     * @Route("/edit/{source}/{slug}", name="metador_admin_csw_edit", methods={"GET", "POST"})
      * @param string $source
      * @param string $slug
      * @return \Symfony\Component\HttpFoundation\RedirectResponse|\Symfony\Component\HttpFoundation\Response
@@ -111,25 +106,26 @@ class AdminController extends Controller
                 'edit',
                 $entity->getSlug(),
                 'Catalogue Service %service% erfolgreich editiert.',
-                array('%service%' => $entity->getTitle())
+                ['%service%' => $entity->getTitle()]
             );
 
             return $this->redirectToRoute('metador_admin_csw');
         }
 
-        return $this->render('@CatalogueService/Admin/new.html.twig', array(
+        return $this->render('@CatalogueService/Admin/new.html.twig', [
             'action' => 'edit',
             'form' => $form->createView(),
-        ));
+        ]);
     }
 
     /**
-     * @Route("/confirm/{source}/{slug}", name="metador_admin_csw_confirm")
-     * @Method({"GET", "POST"})
+     * @Route("/confirm/{source}/{slug}", name="metador_admin_csw_confirm", methods={"GET", "POST"})
      * @param $source
      * @param $slug
      * @return \Symfony\Component\HttpFoundation\RedirectResponse|\Symfony\Component\HttpFoundation\Response
      * @throws \Doctrine\ORM\NonUniqueResultException
+     * @throws \Doctrine\ORM\ORMException
+     * @throws \Doctrine\ORM\OptimisticLockException
      */
     public function confirmAction($source, $slug)
     {
@@ -137,7 +133,7 @@ class AdminController extends Controller
         $cswInstance = $this->get('metador_catalogue_service')->findOneBySlugAndSource($slug, $source);
         $form = $this
             ->createFormBuilder($cswInstance)
-            ->add('delete', SubmitType::class, array('label' => 'löschen'))
+            ->add('delete', SubmitType::class, ['label' => 'löschen'])
             ->getForm()
             ->handleRequest($this->get('request_stack')->getCurrentRequest());
 
@@ -153,15 +149,15 @@ class AdminController extends Controller
                 'edit',
                 $id,
                 'Csw %csw% erfolgreich gelöscht.',
-                array('%csw%' => $id)
+                ['%csw%' => $id]
             );
 
             return $this->redirectToRoute('metador_admin_csw');
         }
 
-        return $this->render('@CatalogueService/Admin/confirm.html.twig', array(
+        return $this->render('@CatalogueService/Admin/confirm.html.twig', [
             'form' => $form->createView(),
-        ));
+        ]);
     }
 
     /**
@@ -171,7 +167,7 @@ class AdminController extends Controller
      * @param $message
      * @param array $parameter
      */
-    private function setFlash($type, $operation, $id, $message, $parameter = array())
+    private function setFlash($type, $operation, $id, $message, $parameter = [])
     {
         $log = $this->get('metador_logger')->newLog();
 

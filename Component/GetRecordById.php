@@ -3,7 +3,6 @@
 namespace Plugins\WhereGroup\CatalogueServiceBundle\Component;
 
 use WhereGroup\CoreBundle\Component\Search\Expression;
-use WhereGroup\CoreBundle\Component\Search\Search;
 
 /**
  * The class GetRecordById is a representation of the OGC CSW GetCapabilities operation.
@@ -15,14 +14,14 @@ class GetRecordById extends FindRecord
     /**
      * {@inheritdoc}
      */
-    public static $parameterMap = array(
+    public static $parameterMap = [
         'version' => '/csw:GetRecordById/@version',
         'service' => '/csw:GetRecordById/@service',
         'outputSchema' => '/csw:GetRecordById/@outputSchema',
         'outputFormat' => '/csw:GetRecordById/@outputFormat',
         'elementSetName' => '/csw:GetRecordById/csw:ElementSetName/text()',
         'id' => '/csw:GetRecordById/csw:Id/text()',
-    );
+    ];
 
     protected $outputSchema;
     protected $id;
@@ -32,8 +31,8 @@ class GetRecordById extends FindRecord
      */
     public function setConstraint($constraintContent)
     {
-        $identifier = "uuid";#Search::$MAP_QUERY2SOURCE['metadata'][strtolower('Identifier')];
-        $parameters = array();
+        $identifier = "uuid";
+        $parameters = [];
         $this->constraint = new Expression(
             $this->exprHandler->in($identifier, $constraintContent, $parameters),
             $parameters
@@ -53,7 +52,7 @@ class GetRecordById extends FindRecord
      */
     public function getPOSTParameterMap()
     {
-        $parameters = array();
+        $parameters = [];
         foreach (self::$parameterMap as $key => $value) {
             if ($value !== null) {
                 $parameters[$value] = $key;
@@ -75,6 +74,7 @@ class GetRecordById extends FindRecord
      * @param $id
      * @return $this
      * @throws CswException
+     * @throws \WhereGroup\CoreBundle\Component\Search\PropertyNameNotFoundException
      */
     public function setId($id)
     {

@@ -3,6 +3,7 @@
 namespace Plugins\WhereGroup\CatalogueServiceBundle\Component;
 
 use Plugins\WhereGroup\CatalogueServiceBundle\Component\Search\GmlFilterReader;
+use Plugins\WhereGroup\CatalogueServiceBundle\Entity\Csw;
 use WhereGroup\CoreBundle\Component\Search\ExprHandler;
 use WhereGroup\CoreBundle\Component\Search\PropertyNameNotFoundException;
 
@@ -16,7 +17,7 @@ class GetRecords extends FindRecord
     /**
      * {@inheritdoc}
      */
-    protected static $parameterMap = array(
+    protected static $parameterMap = [
         '/csw:GetRecords/@version' => 'version',
         '/csw:GetRecords/@service' => 'service',
         '/csw:GetRecords/@outputSchema' => 'outputSchema',
@@ -24,19 +25,13 @@ class GetRecords extends FindRecord
         '/csw:GetRecords/@resultType' => 'resultType',
         '/csw:GetRecords/@startPosition' => 'startPosition',
         '/csw:GetRecords/@maxRecords' => 'maxRecords',
-//        '' => 'constraintLanguage',
         '/csw:GetRecords/csw:Query/@typeNames' => 'typeNames',
         '/csw:GetRecords/csw:Query/csw:ElementSetName/text()' => 'elementSetName',
         '/csw:GetRecords/csw:Query/csw:ElementName/text()' => 'elementName', # multiple?
-//        '/csw:GetRecords/csw:Query/csw:Constraint/csw:CqlText/text()' => 'constraint', // constraintLanguage CQL
         '/csw:GetRecords/csw:Query/csw:Constraint/ogc:Filter' => 'Constraint',
         '/csw:GetRecords/csw:Query/ogc:SortBy' => 'sortBy',
-////        'namespace',
         '/csw:GetRecords/csw:RequestId/text()' => 'requestId',
-//        '/csw:GetRecords/csw:ResponseHandler' => 'responseHandler',
-////        'deistributedSearch' for GET
-//        '/csw:GetRecords/csw:DistributedSearch/@hopCount' => 'hopCount',
-    );
+    ];
 
     /* @var array supported typenames */
     protected static $TYPENAMES = ['gmd:MD_Metadata'];
@@ -49,7 +44,6 @@ class GetRecords extends FindRecord
     protected $constraintLanguage;
     protected $resultType;
     protected $requestId;
-
     protected $namespace;
     protected $responseHandler;
     protected $elementName;
@@ -59,19 +53,13 @@ class GetRecords extends FindRecord
     /**
      * {@inheritdoc}
      */
-    public function __construct(
-        \Plugins\WhereGroup\CatalogueServiceBundle\Entity\Csw $entity = null,
-        ExprHandler $exprHandler
-    ) {
+    public function __construct(Csw $entity, ExprHandler $exprHandler) {
         parent::__construct($entity, $exprHandler);
         $this->resultType = self::RESULTTYPE_HITS;
         $this->constraintLanguage = 'FILTER';
-
-        $this->startPosition = 1; # default value s. xsd
-        $this->maxRecords = 10; # default value s. xsd
-        $this->sortBy = array();
-//        $this->deistributedSearch = false;
-//        $this->hopCount = 2; # default value s. xsd
+        $this->startPosition = 1;
+        $this->maxRecords = 10;
+        $this->sortBy = [];
     }
 
     /**
@@ -79,7 +67,7 @@ class GetRecords extends FindRecord
      */
     public function getGETParameterMap()
     {
-        return array_merge(array('constraintLanguage'), array_values(self::$parameterMap));
+        return array_merge(['constraintLanguage'], array_values(self::$parameterMap));
     }
 
     /**
@@ -101,7 +89,6 @@ class GetRecords extends FindRecord
     /**
      * @param string $typeNames
      * @return $this
-     * @throws CswException
      */
     public function setTypeNames($typeNames)
     {
@@ -183,6 +170,7 @@ class GetRecords extends FindRecord
     /**
      * @param mixed $constraintContent
      * @return $this
+     * @throws CswException
      */
     public function setConstraint($constraintContent)
     {
@@ -231,7 +219,7 @@ class GetRecords extends FindRecord
      */
     public function setConstraintLanguage($constraintLanguage)
     {
-        self::isStringAtList('constraintLanguage', $constraintLanguage, array($this->constraintLanguage), false);
+        self::isStringAtList('constraintLanguage', $constraintLanguage, [$this->constraintLanguage], false);
 
         return $this;
     }
@@ -321,7 +309,7 @@ class GetRecords extends FindRecord
             case 'elementName':
                 // @TODO if exists
                 break;
-            case 'deistributedSearch':
+            case 'distributedSearch':
 //                not yet implemented
 //                $this->deistributedSearch = $value; # check if $value is a boolean
                 break;
