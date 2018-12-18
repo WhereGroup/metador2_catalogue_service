@@ -53,7 +53,8 @@ class GetRecords extends FindRecord
     /**
      * {@inheritdoc}
      */
-    public function __construct(Csw $entity, ExprHandler $exprHandler) {
+    public function __construct(Csw $entity, ExprHandler $exprHandler)
+    {
         parent::__construct($entity, $exprHandler);
         $this->resultType = self::RESULTTYPE_HITS;
         $this->constraintLanguage = 'FILTER';
@@ -164,7 +165,8 @@ class GetRecords extends FindRecord
      */
     public function setSortBy($sortBy)
     {
-        $this->sortBy = $sortBy; # @TODO split and check if items supported/exist
+        $this->sortBy = $sortBy !== null && is_array($sortBy) && count($sortBy) > 0 ? $sortBy : null;
+        # @TODO split and check if items supported/exist
     }
 
     /**
