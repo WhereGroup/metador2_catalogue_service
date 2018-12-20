@@ -28,5 +28,16 @@ class ApplicationListener
                     ->active($app->routeStartsWith('metador_admin_csw'))
             );
         }
+
+        if ($app->routeStartsWith('manual')) {
+            $app
+                ->add(
+                    $app->get('ManualMenu', 'csw')
+                        ->icon('icon-cloud-download')
+                        ->label('Catalogue Service')
+                        ->path('manual_csw')
+                )
+            ;
+        }
     }
 }
