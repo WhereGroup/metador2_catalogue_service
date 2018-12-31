@@ -205,7 +205,7 @@ class Csw
         $this->abstract = isset($kv['abstract']) ? $kv['abstract'] : null;
         $this->keywords = isset($kv['keywords']) ? $kv['keywords'] : [];
         $this->fees = isset($kv['fees']) ? $kv['fees'] : 'none';
-        $this->accessConstraints = isset($kv['accessConstraints']) ? $kv['accessConstraints'] : array('none');
+        $this->accessConstraints = isset($kv['accessConstraints']) ? $kv['accessConstraints'] : ['none'];
         $this->providerName = isset($kv['providerName']) ? $kv['providerName'] : null;
         $this->providerSite = isset($kv['providerSite']) ? $kv['providerSite'] : null;
         $this->individualName = isset($kv['individualName']) ? $kv['individualName'] : null;

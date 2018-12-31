@@ -72,119 +72,119 @@ class CswType extends AbstractType
             array_keys($this->plugin->getActiveProfiles())
         );
         $builder
-            ->add('active', ChoiceType::class, array(
+            ->add('active', ChoiceType::class, [
                 'label' => 'Aktiv',
                 'required' => true,
                 'choices' => [
                     'Ja'   => true,
                     'Nein' => false
                 ],
-            ))
-            ->add('title', TextType::class, array(
+            ])
+            ->add('title', TextType::class, [
                 'label' => 'Titel',
                 'required' => true,
-            ))
-            ->add('slug', TextType::class, array(
+            ])
+            ->add('slug', TextType::class, [
                 'label' => 'URL Titel',
                 'required' => true,
-            ))
-            ->add('source', ChoiceType::class, array(
+            ])
+            ->add('source', ChoiceType::class, [
                 'label' => 'Quelle',
                 'required' => true,
                 'choices' => $this->source->allValues(),
-            ))
-            ->add('username', ChoiceType::class, array(
+            ])
+            ->add('username', ChoiceType::class, [
                 'label' => 'Benutzer',
                 'required' => true,
                 'choices' => $users,
-            ))
-            ->add('abstract', TextareaType::class, array(
+            ])
+            ->add('abstract', TextareaType::class, [
                 'label' => 'Beschreibung',
                 'required' => false,
-            ))
-            ->add('keywords', TextareaType::class, array( // csv value
+            ])
+            ->add('keywords', TextareaType::class, [
                 'label' => 'Schlüsselwörter',
                 'required' => false,
-            ))
-            ->add('fees', TextType::class, array(
+            ])
+            ->add('fees', TextType::class, [
                 'label' => 'Gebühren',
                 'required' => false,
                 'empty_data' => 'none',
-            ))
-            ->add('accessConstraints', TextType::class, array( // csv value
+            ])
+            ->add('accessConstraints', TextType::class, [
                 'label' => 'Zugangsbeschränkungen',
                 'required' => false,
                 'empty_data' => 'none',
-            ))
-            ->add('providerName', TextType::class, array(
+            ])
+            ->add('providerName', TextType::class, [
                 'label' => 'Betreiber',
                 'required' => true,
-            ))
-            ->add('providerSite', UrlType::class, array(
+            ])
+            ->add('providerSite', UrlType::class, [
                 'label' => 'Webseite des Betreibers',
                 'required' => false,
-            ))
-            ->add('individualName', TextType::class, array(
+            ])
+            ->add('individualName', TextType::class, [
                 'label' => 'Zuständige Person',
                 'required' => false,
-            ))
-            ->add('positionName', TextType::class, array(
+            ])
+            ->add('positionName', TextType::class, [
                 'label' => 'Position',
                 'required' => false,
-            ))
-            ->add('phoneVoice', TextType::class, array(
+            ])
+            ->add('phoneVoice', TextType::class, [
                 'label' => 'Telefon',
                 'required' => false,
-            ))
-            ->add('phoneFacsimile', TextType::class, array(
+            ])
+            ->add('phoneFacsimile', TextType::class, [
                 'label' => 'Fax',
                 'required' => false,
-            ))
-            ->add('deliveryPoint', TextType::class, array(
+            ])
+            ->add('deliveryPoint', TextType::class, [
                 'label' => 'Straße',
                 'required' => false,
-            ))
-            ->add('city', TextType::class, array(
+            ])
+            ->add('city', TextType::class, [
                 'label' => 'Ort',
                 'required' => false,
-            ))
-            ->add('administrativeArea', TextType::class, array(
+            ])
+            ->add('administrativeArea', TextType::class, [
                 'label' => 'Bundesland',
                 'required' => false,
-            ))
-            ->add('postalCode', TextType::class, array(
+            ])
+            ->add('postalCode', TextType::class, [
                 'label' => 'PLZ',
                 'required' => false,
-            ))
-            ->add('country', TextType::class, array(
+            ])
+            ->add('country', TextType::class, [
                 'label' => 'Land',
                 'required' => false,
-            ))
-            ->add('electronicMailAddress', TextType::class, array(
+            ])
+            ->add('electronicMailAddress', TextType::class, [
                 'label' => 'E-Mail',
                 'required' => false,
-            ))
-            ->add('onlineResourse', TextType::class, array(
+            ])
+            ->add('onlineResourse', TextType::class, [
                 'label' => 'Onlineresourse',
                 'required' => false,
-            ))
-            ->add('insert', CheckboxType::class, array(
+            ])
+            ->add('insert', CheckboxType::class, [
                 'label' => 'Einfügen',
                 'required' => false,
-            ))
-            ->add('update', CheckboxType::class, array(
+            ])
+            ->add('update', CheckboxType::class, [
                 'label' => 'Aktualisieren',
                 'required' => false,
-            ))
-            ->add('delete', CheckboxType::class, array(
+            ])
+            ->add('delete', CheckboxType::class, [
                 'label' => 'Entfernen',
                 'required' => false,
-            ))
+            ])
             ->add('profileMapping', HiddenType::class)
-            ->add('filter', TextareaType::class, array(
+            ->add('filter', TextareaType::class, [
                 'label' => 'Filter (JSON)',
                 'required' => false,
-            ));
+            ]);
 
         $csvArrayTransformer = new CallbackTransformer(
             function ($textAsArray) {
@@ -244,12 +244,12 @@ class CswType extends AbstractType
                         $_data = $pm[$field];
                     }
                     $form
-                        ->add($field, ChoiceType::class, array(
+                        ->add($field, ChoiceType::class, [
                             'required' => false,
                             'choices' => $profiles,
                             'mapped' => false,
                             'data' => $_data,
-                        ));
+                        ]);
                 }
             }
         );

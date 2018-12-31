@@ -15,13 +15,12 @@ abstract class Operation
      * The list "WhereGroup\CoreBundle\Component\Search::$MAP_QUERY2SOURCE['metadata']" contains a lower case of the
      * each "iso queryables" item.
      */
-    const ISO_QUERYABLES = array(
+    const ISO_QUERYABLES = [
         'Identifier',
         'Title',
-//        'Language',
         'AnyText',
         'Subject'
-    );
+    ];
 
     /**
      * The list "WhereGroup\CoreBundle\Component\Search::$MAP_QUERY2SOURCE['metadata']" contains a lower case of the

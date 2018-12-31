@@ -11,11 +11,11 @@ use WhereGroup\CoreBundle\Component\Search\ExprHandler;
  */
 abstract class FindRecord extends Operation
 {
-    const QUERYABLE_MAP = array(
+    const QUERYABLE_MAP = [
         'Identifier' => 'id',
         'Title' => 'title',
         'Abstract' => 'abstract',
-    );
+    ];
     const RESULTTYPE_HITS = 'hits';
     const RESULTTYPE_RESULTS = 'results';
     const RESULTTYPE_VALIDATE = 'validate';
@@ -25,8 +25,8 @@ abstract class FindRecord extends Operation
     const ELEMENTSET_FULL = 'full';
 
     /* supported element sets */
-    const ELEMENTSET = array('brief', 'summary', 'full');
-    const RESULTTYPE = array('hits', 'results', 'validate');
+    const ELEMENTSET = ['brief', 'summary', 'full'];
+    const RESULTTYPE = ['hits', 'results', 'validate'];
 
     /**
      * @var string
@@ -87,7 +87,7 @@ abstract class FindRecord extends Operation
     public function setOutputSchema($outputSchema)
     {
         // use function to check only
-        self::isStringAtList('outputSchema', $outputSchema, array($this->outputSchema), false);
+        self::isStringAtList('outputSchema', $outputSchema, [$this->outputSchema], false);
 
         return $this;
     }

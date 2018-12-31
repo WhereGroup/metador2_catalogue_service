@@ -77,7 +77,7 @@ class CswRepository extends EntityRepository
                 ->createQueryBuilder('c')
                 ->select('c')
                 ->where('c.slug = :slug AND c.source = :source')
-                ->setParameters(array('slug' => $slug, 'source' => $source))
+                ->setParameters(['slug' => $slug, 'source' => $source])
                 ->getQuery()
                 ->getSingleResult();
         } catch (NoResultException $e) {

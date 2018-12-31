@@ -9,22 +9,23 @@ namespace Plugins\WhereGroup\CatalogueServiceBundle\Component;
  */
 final class GetCapabilities extends Operation
 {
-    public static $SECTIONS = array(
+    public static $SECTIONS = [
         'ServiceIdentification',
         'ServiceProvider',
         'OperationsMetadata',
         'Filter_Capabilities',
-    );
+    ];
+
     /**
      * {@inheritdoc}
      */
-    protected static $parameterMap = array(
+    protected static $parameterMap = [
         'version' => null,
         'service' => '/csw:GetCapabilities/@service',
         'acceptVersion' => '/csw:GetCapabilities/ows:AcceptVersions/ows:Version/text()',
         'section' => '/csw:GetCapabilities/ows:Sections/ows:Section/text()',
         'outputFormat' => '/csw:GetCapabilities/ows:AcceptFormats/ows:OutputFormat/text()',
-    );
+    ];
 
     /**
      * @var string url for csw basic

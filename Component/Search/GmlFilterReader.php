@@ -351,7 +351,7 @@ class GmlFilterReader implements FilterReader
                     $jsonCoords = self::toJsonCoordinates($ords);
                     $operands['geom'] = self::createGeoJson(
                         'Polygon',
-                        array($jsonCoords),
+                        [$jsonCoords],
                         $child->getAttribute('srsName'),
                         $bbox
                     );
@@ -428,25 +428,23 @@ class GmlFilterReader implements FilterReader
      */
     private static function createGeoJson($type, array $coordinates, $crs = null, array $bbox = null)
     {
-        $geom = array(
+        $geom = [
             "type" => $type,
             "coordinates" => $coordinates,
-        );
+        ];
 
         if ($crs !== null) {
-            $geom['crs'] = array(
+            $geom['crs'] = [
                 "type" => "name",
-                "properties" => array(
-                    "name" => $crs,
-                ),
-            );
+                "properties" => ["name" => $crs],
+            ];
         }
         if ($bbox !== null) {
-            return array(
+            return [
                 "type" => 'Feature',
                 'bbox' => $bbox,
                 'geometry' => $geom,
-            );
+            ];
         } else {
             return $geom;
         }
@@ -458,7 +456,7 @@ class GmlFilterReader implements FilterReader
      */
     private static function toPolygonOrdinates(array $bbox)
     {
-        return array(
+        return [
             $bbox[0],
             $bbox[1],
             $bbox[2],
@@ -469,7 +467,7 @@ class GmlFilterReader implements FilterReader
             $bbox[3],
             $bbox[0],
             $bbox[1],
-        );
+        ];
     }
 
     /**
@@ -480,7 +478,7 @@ class GmlFilterReader implements FilterReader
     {
         $coords = [];
         for ($i = 1; $i < count($ordinates); $i += 2) {
-            $coords[] = array($ordinates[$i - 1], $ordinates[$i]);
+            $coords[] = [$ordinates[$i - 1], $ordinates[$i]];
         }
 
         return $coords;

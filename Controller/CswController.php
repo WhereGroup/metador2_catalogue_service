@@ -64,10 +64,10 @@ class CswController extends Controller
 
             switch ($parameter->getOperationName()) {
                 case 'GetCapabilities':
-                    $params = array(
+                    $params = [
                         'source' => $cswConfig->getSource(),
                         'slug' => $cswConfig->getSlug(),
-                    );
+                    ];
                     $content = $csw->getCapabilities(
                         $parameter,
                         $cswConfig,
@@ -91,7 +91,7 @@ class CswController extends Controller
             return $this->renderException($ex);
         }
 
-        return new Response($content, Response::HTTP_OK, array('content-type' => 'application/xml; charset=utf-8'));
+        return new Response($content, Response::HTTP_OK, ['content-type' => 'application/xml; charset=utf-8']);
     }
 
     /**
@@ -103,7 +103,7 @@ class CswController extends Controller
      * @throws \Psr\Container\ContainerExceptionInterface
      * @throws \Psr\Container\NotFoundExceptionInterface
      * @throws \Twig\Error\Error
-     * @Route("manager/{source}/{slug}", name="csw_transaction", methods={POST"})
+     * @Route("manager/{source}/{slug}", name="csw_transaction", methods={"POST"})
      */
     public function transactionAction(Request $request, $source, $slug)
     {
@@ -149,7 +149,7 @@ class CswController extends Controller
             return $this->renderException($ex);
         }
 
-        return new Response($content, Response::HTTP_OK, array('content-type' => 'application/xml; charset=utf-8'));
+        return new Response($content, Response::HTTP_OK, ['content-type' => 'application/xml; charset=utf-8']);
     }
 
     /**
@@ -164,16 +164,16 @@ class CswController extends Controller
         if ($ex instanceof CswException) {
             $content = $this->get('templating')->render(
                 "@CatalogueService/CSW/exception.xml.twig",
-                array(
-                    'exception' => array(
+                [
+                    'exception' => [
                         'code' => $ex->getCswCode(),
                         'locator' => $ex->getLocator(),
                         'text' => $ex->getText(),
-                    ),
-                )
+                    ],
+                ]
             );
 
-            return new Response($content, $ex->getHttpStatusCode(), array('content-type' => 'application/xml'));
+            return new Response($content, $ex->getHttpStatusCode(), ['content-type' => 'application/xml']);
         } elseif ($ex instanceof PropertyNameNotFoundException) {
             return $this->renderException(
                 new CswException(
@@ -195,7 +195,8 @@ class CswController extends Controller
     /**
      * @param Request $request
      */
-    private function logRequest(Request $request) {
+    private function logRequest(Request $request)
+    {
         if (!$this->container->hasParameter('log_csw') || $this->container->getParameter('log_csw') !== true) {
             return;
         }

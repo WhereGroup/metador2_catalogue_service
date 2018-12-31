@@ -13,8 +13,7 @@ class Transaction extends Operation
     const INSERT = 'Insert';
     const UPDATE = 'Update';
     const DELETE = 'Delete';
-
-    const ITEMS = 'items';
+    const ITEMS  = 'items';
     const ACTION = 'action';
     const FILTER = 'filter';
     const PARAMS = 'params';
@@ -22,40 +21,39 @@ class Transaction extends Operation
     /**
      * {@inheritdoc}
      */
-    protected static $parameterMap = array(
+    protected static $parameterMap = [
         '/csw:Transaction/@version' => 'version',
         '/csw:Transaction/@service' => 'service',
         '/csw:Transaction/@verboseResponse' => 'verboseResponse',
         '/csw:Transaction/@requestId' => 'requestId',
-        '/csw:Transaction/csw:*' => array(
-            'Insert' => array(
+        '/csw:Transaction/csw:*' => [
+            'Insert' => [
                 self::ACTION => self::INSERT,
                 self::ITEMS => './gmd:MD_Metadata',
-//                self::FILTER => './csw:Constraint/ogc:Filter',
-                self::PARAMS => array(
+                self::PARAMS => [
                     './@handle' => 'handle',
                     './@typeName' => 'typeName',
-                ),
-            ),
-            'Update' => array(
+                ],
+            ],
+            'Update' => [
                 self::ACTION => self::UPDATE,
                 self::ITEMS => './gmd:MD_Metadata',
                 self::FILTER => './csw:Constraint/ogc:Filter',
-                self::PARAMS => array(
+                self::PARAMS => [
                     './@handle' => 'handle',
-                ),
-            ),
-            'Delete' => array(
+                ],
+            ],
+            'Delete' => [
                 self::ACTION => self::DELETE,
                 self::ITEMS => './gmd:MD_Metadata',
                 self::FILTER => './csw:Constraint/ogc:Filter',
-                self::PARAMS => array(
+                self::PARAMS => [
                     './@handle' => 'handle',
                     './@typeName' => 'typeName',
-                ),
-            ),
-        ),
-    );
+                ],
+            ],
+        ],
+    ];
 
     /**
      * @var string

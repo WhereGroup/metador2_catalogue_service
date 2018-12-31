@@ -12,12 +12,12 @@ class DescribeRecord extends Operation
     /**
      * {@inheritdoc}
      */
-    protected static $parameterMap = array(
+    protected static $parameterMap = [
         'version' => '/csw:DescribeRecord/@version',
         'service' => '/csw:DescribeRecord/@service',
         'typeName' => '/csw:DescribeRecord/csw:TypeName/text()',
         'outputFormat' => '/csw:DescribeRecord/@outputFormat',
-    );
+    ];
 
     /**
      * {@inheritdoc}
@@ -62,7 +62,7 @@ class DescribeRecord extends Operation
     public function __construct(\Plugins\WhereGroup\CatalogueServiceBundle\Entity\Csw $entity)
     {
         parent::__construct($entity);
-        $this->typeName = array('gmd:MD_Metadata');
+        $this->typeName = ['gmd:MD_Metadata'];
     }
 
     /**
@@ -76,6 +76,7 @@ class DescribeRecord extends Operation
 
     /**
      * Returns typeName
+     * @param $typeName
      * @return string
      */
     public function setTypeName($typeName)

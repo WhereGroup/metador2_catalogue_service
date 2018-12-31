@@ -64,7 +64,7 @@ class TransactionParameter extends PostDomParameter
         $parameterMap = $operation->getPOSTParameterMap();
         foreach ($parameterMap as $key => $value) {
             if (!is_string($value)) {
-                return array('key' => $key, 'value' => $value);
+                return ['key' => $key, 'value' => $value];
             }
         }
     }

@@ -32,7 +32,7 @@ class CswException extends \Exception
      * CswException constructor.
      * @param string $locator
      * @param int $code
-     * @param CswException|null $previous
+     * @param \Exception $previous
      */
     public function __construct($locator = "", $code = 105, \Exception $previous = null)
     {
@@ -66,9 +66,9 @@ class CswException extends \Exception
             $this->getMessageText($this, $messages);
 
             return $messages;
-        } else {
-            return array($this->getErrorMessage($this->code));
         }
+
+        return [$this->getErrorMessage($this->code)];
     }
 
     /**
@@ -77,11 +77,12 @@ class CswException extends \Exception
      */
     private function getMessageText(\Exception $e, array &$messages)
     {
+        $messages[] = $e->getMessage();
+
         if ($e instanceof CswException) {
             $messages[] = $e->getErrorMessage($e->getCode());
-        } else {
-            $messages[] = $e->getMessage();
         }
+
         if ($e->getPrevious()) {
             $this->getMessageText($e->getPrevious(), $messages);
         }
@@ -100,7 +101,6 @@ class CswException extends \Exception
             case self::DUPLICATESTOREDQUERYPARAMETERNAME:
             case self::INVALIDLOCKID:
             case self::INVALIDVALUE:
-            case self::OPERATIONNOTSUPPORTED:
             case self::MISSINGPARAMETERVALUE:
             case self::INVALIDPARAMETERVALUE:
             case self::OPTIONNOTSUPPORTED:
