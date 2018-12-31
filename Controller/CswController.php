@@ -6,7 +6,6 @@ use Plugins\WhereGroup\CatalogueServiceBundle\Component\Csw;
 use Plugins\WhereGroup\CatalogueServiceBundle\Component\CswException;
 use Plugins\WhereGroup\CatalogueServiceBundle\Component\Exception\GetCapabilitiesNotFoundException;
 use Plugins\WhereGroup\CatalogueServiceBundle\Component\Parameter\Parameter;
-use Sensio\Bundle\FrameworkExtraBundle\Configuration\Method;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\Request;
@@ -27,13 +26,12 @@ class CswController extends Controller
      * @param Request $request
      * @param $source
      * @param $slug
-     * @Route("{source}/{slug}", name="csw_default")
-     * @Method({"GET", "POST"})
      * @return Response
      * @throws \Doctrine\ORM\NonUniqueResultException
      * @throws \Psr\Container\ContainerExceptionInterface
      * @throws \Psr\Container\NotFoundExceptionInterface
      * @throws \Twig\Error\Error
+     * @Route("{source}/{slug}", name="csw_default", methods={"GET", "POST"})
      */
     public function defaultAction(Request $request, $source, $slug)
     {
@@ -100,13 +98,12 @@ class CswController extends Controller
      * @param Request $request
      * @param $source
      * @param $slug
-     * @Route("manager/{source}/{slug}", name="csw_transaction")
-     * @Method({"POST"})
      * @return Response
      * @throws \Doctrine\ORM\NonUniqueResultException
      * @throws \Psr\Container\ContainerExceptionInterface
      * @throws \Psr\Container\NotFoundExceptionInterface
      * @throws \Twig\Error\Error
+     * @Route("manager/{source}/{slug}", name="csw_transaction", methods={POST"})
      */
     public function transactionAction(Request $request, $source, $slug)
     {
