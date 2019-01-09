@@ -36,6 +36,7 @@ class ApplicationListener
                         ->icon('icon-cloud-download')
                         ->label('Catalogue Service')
                         ->path('manual_csw')
+                        ->setRole('ROLE_SYSTEM_SUPERUSER')
                 )
             ;
         }
