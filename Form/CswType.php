@@ -67,10 +67,6 @@ class CswType extends AbstractType
             $users[$user->getUsername()] = $user->getUsername();
         }
 
-        $profiles = array_combine(
-            array_keys($this->plugin->getActiveProfiles()),
-            array_keys($this->plugin->getActiveProfiles())
-        );
         $builder
             ->add('active', ChoiceType::class, [
                 'label' => 'Aktiv',
@@ -186,6 +182,14 @@ class CswType extends AbstractType
                 'required' => false,
             ]);
 
+        $fields = $this->config->get('hierarchy_levels', 'plugin', 'metador_core');
+        $fields = $fields ? $fields : [];
+
+        $profiles = array_combine(
+            array_keys($this->plugin->getActiveProfiles()),
+            array_keys($this->plugin->getActiveProfiles())
+        );
+
         $csvArrayTransformer = new CallbackTransformer(
             function ($textAsArray) {
                 // transform the array to a string
@@ -194,16 +198,6 @@ class CswType extends AbstractType
             function ($textAsString) {
                 // transform the string back to an array
                 return isset($textAsString) ? preg_split('/\s?,\s?/', trim($textAsString)) : [];
-            }
-        );
-        $stringAssocArrayTransformer = new CallbackTransformer(
-            function ($textAsArray) {
-                // ignore value after FormEvents::PRE_SET_DATA and FormEvents::PRE_SUBMIT
-                return '';
-            },
-            function ($textAsString) {
-                // use value before data store
-                return isset($textAsString) ? $textAsString : [];
             }
         );
 
@@ -222,12 +216,10 @@ class CswType extends AbstractType
                 return is_string($text) ? json_decode($text, true, 512, JSON_FORCE_OBJECT) : [];
             }
         );
-        $builder->get('profileMapping')->addModelTransformer($stringAssocArrayTransformer);
         $builder->get('keywords')->addModelTransformer($csvArrayTransformer);
         $builder->get('accessConstraints')->addModelTransformer($csvArrayTransformer);
         $builder->get('filter')->addModelTransformer($textJsonTransformer);
-        $fields = $this->config->get('hierarchy_levels', 'plugin', 'metador_core');
-        $fields = $fields ? $fields : [];
+
         $builder->addEventListener(
             FormEvents::PRE_SET_DATA,
             function (FormEvent $event) use ($fields, $profiles) {
@@ -254,24 +246,28 @@ class CswType extends AbstractType
             }
         );
 
+        $pmComposite = [];
+
         $builder->addEventListener(
             FormEvents::PRE_SUBMIT,
-            function (FormEvent $event) use ($fields, $profiles) {
-                $data = $event->getData();
-                if (null === $data) {
-                    return;
-                }
-                $pm = [];
-                foreach ($fields as $field) {
-                    if (isset($data[$field]) && $data[$field]) {
-                        $pm[$field] = $data[$field];
+            function (FormEvent $event) use ($fields, $profiles, &$pmComposite) {
+                if (($data = $event->getData())) {
+                    foreach ($fields as $field) {
+                        if (isset($data[$field]) && $data[$field]) {
+                            $pmComposite[$field] = $data[$field];
+                        }
                     }
                 }
-                $data['profileMapping'] = $pm;
-                $event->setData($data);
-                $form = $event->getForm();
-                $form->get('profileMapping')->setData($pm);
             }
         );
+
+        $builder->get('profileMapping')->addModelTransformer(new CallbackTransformer(
+            function ($value) {
+                return is_array($value) ? json_encode($value, true) : '[]';
+            },
+            function ($value) use (&$pmComposite) {
+                return is_array($pmComposite) ? $pmComposite : [];
+            }
+        ));
     }
 }
