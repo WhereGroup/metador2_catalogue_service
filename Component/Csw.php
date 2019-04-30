@@ -344,7 +344,7 @@ class Csw
      */
     private function prepareResult(array $rows, $elementSetName = 'full')
     {
-        if ($elementSetName !== 'summary' && $elementSetName !== 'brief') {
+        if ($elementSetName != 'summary' && $elementSetName != 'brief') {
             return $rows;
         }
 
