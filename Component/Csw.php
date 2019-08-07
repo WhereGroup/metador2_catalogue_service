@@ -449,7 +449,12 @@ class Csw
      */
     public function doInsert(CswEntity $cswConfig, TransactionOperation $action, TransactionParameter $handler)
     {
+        $em = $this->metadata->getEntityManager();
+        $em->clear();
+        $em->getConnection()->getConfiguration()->setSQLLogger(null);
+
         $inserted = 0;
+
         /* list of metadates- no filter */
         foreach ($action->getItems() as $mdMetadata) {
             $hierarchyLevel = $handler->valueFor('./gmd:hierarchyLevel[1]/gmd:MD_ScopeCode/text()', $mdMetadata);
@@ -492,6 +497,10 @@ class Csw
      */
     public function doUpdate(CswEntity $cswConfig, TransactionOperation $action, TransactionParameter $handler)
     {
+        $em = $this->metadata->getEntityManager();
+        $em->clear();
+        $em->getConnection()->getConfiguration()->setSQLLogger(null);
+
         $updated = 0;
         if ($action->getConstraint()) {
             /* @var ExprHandler $exprHandler */
@@ -560,6 +569,10 @@ class Csw
      */
     public function doDelete(CswEntity $cswConfig, TransactionOperation $action, TransactionParameter $handler)
     {
+        $em = $this->metadata->getEntityManager();
+        $em->clear();
+        $em->getConnection()->getConfiguration()->setSQLLogger(null);
+
         $deleted = 0;
         if ($action->getConstraint()) {
             /* @var ExprHandler $exprHandler */
