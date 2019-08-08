@@ -2,10 +2,14 @@
 
 namespace Plugins\WhereGroup\CatalogueServiceBundle\Controller;
 
+use Doctrine\ORM\NonUniqueResultException;
+use Exception;
 use Plugins\WhereGroup\CatalogueServiceBundle\Component\Csw;
 use Plugins\WhereGroup\CatalogueServiceBundle\Component\CswException;
 use Plugins\WhereGroup\CatalogueServiceBundle\Component\Exception\GetCapabilitiesNotFoundException;
 use Plugins\WhereGroup\CatalogueServiceBundle\Component\Parameter\Parameter;
+use Psr\Container\ContainerExceptionInterface;
+use Psr\Container\NotFoundExceptionInterface;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\Request;
@@ -13,6 +17,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
+use Twig\Error\Error;
 use WhereGroup\CoreBundle\Component\Search\PropertyNameNotFoundException;
 
 /**
@@ -27,10 +32,10 @@ class CswController extends Controller
      * @param $source
      * @param $slug
      * @return Response
-     * @throws \Doctrine\ORM\NonUniqueResultException
-     * @throws \Psr\Container\ContainerExceptionInterface
-     * @throws \Psr\Container\NotFoundExceptionInterface
-     * @throws \Twig\Error\Error
+     * @throws NonUniqueResultException
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
+     * @throws Error
      * @Route("{source}/{slug}", name="csw_default", methods={"GET", "POST"})
      */
     public function defaultAction(Request $request, $source, $slug)
@@ -87,7 +92,7 @@ class CswController extends Controller
                 default:
                     throw new CswException('request', CswException::OPERATIONNOTSUPPORTED);
             }
-        } catch (\Exception $ex) {
+        } catch (Exception $ex) {
             return $this->renderException($ex);
         }
 
@@ -99,10 +104,10 @@ class CswController extends Controller
      * @param $source
      * @param $slug
      * @return Response
-     * @throws \Doctrine\ORM\NonUniqueResultException
-     * @throws \Psr\Container\ContainerExceptionInterface
-     * @throws \Psr\Container\NotFoundExceptionInterface
-     * @throws \Twig\Error\Error
+     * @throws NonUniqueResultException
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
+     * @throws Error
      * @Route("manager/{source}/{slug}", name="csw_transaction", methods={"POST"})
      */
     public function transactionAction(Request $request, $source, $slug)
@@ -145,7 +150,7 @@ class CswController extends Controller
             );
 
             return $this->container->get('http_kernel')->handle($subRequest, HttpKernelInterface::SUB_REQUEST);
-        } catch (\Exception $ex) {
+        } catch (Exception $ex) {
             return $this->renderException($ex);
         }
 
@@ -153,13 +158,13 @@ class CswController extends Controller
     }
 
     /**
-     * @param \Exception $ex
+     * @param Exception $ex
      * @return Response
-     * @throws \Psr\Container\ContainerExceptionInterface
-     * @throws \Psr\Container\NotFoundExceptionInterface
-     * @throws \Twig\Error\Error
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
+     * @throws Error
      */
-    private function renderException(\Exception $ex)
+    private function renderException(Exception $ex)
     {
         if ($ex instanceof CswException) {
             $content = $this->get('templating')->render(
@@ -174,22 +179,15 @@ class CswController extends Controller
             );
 
             return new Response($content, $ex->getHttpStatusCode(), ['content-type' => 'application/xml']);
-        } elseif ($ex instanceof PropertyNameNotFoundException) {
+        }
+
+        if ($ex instanceof PropertyNameNotFoundException) {
             return $this->renderException(
-                new CswException(
-                    $ex->getMessage(),
-                    CswException::DUPLICATESTOREDQUERYPARAMETERNAME
-                )
-            );
-        } else {
-            return $this->renderException(
-                new CswException(
-                    '',
-                    CswException::NOAPPLICABLECODE,
-                    $ex
-                )
+                new CswException($ex->getMessage(), CswException::DUPLICATESTOREDQUERYPARAMETERNAME)
             );
         }
+
+        return $this->renderException(new CswException('', CswException::NOAPPLICABLECODE, $ex));
     }
 
     /**

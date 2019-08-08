@@ -8,11 +8,14 @@
 
 namespace Plugins\WhereGroup\CatalogueServiceBundle\Component\Parameter;
 
+use DOMElement;
+use Exception;
 use Plugins\WhereGroup\CatalogueServiceBundle\Component\CswException;
 use Plugins\WhereGroup\CatalogueServiceBundle\Component\Operation;
 use Plugins\WhereGroup\CatalogueServiceBundle\Component\Transaction;
 use Plugins\WhereGroup\CatalogueServiceBundle\Component\TransactionOperation;
 use WhereGroup\CoreBundle\Component\Search\ExprHandler;
+use WhereGroup\CoreBundle\Component\Search\PropertyNameNotFoundException;
 
 class TransactionParameter extends PostDomParameter
 {
@@ -38,7 +41,7 @@ class TransactionParameter extends PostDomParameter
 
     /**
      * @param $xpath
-     * @param null|\DOMElement $contextElm
+     * @param null|DOMElement $contextElm
      * @param bool $allowSingle
      * @return mixed
      */
@@ -74,8 +77,8 @@ class TransactionParameter extends PostDomParameter
      * @param ExprHandler $expression
      * @return null|Transaction|TransactionOperation
      * @throws CswException
-     * @throws \Exception
-     * @throws \WhereGroup\CoreBundle\Component\Search\PropertyNameNotFoundException
+     * @throws Exception
+     * @throws PropertyNameNotFoundException
      */
     public function nextAction(Transaction $operation, ExprHandler $expression)
     {
@@ -85,7 +88,7 @@ class TransactionParameter extends PostDomParameter
         $list = $this->getValue($xpathStr, $this->dom->documentElement, false);
         $this->typeIdx++;
         if ($this->typeIdx < count($list)) {
-            /* @var \DOMElement $actionNode */
+            /* @var DOMElement $actionNode */
             $actionNode = $list[$this->typeIdx];
             $config = $typesConf[$actionNode->localName];
 
@@ -98,17 +101,17 @@ class TransactionParameter extends PostDomParameter
     /**
      * @param Transaction $transaction
      * @param ExprHandler $exprHandler
-     * @param \DOMElement $actionElm
+     * @param DOMElement $actionElm
      * @param array $config
      * @return TransactionOperation
      * @throws CswException
-     * @throws \Exception
-     * @throws \WhereGroup\CoreBundle\Component\Search\PropertyNameNotFoundException
+     * @throws Exception
+     * @throws PropertyNameNotFoundException
      */
     private function initAction(
         Transaction $transaction,
         ExprHandler $exprHandler,
-        \DOMElement $actionElm,
+        DOMElement $actionElm,
         array $config
     ) {
         if (!$transaction->isTypeSupported($config[Transaction::ACTION])) {
@@ -126,7 +129,7 @@ class TransactionParameter extends PostDomParameter
         }
         try {
             $action->setItems($this->getValue($config[Transaction::ITEMS], $actionElm, false));
-        } catch (\Exception $ex) {
+        } catch (Exception $ex) {
             ;
         }
 

@@ -2,12 +2,14 @@
 
 namespace Plugins\WhereGroup\CatalogueServiceBundle\Component;
 
+use Exception;
+
 /**
  * Class CswException
  * @package Plugins\WhereGroup\CatalogueServiceBundle\Component
  * @author  Paul Schmidt <panadium@gmx.de>
  */
-class CswException extends \Exception
+class CswException extends Exception
 {
     /* OGC exception code */
     const CANNOTLOCKALLFEATURES = 101;
@@ -32,9 +34,9 @@ class CswException extends \Exception
      * CswException constructor.
      * @param string $locator
      * @param int $code
-     * @param \Exception $previous
+     * @param Exception $previous
      */
-    public function __construct($locator = "", $code = 105, \Exception $previous = null)
+    public function __construct($locator = "", $code = 105, Exception $previous = null)
     {
         // @TODO locator vs $previous locator
         parent::__construct($locator, $code, $previous);
@@ -68,14 +70,14 @@ class CswException extends \Exception
             return $messages;
         }
 
-        return [$this->getErrorMessage($this->code)];
+        return [$this->getErrorMessage()];
     }
 
     /**
-     * @param \Exception $e
+     * @param Exception $e
      * @param array $messages
      */
-    private function getMessageText(\Exception $e, array &$messages)
+    private function getMessageText(Exception $e, array &$messages)
     {
         $messages[] = $e->getMessage();
 
@@ -112,7 +114,6 @@ class CswException extends \Exception
             case self::VERSIONNEGOTIATIONFAILED:
             case self::INVALIDUPDATESEQUENCE:
             case self::NOAPPLICABLECODE:
-                return false;
             default:
                 return false;
         }

@@ -2,9 +2,12 @@
 
 namespace Plugins\WhereGroup\CatalogueServiceBundle\Component;
 
+use DOMElement;
+use Exception;
 use Plugins\WhereGroup\CatalogueServiceBundle\Component\Search\GmlFilterReader;
 use WhereGroup\CoreBundle\Component\Search\Expression;
 use WhereGroup\CoreBundle\Component\Search\ExprHandler;
+use WhereGroup\CoreBundle\Component\Search\PropertyNameNotFoundException;
 
 /**
  * Class TransactionOperation
@@ -121,7 +124,7 @@ class TransactionOperation
     }
 
     /**
-     * @return ExprHandler
+     * @return Expression
      */
     public function getConstraint()
     {
@@ -129,11 +132,12 @@ class TransactionOperation
     }
 
     /**
-     * @param \DOMElement $filter
+     * @param DOMElement $filter
      * @return $this
-     * @throws \WhereGroup\CoreBundle\Component\Search\PropertyNameNotFoundException
+     * @throws CswException
+     * @throws PropertyNameNotFoundException
      */
-    public function setConstraint(\DOMElement $filter)
+    public function setConstraint(DOMElement $filter)
     {
         $this->constraint = GmlFilterReader::readFromCsw($filter, $this->exprHandler);
 
@@ -143,7 +147,7 @@ class TransactionOperation
     /**
      * @param $name
      * @param $value
-     * @throws \Exception
+     * @throws Exception
      */
     public function setParameter($name, $value)
     {
@@ -155,7 +159,7 @@ class TransactionOperation
                 $this->setTypeName($value);
                 break;
             default:
-                throw new \Exception('Transaction: not defined parameter:'.$name);
+                throw new Exception('Transaction: not defined parameter:'.$name);
         }
     }
 
