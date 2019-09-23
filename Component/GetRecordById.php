@@ -3,6 +3,7 @@
 namespace Plugins\WhereGroup\CatalogueServiceBundle\Component;
 
 use WhereGroup\CoreBundle\Component\Search\Expression;
+use WhereGroup\CoreBundle\Component\Search\ExprHandler;
 
 /**
  * The class GetRecordById is a representation of the OGC CSW GetCapabilities operation.
@@ -25,6 +26,17 @@ class GetRecordById extends FindRecord
 
     protected $outputSchema;
     protected $id;
+
+    /**
+     * GetRecordById constructor.
+     * @param \Plugins\WhereGroup\CatalogueServiceBundle\Entity\Csw $entity
+     * @param ExprHandler $exprHandler
+     */
+    public function __construct(\Plugins\WhereGroup\CatalogueServiceBundle\Entity\Csw $entity, ExprHandler $exprHandler)
+    {
+        parent::__construct($entity, $exprHandler);
+        $this->supportedOutputFormats = ["application/xml", "text/html", "application/pdf"];
+    }
 
     /**
      * {@inheritdoc}

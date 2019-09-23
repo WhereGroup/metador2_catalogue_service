@@ -61,6 +61,7 @@ class GetRecords extends FindRecord
         $this->startPosition = 1;
         $this->maxRecords = 10;
         $this->sortBy = [];
+        $this->supportedOutputFormats = ["application/xml", "text/html", "application/pdf"];
     }
 
     /**

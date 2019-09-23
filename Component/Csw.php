@@ -274,7 +274,7 @@ class Csw
             ->find();
 
         $result['rows'] = $this->prepareResult($result['rows'], $operation->getElementSetName());
-
+        // $operation->getOutputFormat(); // one of $this->supportedOutputFormats = $this->supportedOutputFormats = ["application/xml", "text/html", "application/pdf"];
         return $this->templating->render(
             'CatalogueServiceBundle:CSW:recordbyid_response.xml.twig',
             [
@@ -326,7 +326,7 @@ class Csw
         $records = $this->prepareResult($result['rows'], $operation->getElementSetName());
         $matched = $result['paging']->count;
         $next = $offset + count($records) + 1;
-
+        // $operation->getOutputFormat(); // one of $this->supportedOutputFormats = $this->supportedOutputFormats = ["application/xml", "text/html", "application/pdf"];
         return $this->templating->render(
             'CatalogueServiceBundle:CSW:records_response.xml.twig',
             [

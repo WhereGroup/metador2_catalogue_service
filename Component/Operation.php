@@ -78,6 +78,8 @@ abstract class Operation
      */
     protected $outputFormat;
 
+    protected $supportedOutputFormats;
+
     /**
      * Operation constructor.
      * @param \Plugins\WhereGroup\CatalogueServiceBundle\Entity\Csw $entity
@@ -87,6 +89,7 @@ abstract class Operation
         $this->entity = $entity;
         $this->version = self::VERSION;
         $this->outputFormat = 'application/xml';
+        $this->supportedOutputFormats = ["application/xml"];
     }
 
     /**
@@ -293,10 +296,18 @@ abstract class Operation
     /**
      * @param mixed $outputFormat
      */
+    public function getOutputFormat()
+    {
+        return $this->outputFormat;
+    }
+
+    /**
+     * @param mixed $outputFormat
+     */
     public function setOutputFormat($outputFormat)
     {
         if ($outputFormat && is_string($outputFormat)) { # GET request
-            if ($this->outputFormat !== $outputFormat) {
+            if (!in_array($outputFormat, $this->supportedOutputFormats)) {
                 $this->addCswException('outputFormat', CswException::INVALIDPARAMETERVALUE);
             } else {
                 $this->outputFormat = $outputFormat;
