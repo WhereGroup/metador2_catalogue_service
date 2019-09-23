@@ -74,7 +74,7 @@ abstract class Operation
     protected $version;
     /**
      * The requested output formats
-     * @var array $outputFormat
+     * @var string $outputFormat
      */
     protected $outputFormat;
 
@@ -261,6 +261,11 @@ abstract class Operation
         }
     }
 
+    /**
+     * Sets operation's parameter
+     * @param array $parameters
+     * @throws \Exception
+     */
     public function setParameters(array $parameters)
     {
         foreach ($parameters as $key => $value) {
@@ -294,7 +299,8 @@ abstract class Operation
     }
 
     /**
-     * @param mixed $outputFormat
+     * Gets the output format
+     * @return string
      */
     public function getOutputFormat()
     {
@@ -302,7 +308,8 @@ abstract class Operation
     }
 
     /**
-     * @param mixed $outputFormat
+     * Sets the output format
+     * @param $outputFormat
      */
     public function setOutputFormat($outputFormat)
     {
@@ -317,11 +324,22 @@ abstract class Operation
         }
     }
 
+    /**
+     * @return ContentSet
+     */
     public function getContentSet()
     {
         return new ContentSet($this);
     }
 
+    /**
+     * @param $name
+     * @param $list
+     * @param array $values
+     * @param bool $mandatory
+     * @return bool
+     * @throws CswException
+     */
     protected function isListAtList($name, $list, array $values, $mandatory = false)
     {
         $result = null;
