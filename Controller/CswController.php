@@ -84,11 +84,9 @@ class CswController extends Controller
                     $content = $csw->describeRecord($parameter, $cswConfig);
                     break;
                 case 'GetRecordById':
-                    $content = $csw->getRecordById($parameter, $cswConfig);
-                    break;
+                    return $csw->getRecordById($parameter, $cswConfig);
                 case 'GetRecords':
-                    $content = $csw->getRecords($parameter, $cswConfig);
-                    break;
+                    return $csw->getRecords($parameter, $cswConfig);
                 default:
                     throw new CswException('request', CswException::OPERATIONNOTSUPPORTED);
             }

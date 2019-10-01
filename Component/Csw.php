@@ -19,11 +19,15 @@ use Plugins\WhereGroup\CatalogueServiceBundle\Entity\Csw as CswEntity;
 use Plugins\WhereGroup\CatalogueServiceBundle\Component\Exception\GetCapabilitiesNotFoundException;
 use Plugins\WhereGroup\CatalogueServiceBundle\Entity\CswRepository;
 use Symfony\Bundle\TwigBundle\TwigEngine;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\KernelInterface;
+use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
+use Symfony\Component\Security\Core\Exception\AccessDeniedException;
 use Twig\Error\Error;
 use WhereGroup\CoreBundle\Component\Exceptions\MetadataException;
 use WhereGroup\CoreBundle\Component\Logger;
 use WhereGroup\CoreBundle\Component\MetadataInterface;
+use WhereGroup\CoreBundle\Component\PDFExport;
 use WhereGroup\CoreBundle\Component\Search\Expression;
 use WhereGroup\CoreBundle\Component\Search\ExprHandler;
 use WhereGroup\CoreBundle\Component\Search\JsonFilterReader;
@@ -78,6 +82,11 @@ class Csw
     private $metadata;
 
     /**
+     * @var AuthorizationCheckerInterface
+     */
+    private $authorizationChecker;
+
+    /**
      * Csw constructor.
      * @param KernelInterface $kernel
      * @param EntityManagerInterface $em
@@ -86,6 +95,7 @@ class Csw
      * @param Plugin $plugin
      * @param Search $metadataSearch
      * @param MetadataInterface $metadata
+     * @param AuthorizationCheckerInterface $authorizationChecker
      */
     public function __construct(
         KernelInterface $kernel,
@@ -94,7 +104,8 @@ class Csw
         Logger $logger,
         Plugin $plugin,
         Search $metadataSearch,
-        MetadataInterface $metadata
+        MetadataInterface $metadata,
+        AuthorizationCheckerInterface $authorizationChecker
     ) {
         $this->kernel = $kernel;
         $this->repo = $em->getRepository(self::ENTITY);
@@ -103,6 +114,7 @@ class Csw
         $this->plugin = $plugin;
         $this->metadataSearch = $metadataSearch;
         $this->metadata = $metadata;
+        $this->authorizationChecker = $authorizationChecker;
     }
 
     /**
@@ -246,7 +258,7 @@ class Csw
     /**
      * @param Parameter $parameter
      * @param CswEntity $cswConfig
-     * @return string
+     * @return Response
      * @throws Exception
      */
     public function getRecordById(Parameter $parameter, CswEntity $cswConfig)
@@ -274,21 +286,35 @@ class Csw
             ->find();
 
         $result['rows'] = $this->prepareResult($result['rows'], $operation->getElementSetName());
-        // $operation->getOutputFormat(); // one of $this->supportedOutputFormats = $this->supportedOutputFormats = ["application/xml", "text/html", "application/pdf"];
-        return $this->templating->render(
-            'CatalogueServiceBundle:CSW:recordbyid_response.xml.twig',
-            [
-                'getredcordbyid' => $operation,
-                'templates'      => $this->getProfileLocations(),
-                'records'        => $result['rows'],
-            ]
-        );
+
+        switch (strtolower($operation->getOutputFormat())) {
+            case 'application/pdf':
+                $this->dumpPDF($result);
+                break;
+            case 'text/html':
+                $p = $this->getFirstMetadata($result);
+
+                return new Response($this->templating->render(
+                    $this->plugin->getPluginClassName($p['_profile']) . ":Export:view.html.twig",
+                    ["p" => $p]
+                ));
+                break;
+            default:
+                return new Response($this->templating->render(
+                    'CatalogueServiceBundle:CSW:recordbyid_response.xml.twig',
+                    [
+                        'getredcordbyid' => $operation,
+                        'templates'      => $this->getProfileLocations(),
+                        'records'        => $result['rows'],
+                    ]
+                ), Response::HTTP_OK, ['content-type' => 'application/xml; charset=utf-8']);
+        }
     }
 
     /**
      * @param Parameter $parameter
      * @param CswEntity $cswConfig
-     * @return string
+     * @return Response
      * @throws CswException
      * @throws Error
      * @throws PropertyNameNotFoundException
@@ -326,18 +352,32 @@ class Csw
         $records = $this->prepareResult($result['rows'], $operation->getElementSetName());
         $matched = $result['paging']->count;
         $next = $offset + count($records) + 1;
-        // $operation->getOutputFormat(); // one of $this->supportedOutputFormats = $this->supportedOutputFormats = ["application/xml", "text/html", "application/pdf"];
-        return $this->templating->render(
-            'CatalogueServiceBundle:CSW:records_response.xml.twig',
-            [
-                'getrecords' => $operation,
-                'templates'  => $this->getProfileLocations(),
-                'timestamp'  => (new DateTime())->format('Y-m-d\TH:i:s'),
-                'matched'    => $matched,
-                'records'    => $records,
-                'nextrecord' => $next > $matched ? 0 : $next,
-            ]
-        );
+
+        switch (strtolower($operation->getOutputFormat())) {
+            case 'application/pdf':
+                $this->dumpPDF($result);
+                break;
+            case 'text/html':
+                $p = $this->getFirstMetadata($result);
+
+                return new Response($this->templating->render(
+                    $this->plugin->getPluginClassName($p['_profile']) . ":Export:view.html.twig",
+                    ["p" => $p]
+                ));
+                break;
+            default:
+                return new Response($this->templating->render(
+                    'CatalogueServiceBundle:CSW:records_response.xml.twig',
+                    [
+                        'getrecords' => $operation,
+                        'templates'  => $this->getProfileLocations(),
+                        'timestamp'  => (new DateTime())->format('Y-m-d\TH:i:s'),
+                        'matched'    => $matched,
+                        'records'    => $records,
+                        'nextrecord' => $next > $matched ? 0 : $next,
+                    ]
+                ), Response::HTTP_OK, ['content-type' => 'application/xml; charset=utf-8']);
+        }
     }
 
     /**
@@ -702,5 +742,43 @@ class Csw
         $doc = new DOMDocument();
         $doc->appendChild($doc->importNode($element, true));
         return $doc->saveXML();
+    }
+
+    /**
+     * @param $result
+     * @return mixed
+     * @throws Exception
+     */
+    private function getFirstMetadata($result)
+    {
+        if (!isset($result['rows'][0])) {
+            throw new Exception("Metadatensatz nicht gefunden");
+        }
+
+        $p = json_decode($result['rows'][0]->object, true);
+
+        if (!$this->authorizationChecker->isGranted('view', $p)) {
+            throw new AccessDeniedException('Unable to access this metadata!');
+        }
+
+        return $p;
+    }
+
+    /**
+     * @param array $result
+     * @throws Error
+     * @throws Exception
+     */
+    private function dumpPDF(array $result)
+    {
+        $p = $this->getFirstMetadata($result);
+
+        error_reporting(E_ERROR);
+        $pdf = new PDFExport('P', 'mm', 'A4', true, 'UTF-8', false, false);
+        $pdf->setUUID($p['_uuid']);
+        $pdf->createPdf($this->templating->render(
+            $this->plugin->getPluginClassName($p['_profile']) . ":Export:pdf.html.twig",
+            ["p" => $p]
+        ), $p);
     }
 }
