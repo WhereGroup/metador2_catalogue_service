@@ -179,7 +179,7 @@ class GetRecords extends FindRecord
     {
         // only xml Filter is supported TODO for other (e.g. CQL)
         try {
-            if (is_string($constraintContent)) {
+            if ($constraintContent !== null && is_string($constraintContent)) {
                 $xml = '<?xml version="1.0" ?>'
                     .'<csw:Filter xmlns:csw="http://www.opengis.net/cat/csw/2.0.2"'
                     .' xmlns="http://www.opengis.net/cat/csw/2.0.2" xmlns:ogc="http://www.opengis.net/ogc">'
@@ -188,13 +188,9 @@ class GetRecords extends FindRecord
                 if (!$dom->loadXML($xml, LIBXML_DTDLOAD | LIBXML_DTDATTR | LIBXML_NOENT | LIBXML_XINCLUDE)) {
                     throw new CswException('filter', CswException::ParsingError);
                 }
-                if ($constraintContent !== null) {
-                    $this->constraint = GmlFilterReader::readFromCsw($dom->documentElement, $this->exprHandler);
-                }
-            } else {
-                if ($constraintContent !== null) {
-                    $this->constraint = GmlFilterReader::readFromCsw($constraintContent, $this->exprHandler);
-                }
+                $this->constraint = GmlFilterReader::readFromCsw($dom->documentElement, $this->exprHandler);
+            } elseif ($constraintContent !== null && $constraintContent instanceof \DOMElement) {
+                $this->constraint = GmlFilterReader::readFromCsw($constraintContent, $this->exprHandler);
             }
 
             return $this;

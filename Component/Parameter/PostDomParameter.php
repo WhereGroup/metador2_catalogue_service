@@ -54,16 +54,20 @@ class PostDomParameter implements Parameter
         }
         $this->dom = $dom;
         $this->xpath = new \DOMXPath($this->dom);
+        $nses = [];
         foreach ($this->xpath->query('//namespace::*') as $node) {
             if (strlen($node->prefix)) {
-                $this->xpath->registerNamespace($node->prefix, $node->namespaceURI);
+                $nses[$node->prefix] = $node->namespaceURI;
             } else {
                 if ($node->namespaceURI === $this->rootUri) {
-                    $this->xpath->registerNamespace($this->rootPrefix, $node->namespaceURI);
+                    $nses[$node->prefix] = $node->namespaceURI;
                 } else {
-                    $this->xpath->registerNamespace(self::EXTERNAL_PREFIX, $node->namespaceURI);
+                    $nses[self::EXTERNAL_PREFIX] = $node->namespaceURI;
                 }
             }
+        }
+        foreach ($nses as $ns => $uri) {
+            $this->xpath->registerNamespace($ns, $uri);
         }
     }
 
