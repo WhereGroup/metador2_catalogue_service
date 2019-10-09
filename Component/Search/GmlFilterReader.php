@@ -139,18 +139,6 @@ class GmlFilterReader implements FilterReader
                     break;
                 case 'PropertyIsEqualTo':
                     $operands = self::getComparisonContent($child);
-//                    // TODO: CLEAN UP !!! :'(
-//                    if (isset($operands['name']) && strtolower($operands['name']) === 'subject') {
-//                        $items[] = $exprH->like(
-//                            $this->getName($operands['name']),
-//                            "%".$operands['literal']."%",
-//                            $parameters,
-//                            "\\",
-//                            "_",
-//                            "%"
-//                        );
-//                        break;
-//                    }
                     $items[] = $exprH->eq($this->getName($operands['name']), $operands['literal'], $parameters);
                     break;
                 case 'PropertyIsNotEqualTo':
