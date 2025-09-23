@@ -2,6 +2,7 @@
 
 namespace Plugins\WhereGroup\CatalogueServiceBundle\EventListener;
 
+use Exception;
 use WhereGroup\CoreBundle\Event\ApplicationEvent;
 
 /**
@@ -12,7 +13,7 @@ class ApplicationListener
 {
     /**
      * @param ApplicationEvent $event
-     * @throws \Exception
+     * @throws Exception
      */
     public function onLoading(ApplicationEvent $event)
     {
@@ -21,7 +22,7 @@ class ApplicationListener
         if ($app->routeStartsWith('metador_admin')) {
             $app->add(
                 $app->get('AdminMenu', 'csw')
-                    ->icon('icon-cloud-download')
+                    ->icon('icon-cloud-upload')
                     ->label('Catalogue Service')
                     ->path('metador_admin_csw')
                     ->setRole('ROLE_SYSTEM_SUPERUSER')

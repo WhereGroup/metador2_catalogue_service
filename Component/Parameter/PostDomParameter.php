@@ -47,10 +47,16 @@ class PostDomParameter implements Parameter
     {
         $this->rootPrefix = $rootPrefix;
         $this->rootUri = $rootUri;
-
+        libxml_use_internal_errors(true);
         $dom = new \DOMDocument();
-        if (!@$dom->loadXML($content, LIBXML_DTDLOAD | LIBXML_DTDATTR | LIBXML_NOENT | LIBXML_XINCLUDE)) {
-            throw new CswException('Can\'t parse a string to xml', CswException::OPERATIONPARSINGFAILED);
+        if (!@$dom->loadXML($content, LIBXML_SCHEMA_CREATE)) {
+            $errStr = $this->getErrorStr(libxml_get_errors());
+            libxml_clear_errors();
+            throw new CswException('Can\'t parse a string to xml: ' . $errStr, CswException::OPERATIONPARSINGFAILED);
+        }
+        if (($errStr = $this->getErrorStr(libxml_get_errors()))) {
+            throw new CswException('Can\'t parse a string to xml: ' . $errStr, CswException::OPERATIONPARSINGFAILED);
+            libxml_clear_errors();
         }
         $this->dom = $dom;
         $this->xpath = new \DOMXPath($this->dom);
@@ -87,11 +93,7 @@ class PostDomParameter implements Parameter
         $parameterMap = $operation->getPOSTParameterMap();
         $parameters = [];
         foreach ($parameterMap as $key => $value) {
-            try {
-                $parameters[$value] = $this->getParameter($key);
-            } catch (\Exception $e) {
-                $parameters[$value] = null;
-            }
+            $parameters[$value] = $this->getParameter($key);
         }
         $operation->setParameters($parameters);
 
@@ -164,6 +166,19 @@ class PostDomParameter implements Parameter
             }
         } catch (\Exception $e) {
             return null;
+        }
+    }
+
+    private function getErrorStr($errors)
+    {
+        if (count($errors) > 0) {
+            $errorStrs = array_map(function ($e) {
+                /* @var \LibXMLError $e */
+                return $e->message;
+            }, $errors);
+            return implode(" , ", $errorStrs);
+        } else {
+            return "";
         }
     }
 }

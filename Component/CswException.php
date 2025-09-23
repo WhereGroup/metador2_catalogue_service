@@ -183,8 +183,7 @@ class CswException extends Exception
                 return "Invalid feature or property value";
             case self::LOCKHASEXPIRED:
                 return "Lock identifier has expired";
-            case self::OPERATIONPARSINGFAILED:
-                return "Parsing failed: ".$this->getLocator();
+            case self::OPERATIONPARSINGFAILED:return "Parsing failed: ".$this->getMessage();
             case self::OPERATIONPROCESSINGFAILED:
                 return "Operation processing failed";
             case self::OPERATIONNOTSUPPORTED:

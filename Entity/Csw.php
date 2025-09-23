@@ -176,6 +176,12 @@ class Csw
     protected $profileMapping;
 
     /**
+     * @var $delete boolean is a csw transaction delete supported.
+     * @ORM\Column(name="`series_as_dataset`", type="boolean", nullable=true)
+     */
+    protected $seriesAsDataset = false;
+
+    /**
      * @var array
      * @ORM\Column(type="json_array", nullable=true)
      */
@@ -222,6 +228,7 @@ class Csw
         $this->insert = isset($kv['insert']) ? $kv['insert'] : false;
         $this->update = isset($kv['update']) ? $kv['update'] : false;
         $this->delete = isset($kv['delete']) ? $kv['delete'] : false;
+        $this->seriesAsDataset = isset($kv['seriesAsDataset']) ? $kv['seriesAsDataset'] : false;
         $this->profileMapping = isset($kv['profileMapping']) ? $kv['profileMapping'] : [];
         $this->filter = isset($kv['filter']) ? $kv['filter'] : [];
 
@@ -803,6 +810,30 @@ class Csw
     {
         return $this->delete;
     }
+
+    /**
+     * Get seriesAsDataset
+     *
+     * @return bool
+     */
+    public function getSeriesAsDataset()
+    {
+        return $this->seriesAsDataset;
+    }
+
+    /**
+     * Set seriesAsDataset
+     *
+     * @param bool $seriesAsDataset
+     * @return Csw
+     */
+    public function setSeriesAsDataset($seriesAsDataset)
+    {
+        $this->seriesAsDataset = $seriesAsDataset;
+
+        return $this;
+    }
+
 
     /**
      * Set profileMapping

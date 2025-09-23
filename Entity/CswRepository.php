@@ -3,7 +3,10 @@
 namespace Plugins\WhereGroup\CatalogueServiceBundle\Entity;
 
 use Doctrine\ORM\EntityRepository;
+use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
+use Doctrine\ORM\OptimisticLockException;
+use Doctrine\ORM\ORMException;
 
 /**
  * Class CswRepository
@@ -13,7 +16,7 @@ class CswRepository extends EntityRepository
 {
     /**
      * @return mixed
-     * @throws \Doctrine\ORM\NonUniqueResultException
+     * @throws NonUniqueResultException
      */
     public function countAll()
     {
@@ -29,7 +32,7 @@ class CswRepository extends EntityRepository
     /**
      * @param $source
      * @return int|mixed
-     * @throws \Doctrine\ORM\NonUniqueResultException
+     * @throws NonUniqueResultException
      */
     public function countBySource($source)
     {
@@ -68,7 +71,7 @@ class CswRepository extends EntityRepository
      * @param $slug
      * @param $source
      * @return mixed
-     * @throws \Doctrine\ORM\NonUniqueResultException
+     * @throws NonUniqueResultException
      */
     public function findOneBySlugAndSource($slug, $source)
     {
@@ -88,8 +91,8 @@ class CswRepository extends EntityRepository
     /**
      * @param $entity
      * @return $this
-     * @throws \Doctrine\ORM\ORMException
-     * @throws \Doctrine\ORM\OptimisticLockException
+     * @throws ORMException
+     * @throws OptimisticLockException
      */
     public function save($entity)
     {
@@ -102,8 +105,8 @@ class CswRepository extends EntityRepository
     /**
      * @param $entity
      * @return $this
-     * @throws \Doctrine\ORM\ORMException
-     * @throws \Doctrine\ORM\OptimisticLockException
+     * @throws ORMException
+     * @throws OptimisticLockException
      */
     public function remove($entity)
     {
