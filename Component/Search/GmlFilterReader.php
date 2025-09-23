@@ -16,17 +16,23 @@ use WhereGroup\CoreBundle\Component\Search\PropertyNameNotFoundException;
 class GmlFilterReader implements FilterReader
 {
     /**
-     * @var ExprHandler
+     * @var ExprHandler $exprHandler
      */
     protected $exprHandler;
+
+    /**
+     * @var bool $seriesAsDataset
+     */
+    protected $seriesAsDataset;
 
     /**
      * JsonFilterReader constructor.
      * @param ExprHandler $exprHandler
      */
-    private function __construct(ExprHandler $exprHandler)
+    private function __construct(ExprHandler $exprHandler, $seriesAsDataset = false)
     {
         $this->exprHandler = $exprHandler;
+        $this->seriesAsDataset = $seriesAsDataset;
     }
 
     /**
@@ -37,7 +43,7 @@ class GmlFilterReader implements FilterReader
     {
         switch (strtolower($name)) {
             case 'title':
-                return 'title';
+                return 'keywords';
             case 'subject':
                 return 'keywords';
             case 'anytext':
@@ -59,16 +65,17 @@ class GmlFilterReader implements FilterReader
     }
 
     /**
-     * @param mixed $filter
+     * @param $filter
      * @param ExprHandler $expression
-     * @return null|Expression
+     * @param $seriesAsDataset
+     * @return Expression|null
      * @throws CswException
-     * @throws \WhereGroup\CoreBundle\Component\Search\PropertyNameNotFoundException
+     * @throws PropertyNameNotFoundException
      */
-    public static function readFromCsw($filter, ExprHandler $expression)
+    public static function readFromCsw($filter, ExprHandler $expression, $seriesAsDataset = false)
     {
         $parameters = [];
-        $reader = new GmlFilterReader($expression);
+        $reader = new GmlFilterReader($expression, $seriesAsDataset);
         $expression = $reader->getExpression($filter, $expression, $parameters);
 
         if (is_array($expression) && count($expression) !== 1) {
@@ -139,11 +146,31 @@ class GmlFilterReader implements FilterReader
                     break;
                 case 'PropertyIsEqualTo':
                     $operands = self::getComparisonContent($child);
-                    $items[] = $exprH->eq($this->getName($operands['name']), $operands['literal'], $parameters);
+                    if ($this->seriesAsDataset && $this->getName($operands['name']) === 'hierarchyLevel' && $operands['literal'] === 'dataset') {
+                        $list = [
+                            $exprH->eq($this->getName($operands['name']), $operands['literal'], $parameters),
+                            $exprH->eq($this->getName($operands['name']), 'series', $parameters)
+                        ];
+                        $items[] = $exprH->orx($list);
+                    } elseif ($this->seriesAsDataset && $this->getName($operands['name']) === 'hierarchyLevel' && $operands['literal'] === 'series') {
+                        $items[] = $exprH->eq($this->getName($operands['name']), "NoChanceSeriesToFind", $parameters);
+                    }  else {
+                        $items[] = $exprH->eq($this->getName($operands['name']), $operands['literal'], $parameters);
+                    }
                     break;
                 case 'PropertyIsNotEqualTo':
                     $operands = self::getComparisonContent($child);
-                    $items[] = $exprH->neq($this->getName($operands['name']), $operands['literal'], $parameters);
+                    if ($this->seriesAsDataset && $this->getName($operands['name']) === 'hierarchyLevel' && $operands['literal'] === 'dataset') {
+                        $list = [
+                            $exprH->neq($this->getName($operands['name']), $operands['literal'], $parameters),
+                            $exprH->neq($this->getName($operands['name']), 'series', $parameters)
+                        ];
+                        $items[] = $exprH->andx($list);
+                    } elseif ($this->seriesAsDataset && $this->getName($operands['name']) === 'hierarchyLevel' && $operands['literal'] === 'series') {
+                        $items[] = $exprH->neq($this->getName($operands['name']), "NoChanceSeriesToFind", $parameters);
+                    } else {
+                        $items[] = $exprH->neq($this->getName($operands['name']), $operands['literal'], $parameters);
+                    }
                     break;
                 case 'PropertyIsLike':
                     $operands = self::getComparisonContent($child);
@@ -463,7 +490,8 @@ class GmlFilterReader implements FilterReader
     private static function toJsonCoordinates(array $ordinates)
     {
         $coords = [];
-        for ($i = 1; $i < count($ordinates); $i += 2) {
+        $l = count($ordinates);
+        for ($i = 1; $i < $l; $i += 2) {
             $coords[] = [$ordinates[$i - 1], $ordinates[$i]];
         }
 

@@ -409,10 +409,10 @@ abstract class Operation
      */
     protected function getInteger($name, $intToTest)
     {
-        if (is_integer($intToTest)) {
+        if (is_int($intToTest)) {
             return $intToTest;
         } elseif (ctype_digit(trim($intToTest))) {
-            return intval(trim($intToTest));
+            return (int)trim($intToTest);
         } else {
             $this->addCswException($name, CswException::INVALIDPARAMETERVALUE);
 
@@ -429,7 +429,7 @@ abstract class Operation
      */
     protected function getGreaterThan($name, $numberToTest, $number)
     {
-        if ((is_integer($numberToTest) || is_float($numberToTest)) && $numberToTest > $number) {
+        if ((is_int($numberToTest) || is_float($numberToTest)) && $numberToTest > $number) {
             return $numberToTest;
         } else {
             $this->addCswException($name, CswException::INVALIDPARAMETERVALUE);

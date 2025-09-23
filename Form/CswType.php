@@ -164,6 +164,10 @@ class CswType extends AbstractType
                 'label' => 'Onlineresourse',
                 'required' => false,
             ])
+            ->add('seriesAsDataset', CheckboxType::class, [
+                'label' => 'Datensatzreihe als Datensatz ausgeben',
+                'required' => false,
+            ])
             ->add('insert', CheckboxType::class, [
                 'label' => 'Einfügen',
                 'required' => false,
@@ -180,7 +184,8 @@ class CswType extends AbstractType
             ->add('filter', TextareaType::class, [
                 'label' => 'Filter (JSON)',
                 'required' => false,
-            ]);
+            ])
+        ;
 
         $fields = $this->config->get('hierarchy_levels', 'plugin', 'metador_core');
         $fields = $fields ? $fields : [];

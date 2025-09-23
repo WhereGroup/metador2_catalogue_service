@@ -2,8 +2,13 @@
 
 namespace Plugins\WhereGroup\CatalogueServiceBundle\Controller;
 
+use Doctrine\ORM\NonUniqueResultException;
+use Doctrine\ORM\OptimisticLockException;
+use Doctrine\ORM\ORMException;
 use Plugins\WhereGroup\CatalogueServiceBundle\Entity\Csw;
 use Plugins\WhereGroup\CatalogueServiceBundle\Form\CswType;
+use Symfony\Component\HttpFoundation\RedirectResponse;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\Form\Extension\Core\Type\SubmitType;
@@ -30,8 +35,10 @@ class AdminController extends Controller
 
     /**
      * @Route("/new/", name="metador_admin_csw_new", methods={"GET", "POST"})
-     * @throws \Doctrine\ORM\NonUniqueResultException
-     * @throws \Doctrine\ORM\OptimisticLockException
+     * @return RedirectResponse|Response
+     * @throws NonUniqueResultException
+     * @throws ORMException
+     * @throws OptimisticLockException
      */
     public function newAction()
     {
@@ -83,9 +90,10 @@ class AdminController extends Controller
      * @Route("/edit/{source}/{slug}", name="metador_admin_csw_edit", methods={"GET", "POST"})
      * @param string $source
      * @param string $slug
-     * @return \Symfony\Component\HttpFoundation\RedirectResponse|\Symfony\Component\HttpFoundation\Response
-     * @throws \Doctrine\ORM\NonUniqueResultException
-     * @throws \Doctrine\ORM\OptimisticLockException
+     * @return RedirectResponse|Response
+     * @throws NonUniqueResultException
+     * @throws ORMException
+     * @throws OptimisticLockException
      */
     public function editAction($source, $slug)
     {
@@ -122,10 +130,10 @@ class AdminController extends Controller
      * @Route("/confirm/{source}/{slug}", name="metador_admin_csw_confirm", methods={"GET", "POST"})
      * @param $source
      * @param $slug
-     * @return \Symfony\Component\HttpFoundation\RedirectResponse|\Symfony\Component\HttpFoundation\Response
-     * @throws \Doctrine\ORM\NonUniqueResultException
-     * @throws \Doctrine\ORM\ORMException
-     * @throws \Doctrine\ORM\OptimisticLockException
+     * @return RedirectResponse|Response
+     * @throws NonUniqueResultException
+     * @throws ORMException
+     * @throws OptimisticLockException
      */
     public function confirmAction($source, $slug)
     {

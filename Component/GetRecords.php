@@ -49,11 +49,15 @@ class GetRecords extends FindRecord
     protected $elementName;
     protected $deistributedSearch;
     protected $hopCount;
+    /**
+     * @var bool $seriesAsDataset
+     */
+    protected $seriesAsDataset;
 
     /**
      * {@inheritdoc}
      */
-    public function __construct(Csw $entity, ExprHandler $exprHandler)
+    public function __construct(Csw $entity, ExprHandler $exprHandler, $seriesAsDataset)
     {
         parent::__construct($entity, $exprHandler);
         $this->resultType = self::RESULTTYPE_HITS;
@@ -62,6 +66,7 @@ class GetRecords extends FindRecord
         $this->maxRecords = 10;
         $this->sortBy = [];
         $this->supportedOutputFormats = ["application/xml", "text/html", "application/pdf"];
+        $this->seriesAsDataset = $seriesAsDataset;
     }
 
     /**
@@ -186,11 +191,11 @@ class GetRecords extends FindRecord
                     .$constraintContent.'</csw:Filter>';
                 $dom = new \DOMDocument();
                 if (!$dom->loadXML($xml, LIBXML_DTDLOAD | LIBXML_DTDATTR | LIBXML_NOENT | LIBXML_XINCLUDE)) {
-                    throw new CswException('filter', CswException::ParsingError);
+                    throw new CswException('filter', CswException::OPERATIONPARSINGFAILED);
                 }
-                $this->constraint = GmlFilterReader::readFromCsw($dom->documentElement, $this->exprHandler);
+                $this->constraint = GmlFilterReader::readFromCsw($dom->documentElement, $this->exprHandler, $this->seriesAsDataset);
             } elseif ($constraintContent !== null && $constraintContent instanceof \DOMElement) {
-                $this->constraint = GmlFilterReader::readFromCsw($constraintContent, $this->exprHandler);
+                $this->constraint = GmlFilterReader::readFromCsw($constraintContent, $this->exprHandler, $this->seriesAsDataset);
             }
 
             return $this;

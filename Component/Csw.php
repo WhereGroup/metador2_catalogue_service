@@ -24,18 +24,18 @@ use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
 use Symfony\Component\Security\Core\Exception\AccessDeniedException;
 use Twig\Error\Error;
-use WhereGroup\CoreBundle\Component\Exceptions\MetadataException;
+use WhereGroup\CoreBundle\Component\Exceptions\MetadataNotFoundException;
 use WhereGroup\CoreBundle\Component\Logger;
-use WhereGroup\CoreBundle\Component\MetadataInterface;
 use WhereGroup\CoreBundle\Component\PDFExport;
 use WhereGroup\CoreBundle\Component\Search\Expression;
-use WhereGroup\CoreBundle\Component\Search\ExprHandler;
+use WhereGroup\CoreBundle\Component\Search\ExprHandlerInterface;
 use WhereGroup\CoreBundle\Component\Search\JsonFilterReader;
 use WhereGroup\CoreBundle\Component\Search\PropertyNameNotFoundException;
 use WhereGroup\CoreBundle\Component\Search\Search;
 use WhereGroup\CoreBundle\Component\Utils\ArrayParser;
 use WhereGroup\CoreBundle\Component\Utils\Stopwatch;
 use WhereGroup\CoreBundle\Entity\Source;
+use WhereGroup\CoreBundle\Service\Metadata\Metadata;
 use WhereGroup\PluginBundle\Component\Plugin;
 
 /**
@@ -77,7 +77,7 @@ class Csw
     private $metadataSearch;
 
     /**
-     * @var MetadataInterface
+     * @var Metadata
      */
     private $metadata;
 
@@ -94,7 +94,7 @@ class Csw
      * @param Logger $logger
      * @param Plugin $plugin
      * @param Search $metadataSearch
-     * @param MetadataInterface $metadata
+     * @param Metadata $metadata
      * @param AuthorizationCheckerInterface $authorizationChecker
      */
     public function __construct(
@@ -104,7 +104,7 @@ class Csw
         Logger $logger,
         Plugin $plugin,
         Search $metadataSearch,
-        MetadataInterface $metadata,
+        Metadata $metadata,
         AuthorizationCheckerInterface $authorizationChecker
     ) {
         $this->kernel = $kernel;
@@ -263,7 +263,7 @@ class Csw
      */
     public function getRecordById(Parameter $parameter, CswEntity $cswConfig)
     {
-        /* @var ExprHandler $exprHandler */
+        /* @var ExprHandlerInterface $exprHandler */
         $exprHandler = $this->metadataSearch->createExpression();
 
         /**
@@ -285,6 +285,10 @@ class Csw
             ->setExpression($cswAndGetRecordByIdExpr)
             ->find();
 
+        if ($cswConfig->getSeriesAsDataset()) {
+            $result['rows'] = $this->replaceSeries($result['rows']);
+        }
+        // Prepare result for full, summary and brief metadata.
         $result['rows'] = $this->prepareResult($result['rows'], $operation->getElementSetName());
 
         switch (strtolower($operation->getOutputFormat())) {
@@ -322,13 +326,13 @@ class Csw
      */
     public function getRecords(Parameter $parameter, CswEntity $cswConfig)
     {
-        /* @var ExprHandler $exprHandler */
+        /* @var ExprHandlerInterface $exprHandler */
         $exprHandler = $this->metadataSearch->createExpression();
 
         /**
          * @var GetRecords $operation
          */
-        $operation = $parameter->initOperation(new GetRecords($cswConfig, $exprHandler));
+        $operation = $parameter->initOperation(new GetRecords($cswConfig, $exprHandler, $cswConfig->getSeriesAsDataset()));
         $operation->validateParameter();
 
         /* @var Expression $cswAndGetRecordsExpr */
@@ -349,6 +353,9 @@ class Csw
 
         // Prepare result for full, summary and brief metadata.
         $result  = $this->metadataSearch->find();
+        if ($cswConfig->getSeriesAsDataset()) {
+            $result['rows'] = $this->replaceSeries($result['rows']);
+        }
         $records = $this->prepareResult($result['rows'], $operation->getElementSetName());
         $matched = $result['paging']->count;
         $next = $offset + count($records) + 1;
@@ -382,6 +389,27 @@ class Csw
 
     /**
      * @param array $rows
+     * @return array
+     */
+    private function replaceSeries(array $rows)
+    {
+        $l = count($rows);
+        for ($i = 0; $i < $l; $i++) {
+            if (!isset($rows[$i]['object'])) {
+                continue;
+            }
+            $p = json_decode($rows[$i]['object'], true);
+            $hierarchyLevel = ArrayParser::get($p, 'hierarchyLevel', '');
+            if ($hierarchyLevel === "series") {
+                ArrayParser::set($p, 'hierarchyLevel', "dataset");
+            }
+            $rows[$i]['object'] = json_encode($p);
+        }
+        return $rows;
+    }
+
+    /**
+     * @param array $origRows
      * @param string $elementSetName
      * @return array
      */
@@ -399,7 +427,6 @@ class Csw
             }
 
             $p = json_decode($row['object'], true);
-
             // brief
             $newObject['object'] = [
                 'fileIdentifier' => ArrayParser::get($p, 'fileIdentifier', ''),
@@ -491,25 +518,29 @@ class Csw
     public function doInsert(CswEntity $cswConfig, TransactionOperation $action, TransactionParameter $handler)
     {
         gc_collect_cycles();
-        $em = $this->metadata->getEntityManager();
-        $em->clear();
-        $em->getConnection()->getConfiguration()->setSQLLogger(null);
+        $this->metadata->db->clearSqlObjectManager()->disableSqlLogger();
 
         $inserted = 0;
 
         /* list of metadates- no filter */
         foreach ($action->getItems() as $mdMetadata) {
-            $hierarchyLevel = $handler->valueFor('./gmd:hierarchyLevel[1]/gmd:MD_ScopeCode/text()', $mdMetadata);
+            $hierarchyLevel = $handler->valueFor('./gmd:hierarchyLevel[1]/gmd:MD_ScopeCode/@codeListValue', $mdMetadata);
             $profiles = $cswConfig->getProfileMapping();
 
             if (isset($profiles[$hierarchyLevel])) {
-                $p = $this->metadata->xmlToObject(self::elementToString($mdMetadata), $profiles[$hierarchyLevel]);
+                $p = $this->metadata
+                    ->getProcessor()
+                    ->xmlToObjectByProfile(self::elementToString($mdMetadata), $profiles[$hierarchyLevel]);
+                try {
+                    $entity = $this->metadata->findById($p['_uuid']);
+                    if ($entity) {
+                        throw new CswException('fileIdentifier', CswException::INVALIDPARAMETERVALUE);
+                    }
+                    unset($entity);
+                } catch (MetadataNotFoundException $e) {
 
-                if ($this->metadata->exists($p['fileIdentifier'])) {
-                    throw new CswException('fileIdentifier', CswException::INVALIDPARAMETERVALUE);
                 }
-
-                $this->metadata->saveObject($p, null, [
+                $this->metadata->insertByObject($p, [
                     'source'   => $cswConfig->getSource(),
                     'profile'  => $profiles[$hierarchyLevel],
                     'username' => $cswConfig->getUsername(),
@@ -538,13 +569,11 @@ class Csw
     {
         $sw = new Stopwatch();
         gc_collect_cycles();
-        $em = $this->metadata->getEntityManager();
-        $em->clear();
-        $em->getConnection()->getConfiguration()->setSQLLogger(null);
+        $this->metadata->db->clearSqlObjectManager()->disableSqlLogger();
 
         $updated = 0;
         if ($action->getConstraint()) {
-            /* @var ExprHandler $exprHandler */
+            /* @var ExprHandlerInterface $exprHandler */
             $exprHandler = $this->metadataSearch->createExpression();
 
             /* @var Expression $cswAndDeleteExpr */
@@ -574,11 +603,10 @@ class Csw
                     $profiles = $cswConfig->getProfileMapping();
 
                     if (isset($profiles[$hl])) {
-                        /* data for datarow to update */
-                        $new = $this->metadata->xmlToObject(self::elementToString($mdMetadata), $profiles[$hl]);
+                        $new = $this->metadata->getProcessor()->xmlToObjectByProfile(self::elementToString($mdMetadata), $profiles[$hl]);
                         $id = !empty($existing['_uuid']) ? $existing['_uuid'] : null;
 
-                        $this->metadata->saveObject($new, $id, [
+                        $this->metadata->updateByObject($new, [
                             'source'   => $cswConfig->getSource(),
                             'profile'  => $profiles[$hl],
                             'username' => $cswConfig->getUsername(),
@@ -590,7 +618,6 @@ class Csw
                     }
 
                     $this->log($cswConfig, 'warning', 'update', '', 'Type: $hl ist nicht unterstützt');
-
                     break;
                 }
 
@@ -613,18 +640,15 @@ class Csw
      * @param TransactionOperation $action
      * @param TransactionParameter $handler
      * @return int
-     * @throws MetadataException
      * @throws PropertyNameNotFoundException
      */
     public function doDelete(CswEntity $cswConfig, TransactionOperation $action, TransactionParameter $handler)
     {
-        $em = $this->metadata->getEntityManager();
-        $em->clear();
-        $em->getConnection()->getConfiguration()->setSQLLogger(null);
+        $this->metadata->db->clearSqlObjectManager()->disableSqlLogger();
 
         $deleted = 0;
         if ($action->getConstraint()) {
-            /* @var ExprHandler $exprHandler */
+            /* @var ExprHandlerInterface $exprHandler */
             $exprHandler = $this->metadataSearch->createExpression();
 
             /* @var Expression $cswAndDeleteExpr */
@@ -645,8 +669,13 @@ class Csw
             if ($records['rows'] !== false) {
                 foreach ($records['rows'] as $record) {
                     $p = json_decode($record['object'], true);
-                    $item = $this->metadata->getById($p['_uuid']);
-                    $this->metadata->deleteById($item->getId());
+
+                    $entity = $this->metadata->findById($p['_uuid']);
+
+                    if ($entity) {
+                        $this->metadata->delete($entity);
+                    }
+
                     $deleted++;
                 }
             }
@@ -657,24 +686,22 @@ class Csw
 
     /**
      * @param CswEntity $cswConfig
-     * @param ExprHandler $exprHandler
+     * @param ExprHandlerInterface $exprHandler
      * @return null|Expression
      * @throws PropertyNameNotFoundException
      */
-    private function getExpressionForCsw(CswEntity $cswConfig, ExprHandler $exprHandler)
+    private function getExpressionForCsw(CswEntity $cswConfig, ExprHandlerInterface $exprHandler)
     {
-        $cswExpr = JsonFilterReader::read($cswConfig->getFilter(), $exprHandler);
-
-        return $cswExpr;
+        return JsonFilterReader::read($cswConfig->getFilter(), $exprHandler);
     }
 
     /**
-     * @param ExprHandler $exprHandler
+     * @param ExprHandlerInterface $exprHandler
      * @param Expression|null $exprA
      * @param Expression|null $exprB
      * @return null|Expression
      */
-    private function mergeExpression(ExprHandler $exprHandler, Expression $exprA = null, Expression $exprB = null)
+    private function mergeExpression(ExprHandlerInterface $exprHandler, Expression $exprA = null, Expression $exprB = null)
     {
         if ($exprA === null && $exprB === null) {
             return null;
@@ -772,13 +799,15 @@ class Csw
     private function dumpPDF(array $result)
     {
         $p = $this->getFirstMetadata($result);
-
         error_reporting(E_ERROR);
         $pdf = new PDFExport('P', 'mm', 'A4', true, 'UTF-8', false, false);
         $pdf->setUUID($p['_uuid']);
         $pdf->createPdf($this->templating->render(
             $this->plugin->getPluginClassName($p['_profile']) . ":Export:pdf.html.twig",
-            ["p" => $p]
+            [
+                "p" => $p,
+                "outputFormat" => "pdf"
+            ]
         ), $p);
     }
 }
